@@ -1,0 +1,42 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+
+import { motionDuration, premiumEase } from "@/lib/motion";
+import { ProductGrid } from "@/components/product-grid";
+import { getFeaturedProducts } from "@/lib/products";
+
+export function FeaturedProductsSection() {
+  const reduce = useReducedMotion();
+  const products = getFeaturedProducts();
+
+  return (
+    <section className="relative overflow-hidden bg-transparent pb-18 pt-12 sm:pb-22 sm:pt-14 lg:pb-26 lg:pt-18">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute left-0 top-16 h-56 w-56 rounded-full bg-[#EFE7E0]/70 blur-3xl" />
+        <div className="absolute right-0 top-20 h-64 w-64 rounded-full bg-[#ECE4DD]/62 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <h2 className="text-balance text-4xl font-semibold leading-[1] tracking-tight text-[#1F1918] sm:text-5xl">
+            Parent-Loved Baby Essentials
+          </h2>
+          <p className="mt-5 text-pretty text-base leading-relaxed text-[#3B2F2F]/68 sm:text-lg">
+            Carefully picked pieces for comfort, gifting, and everyday use.
+          </p>
+        </motion.div>
+
+        <div className="mt-10 sm:mt-12">
+          <ProductGrid products={products} />
+        </div>
+      </div>
+    </section>
+  );
+}
