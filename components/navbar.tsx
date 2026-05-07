@@ -41,7 +41,7 @@ export function Navbar() {
     <header
       className={cn(
         "sticky top-0 z-50 border-b border-transparent transition-[background-color,box-shadow,border-color] duration-300",
-        "bg-[#F9F5F1]/72 backdrop-blur-xl",
+        "bg-[#F9F5F1]/72 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl",
         isScrolled &&
           "border-[#3B2F2F]/12 bg-[#F9F5F1]/88 shadow-[0_20px_44px_-26px_rgba(59,47,47,0.4)]"
       )}
@@ -104,7 +104,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[82%] border-l-[#3B2F2F]/12 bg-[#FAF6F2]/96 px-6 py-6 backdrop-blur-xl sm:max-w-xs"
+              className="w-[82%] border-l-[#3B2F2F]/12 bg-[#FAF6F2]/96 px-6 pt-[max(1.5rem,env(safe-area-inset-top,0px))] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl sm:max-w-xs"
             >
               <SheetHeader className="px-0 pb-4">
                 <SheetTitle className="text-[#2E2323]">Little Smiles</SheetTitle>

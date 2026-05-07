@@ -121,11 +121,16 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    /* Prevent iOS from inflating text on rotate; keeps layout predictable */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Softer tap feedback on tappable rows (iOS Safari) */
+    -webkit-tap-highlight-color: rgba(59, 47, 47, 0.06);
   }
   h1,
   h2,

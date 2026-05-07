@@ -3,7 +3,7 @@ import Link from "next/link";
 export function SiteFooter() {
   return (
     <footer className="border-t border-[#3B2F2F]/8 bg-[#FCF6F1]/90 backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 pt-8 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:px-6 lg:px-8">
         <div className="flex flex-wrap gap-2 text-xs text-[#3B2F2F]/70">
           <span className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3 py-1">
             Dispatch: 24-48 hours

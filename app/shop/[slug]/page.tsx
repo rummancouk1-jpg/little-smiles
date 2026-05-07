@@ -45,7 +45,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   ]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F9F5F1] pb-18 pt-10 sm:pt-12 lg:pt-16">
+    <main className="relative min-h-screen overflow-hidden bg-[#F9F5F1] pt-10 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] max-sm:pb-[calc(7.25rem+env(safe-area-inset-bottom,0px))] sm:pt-12 lg:pt-16">
       <div className="pointer-events-none absolute inset-0 opacity-[0.46]" aria-hidden>
         <div className="absolute -left-32 top-4 h-[420px] w-[420px] rounded-full bg-[#F0E8E1]/70 blur-3xl" />
         <div className="absolute -right-32 top-24 h-[420px] w-[420px] rounded-full bg-[#ECE4DD]/62 blur-3xl" />

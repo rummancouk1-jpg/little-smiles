@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "validate:catalog": "npx tsx scripts/validate-catalog.ts",
+    "prebuild": "npm run validate:catalog",
     "build": "next build",
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "analyze:turbo": "next experimental-analyze",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:favicon": "node scripts/generate-favicon.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -37,7 +40,9 @@
     "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "png-to-ico": "^3.0.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

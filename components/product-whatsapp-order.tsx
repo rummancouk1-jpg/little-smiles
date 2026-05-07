@@ -140,7 +140,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 value={variantNote}
                 disabled={disabled}
                 onChange={(event) => setVariantNote(event.target.value)}
-                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base md:text-sm"
+                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
               />
               <p className="text-xs text-[#3B2F2F]/58">
                 Optional — we confirm the exact piece before packing.
@@ -159,7 +159,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 value={sizeNote}
                 disabled={disabled}
                 onChange={(event) => setSizeNote(event.target.value)}
-                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base md:text-sm"
+                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
               />
             </div>
           ) : null}
@@ -220,8 +220,8 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-3 z-40 px-4 sm:hidden">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-[#3B2F2F]/12 bg-[#FCF8F4]/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md">
+      <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-2 sm:hidden">
+        <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-[#3B2F2F]/12 bg-[#FCF8F4]/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-[#FCF8F4]/92">
           <div>
             <p className="text-sm font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
             {safeQty === 1 ? (
@@ -237,7 +237,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {disabled ? (
             <Button
               disabled
-              className="h-10 shrink-0 rounded-full bg-[#3B2F2F]/35 px-4 text-xs font-medium text-[#F6F1EC]"
+              className="h-11 min-h-11 min-w-11 shrink-0 rounded-full bg-[#3B2F2F]/35 px-4 text-xs font-medium text-[#F6F1EC]"
               type="button"
             >
               Unavailable
@@ -245,7 +245,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           ) : (
             <Button
               asChild
-              className="h-10 shrink-0 rounded-full bg-[#2F2624] px-4 text-xs font-medium text-[#F6F1EC]"
+              className="h-11 min-h-11 min-w-[5.5rem] shrink-0 rounded-full bg-[#2F2624] px-4 text-xs font-medium text-[#F6F1EC]"
             >
               <Link
                 href={orderHref}

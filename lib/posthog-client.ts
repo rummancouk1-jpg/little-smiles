@@ -39,6 +39,26 @@ export function capturePostHogEvent(
   event: string,
   properties?: Record<string, unknown>,
 ): void {
+  if (
+    event === "whatsapp_order_clicked" &&
+    typeof window !== "undefined" &&
+    typeof fetch === "function"
+  ) {
+    const body = JSON.stringify({
+      source: properties?.source,
+      product_slug: properties?.product_slug,
+      quantity: properties?.quantity,
+      has_variant_note: properties?.has_variant_note,
+      has_size_note: properties?.has_size_note,
+    });
+    void fetch("/api/events/whatsapp-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+    }).catch(() => {});
+  }
+
   void getPostHogClient().then((client) => {
     if (!client) return;
     client.capture(event, properties);
