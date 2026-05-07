@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
 import { Button } from "@/components/ui/button";
 import { whatsappBaseUrl } from "@/lib/products";
-import { testimonials } from "@/lib/testimonials";
+import { homepageTestimonials } from "@/lib/testimonials";
 
 export function TestimonialsSection() {
   const reduce = useReducedMotion();
@@ -39,9 +39,9 @@ export function TestimonialsSection() {
         </motion.div>
 
         <div className="mobile-rail mt-10 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-4">
-          {testimonials.map((item, index) => (
+          {homepageTestimonials.map((item, index) => (
             <motion.article
-              key={item.image}
+              key={item.id}
               initial={reduce ? false : { opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -94,6 +94,14 @@ export function TestimonialsSection() {
             </Link>
           </Button>
         </motion.div>
+        <p className="mt-6 text-center text-sm text-[#3B2F2F]/58">
+          <Link
+            href="/reviews"
+            className="font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-colors hover:decoration-[#2E2323]/50"
+          >
+            Read more reviews
+          </Link>
+        </p>
       </div>
     </section>
   );

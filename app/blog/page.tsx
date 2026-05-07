@@ -1,13 +1,20 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { blogPosts } from "@/lib/blog";
+import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
+import { staticPageMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
-  title: "Blog | Little Smiles",
+export const metadata = staticPageMetadata({
+  title: "Baby & Parenting Guides (Pakistan)",
   description:
-    "Parent-focused guides on newborn essentials, feeding, and practical baby product choices in Pakistan.",
-};
+    "Parent-focused guides on newborn essentials, feeding, and practical baby product choices in Pakistan—by Little Smiles.",
+  path: "/blog",
+});
+
+const blogIndexBreadcrumbLd = breadcrumbJsonLdDocument([
+  { name: "Home", path: "/" },
+  { name: "Journal", path: "/blog" },
+]);
 
 export default function BlogPage() {
   const sortedPosts = [...blogPosts].sort((a, b) =>
@@ -16,6 +23,10 @@ export default function BlogPage() {
 
   return (
     <main className="min-h-screen bg-[#F9F5F1] pb-16 pt-10 sm:pt-12 lg:pt-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogIndexBreadcrumbLd) }}
+      />
       <section className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B2F2F]/50">

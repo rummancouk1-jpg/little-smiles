@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import posthog from "posthog-js";
 
+import { capturePostHogEvent } from "@/lib/posthog-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -45,7 +45,7 @@ export function ContactForm() {
       return;
     }
 
-    posthog.capture("contact_form_submitted", {
+    capturePostHogEvent("contact_form_submitted", {
       source: "contact_page",
     });
 

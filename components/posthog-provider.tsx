@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import posthog from "posthog-js";
+
+import { getPostHogClient, runWhenIdle } from "@/lib/posthog-client";
 
 type PostHogProviderProps = {
   children: React.ReactNode;
@@ -12,24 +13,23 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-
-    if (!key) return;
-
-    posthog.init(key, {
-      api_host:
-        process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
-      capture_pageview: false,
-      autocapture: true,
-    });
-  }, []);
-
-  useEffect(() => {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
 
+    let cancelled = false;
     const query = typeof window !== "undefined" ? window.location.search : "";
     const url = query ? `${pathname}?${query}` : pathname;
-    posthog.capture("$pageview", { $current_url: url });
+
+    runWhenIdle(() => {
+      if (cancelled) return;
+      void getPostHogClient().then((client) => {
+        if (cancelled || !client) return;
+        client.capture("$pageview", { $current_url: url });
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [pathname]);
 
   return <>{children}</>;

@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { BadgeCheck, Feather, Sun } from "lucide-react";
 
 import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
+import { PakistanServiceNotes } from "@/components/pakistan-service-notes";
 import { ProductImage } from "@/components/product-image";
 import { Button } from "@/components/ui/button";
 import { getImageCandidates } from "@/lib/products";
@@ -223,16 +224,14 @@ export function HeroSection() {
                 </li>
               ))}
             </motion.ul>
-            <motion.p
+            <motion.div
               variants={{
                 hidden: { opacity: 0, y: reduce ? 0 : 10 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-4 text-sm text-[#3B2F2F]/62"
             >
-              Pakistan-wide delivery in 2-5 business days. Easy return support
-              for incorrect or damaged items.
-            </motion.p>
+              <PakistanServiceNotes variant="hero" />
+            </motion.div>
           </motion.div>
 
           <div className="relative mx-auto w-full max-w-xl lg:mx-0">

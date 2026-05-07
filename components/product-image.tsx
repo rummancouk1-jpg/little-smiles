@@ -18,13 +18,17 @@ export function ProductImage({ sources, alt, ...props }: ProductImageProps) {
   const [loaded, setLoaded] = useState(false);
 
   const src = normalizedSources[Math.min(index, normalizedSources.length - 1)];
-  const { className, onLoad, onError, ...rest } = props;
+  const { className, onLoad, onError, priority, ...rest } = props;
 
   return (
     <Image
       key={src}
       src={src}
       alt={alt}
+      priority={priority}
+      {...(priority
+        ? { decoding: "sync" as const }
+        : { loading: "lazy" as const, decoding: "async" as const })}
       {...rest}
       className={cn(
         className,

@@ -1,25 +1,35 @@
-const testimonials = [
-  {
-    name: "Ayesha, Lahore",
-    quote:
-      "Quality is genuinely premium. The swaddle stayed soft after many washes.",
-  },
-  {
-    name: "Sana, Karachi",
-    quote:
-      "Loved the finish and packaging. Perfect for gifting to new parents.",
-  },
-  {
-    name: "Hira, Islamabad",
-    quote:
-      "Fast support on WhatsApp and beautiful products exactly as shown.",
-  },
-];
+import Image from "next/image";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
+import { whatsappBaseUrl } from "@/lib/products";
+import { staticPageMetadata } from "@/lib/seo-metadata";
+import {
+  homepageTestimonials,
+  textReviewSnippets,
+} from "@/lib/testimonials";
+
+export const metadata = staticPageMetadata({
+  title: "Customer Reviews & Parent Stories",
+  description:
+    "See Little Smiles reviews from families across Pakistan—photo testimonials and written feedback on swaddles, bodysuits, feeding gear, and delivery.",
+  path: "/reviews",
+});
+
+const reviewsBreadcrumbLd = breadcrumbJsonLdDocument([
+  { name: "Home", path: "/" },
+  { name: "Reviews", path: "/reviews" },
+]);
 
 export default function ReviewsPage() {
   return (
-    <main className="min-h-screen bg-[#FDF8F4] pb-16 pt-10 sm:pt-12 lg:pt-16">
-      <section className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#F9F5F1] pb-20 pt-10 sm:pb-24 sm:pt-12 lg:pt-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsBreadcrumbLd) }}
+      />
+      <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B2F2F]/50">
             Trusted By Parents
@@ -28,22 +38,90 @@ export default function ReviewsPage() {
             Customer Reviews
           </h1>
           <p className="mt-4 text-base leading-relaxed text-[#3B2F2F]/70 sm:text-lg">
-            Real feedback from families across Pakistan.
+            Photo stories from our community, plus written notes from families
+            across Pakistan—no repeated stock shots, just honest detail.
           </p>
         </div>
 
-        <div className="mt-10 space-y-4 sm:mt-12">
-          {testimonials.map((item) => (
-            <article
-              key={item.name}
-              className="rounded-3xl border border-[#3B2F2F]/7 bg-white/80 p-6 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.35)]"
+        <div className="mt-12 sm:mt-14">
+          <h2 className="text-center text-xs font-medium uppercase tracking-[0.22em] text-[#3B2F2F]/50">
+            In photos
+          </h2>
+          <div className="mobile-rail mt-6 flex snap-x gap-4 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-4">
+            {homepageTestimonials.map((item) => (
+              <article
+                key={item.id}
+                className="min-w-[84%] snap-start overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FBF7F3]/95 shadow-[0_26px_58px_-36px_rgba(59,47,47,0.4)] sm:min-w-0"
+              >
+                <div className="relative aspect-square overflow-hidden bg-[#F3ECE6]">
+                  <Image
+                    src={item.image}
+                    alt={`Customer photo — ${item.author}`}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover object-center"
+                  />
+                </div>
+                <div className="space-y-3 px-4 pb-5 pt-4">
+                  <p className="text-sm leading-relaxed text-[#3B2F2F]/74">
+                    &ldquo;{item.quote}&rdquo;
+                  </p>
+                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/58">
+                    {item.author} — {item.location}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-14 sm:mt-16">
+          <h2 className="text-center text-xs font-medium uppercase tracking-[0.22em] text-[#3B2F2F]/50">
+            Written reviews
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-[#3B2F2F]/65">
+            City-by-city feedback on orders, fabrics, and delivery—ideal when
+            you want specifics without extra photography.
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:gap-5">
+            {textReviewSnippets.map((item) => (
+              <article
+                key={item.id}
+                className="rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 p-6 shadow-[0_22px_48px_-32px_rgba(59,47,47,0.38)]"
+              >
+                <p className="text-sm leading-relaxed text-[#3B2F2F]/78 sm:text-[0.9375rem]">
+                  &ldquo;{item.quote}&rdquo;
+                </p>
+                <p className="mt-4 text-xs font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/58">
+                  {item.author} — {item.location}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mx-auto mt-14 flex max-w-lg flex-col items-center gap-4 sm:mt-16">
+          <Button
+            asChild
+            className="h-11 w-full rounded-full bg-[#2F2624] px-8 text-sm font-medium text-[#F6F1EC] sm:w-auto"
+          >
+            <Link href="/shop">Shop essentials</Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 w-full rounded-full border-[#3B2F2F]/18 bg-white/70 px-8 text-sm font-medium text-[#2E2323] sm:w-auto"
+          >
+            <Link
+              href={`${whatsappBaseUrl}?text=${encodeURIComponent(
+                "Hi Little Smiles, I would love to share my review."
+              )}`}
+              target="_blank"
+              rel="noreferrer"
             >
-              <p className="text-base leading-relaxed text-[#3B2F2F]/82">
-                "{item.quote}"
-              </p>
-              <p className="mt-3 text-sm font-medium text-[#2E2323]">{item.name}</p>
-            </article>
-          ))}
+              Share your review on WhatsApp
+            </Link>
+          </Button>
         </div>
       </section>
     </main>

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
-import posthog from "posthog-js";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { capturePostHogEvent } from "@/lib/posthog-client";
 import { whatsappBaseUrl } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +80,7 @@ export function Navbar() {
               target="_blank"
               rel="noreferrer"
               onClick={() =>
-                posthog.capture("whatsapp_order_clicked", {
+                capturePostHogEvent("whatsapp_order_clicked", {
                   source: "desktop_navbar",
                 })
               }
@@ -132,7 +132,7 @@ export function Navbar() {
                       target="_blank"
                       rel="noreferrer"
                       onClick={() =>
-                        posthog.capture("whatsapp_order_clicked", {
+                        capturePostHogEvent("whatsapp_order_clicked", {
                           source: "mobile_navbar",
                         })
                       }

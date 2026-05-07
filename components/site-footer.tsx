@@ -26,6 +26,21 @@ export function SiteFooter() {
             </p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#3B2F2F]/72">
+            <Link href="/shop" className="hover:text-[#2E2323]">
+              Shop
+            </Link>
+            <Link href="/best-sellers" className="hover:text-[#2E2323]">
+              Best Sellers
+            </Link>
+            <Link href="/blog" className="hover:text-[#2E2323]">
+              Blog
+            </Link>
+            <Link href="/reviews" className="hover:text-[#2E2323]">
+              Reviews
+            </Link>
+            <Link href="/contact" className="hover:text-[#2E2323]">
+              Contact
+            </Link>
             <Link href="/shipping-policy" className="hover:text-[#2E2323]">
               Shipping Policy
             </Link>

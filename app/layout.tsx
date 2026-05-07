@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import {
-  Cormorant_Garamond,
-  Geist_Mono,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import { organizationAndWebsiteJsonLd } from "@/lib/json-ld";
 import { products } from "@/lib/products";
+import { siteUrl } from "@/lib/site";
 import { validateProductImagesOnServer } from "@/lib/validate-product-images.server";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { Navbar } from "@/components/navbar";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { SiteFooter } from "@/components/site-footer";
@@ -13,12 +12,6 @@ import "./globals.css";
 
 const bodySans = Plus_Jakarta_Sans({
   variable: "--font-body-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -31,36 +24,32 @@ const editorialSerif = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.littlesmiles.co"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Little Smiles | Premium Baby Boutique Pakistan",
     template: "%s | Little Smiles",
   },
   description:
     "Shop premium baby essentials in Pakistan, including swaddles, bodysuits, food bags, and bottle cases.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
   openGraph: {
     title: "Little Smiles | Premium Baby Boutique Pakistan",
     description:
       "Parent-loved baby essentials for comfort, gifting, and everyday use.",
     type: "website",
     locale: "en_PK",
-    url: "https://www.littlesmiles.co",
+    url: siteUrl,
     siteName: "Little Smiles",
-    images: [
-      {
-        url: "/products/logo.png",
-        width: 240,
-        height: 96,
-        alt: "Little Smiles",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Little Smiles | Premium Baby Boutique Pakistan",
     description:
       "Parent-loved baby essentials for comfort, gifting, and everyday use.",
-    images: ["/products/logo.png"],
   },
 };
 
@@ -71,12 +60,19 @@ export default function RootLayout({
 }>) {
   validateProductImagesOnServer(products);
 
+  const sitewideStructuredData = organizationAndWebsiteJsonLd();
+
   return (
     <html
-      lang="en"
-      className={`${bodySans.variable} ${geistMono.variable} ${editorialSerif.variable} h-full antialiased`}
+      lang="en-PK"
+      className={`${bodySans.variable} ${editorialSerif.variable} h-full antialiased`}
     >
       <body className="grain-surface min-h-full flex flex-col">
+        <GoogleAnalytics />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(sitewideStructuredData) }}
+        />
         <PostHogProvider>
           <Navbar />
           <div className="flex-1">{children}</div>

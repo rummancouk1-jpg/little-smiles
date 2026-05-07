@@ -1,7 +1,17 @@
 import { Suspense } from "react";
 
+import { PakistanServiceNotes } from "@/components/pakistan-service-notes";
 import { ShopCategoryTabs } from "@/components/shop-category-tabs";
+import { shopPageMetadata } from "@/lib/commercial-seo";
+import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { products } from "@/lib/products";
+
+export const metadata = shopPageMetadata;
+
+const shopBreadcrumbLd = breadcrumbJsonLdDocument([
+  { name: "Home", path: "/" },
+  { name: "Shop", path: "/shop" },
+]);
 
 function ShopCategoryTabsFallback() {
   return (
@@ -43,6 +53,10 @@ function ShopCategoryTabsFallback() {
 export default function ShopPage() {
   return (
     <main className="min-h-screen bg-[#FDF8F4] pb-28 pt-10 sm:pb-16 sm:pt-12 lg:pt-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(shopBreadcrumbLd) }}
+      />
       <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B2F2F]/50">
@@ -52,8 +66,11 @@ export default function ShopPage() {
             Shop Baby Essentials
           </h1>
           <p className="mt-4 text-base leading-relaxed text-[#3B2F2F]/70 sm:text-lg">
-            Curated everyday comfort pieces for newborns and growing babies.
+            Curated everyday comfort pieces for newborns and growing babies —
+            shipped Pakistan-wide with WhatsApp ordering and clear return
+            support.
           </p>
+          <PakistanServiceNotes variant="panel" className="mx-auto mt-8 max-w-2xl" />
         </div>
 
         <div className="mt-10 sm:mt-12">

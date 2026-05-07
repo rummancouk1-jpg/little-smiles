@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
+import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
+import { siteUrl } from "@/lib/site";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -20,18 +22,41 @@ export async function generateMetadata({
   const post = getBlogPostBySlug(slug);
 
   if (!post) {
-    return { title: "Article not found | Little Smiles" };
+    return {
+      title: "Not found",
+      robots: { index: false, follow: true },
+    };
   }
 
+  const canonical = `${siteUrl}/blog/${post.slug}`;
+  const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
+  const socialTitle = `${post.title} | Little Smiles`;
+
   return {
-    title: `${post.title} | Little Smiles`,
+    title: post.title,
     description: post.description,
     keywords: post.keywords,
+    alternates: { canonical },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true },
+    },
     openGraph: {
-      title: post.title,
+      title: socialTitle,
       description: post.description,
       type: "article",
-      url: `https://www.littlesmiles.co/blog/${post.slug}`,
+      url: canonical,
+      locale: "en_PK",
+      siteName: "Little Smiles",
+      publishedTime: publishedIso,
+      modifiedTime: publishedIso,
+      authors: ["Little Smiles"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: socialTitle,
+      description: post.description,
     },
   };
 }
@@ -48,8 +73,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     .filter((product) => product.category === post.relatedProductCategory)
     .slice(0, 3);
 
+  const structuredData = blogPostingJsonLd(post);
+  const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
+  const breadcrumbLd = breadcrumbJsonLdDocument([
+    { name: "Home", path: "/" },
+    { name: "Journal", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
+
   return (
     <main className="min-h-screen bg-[#F9F5F1] pb-16 pt-10 sm:pt-12 lg:pt-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <article className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-[#3B2F2F]/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
@@ -62,7 +103,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             {post.description}
           </p>
           <p className="mt-4 text-xs text-[#3B2F2F]/58">
-            {post.publishedAt} - {post.readTime}
+            <time dateTime={publishedIso}>
+              {post.publishedAt} · {post.readTime}
+            </time>
           </p>
 
           <div className="mt-9 space-y-8">

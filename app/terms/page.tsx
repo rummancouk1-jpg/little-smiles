@@ -1,19 +1,86 @@
+import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
+import { staticPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata = staticPageMetadata({
+  title: "Terms and Conditions",
+  description:
+    "Terms for ordering from Little Smiles in Pakistan: pricing, availability, product representation, shipping alignment, and policy updates.",
+  path: "/terms",
+});
+
+const breadcrumbLd = breadcrumbJsonLdDocument([
+  { name: "Home", path: "/" },
+  { name: "Terms and Conditions", path: "/terms" },
+]);
+
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-[#FDF8F4] pb-16 pt-10 sm:pt-12 lg:pt-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <section className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
         <article className="rounded-3xl border border-[#3B2F2F]/8 bg-white/85 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
           <h1 className="text-3xl font-semibold tracking-tight text-[#2E2323] sm:text-4xl">
             Terms and Conditions
           </h1>
           <p className="mt-4 text-base leading-relaxed text-[#3B2F2F]/75">
-            By placing an order with Little Smiles, you agree to our pricing,
-            shipping timelines, and return policy outlined on this website.
+            These terms govern purchases made through Little Smiles channels
+            (website discovery and WhatsApp ordering). By confirming an order,
+            you accept pricing, availability, and timelines communicated at that
+            moment, plus the shipping and return policies linked in the footer.
           </p>
-          <p className="mt-4 text-base leading-relaxed text-[#3B2F2F]/75">
-            Product colors may vary slightly due to photography and device
-            display differences. We reserve the right to update pricing and
-            availability without prior notice.
+
+          <h2 className="mt-10 text-xl font-semibold tracking-tight text-[#241B1B]">
+            Orders and acceptance
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-[#3B2F2F]/75">
+            An order becomes binding when we confirm it on WhatsApp (or another
+            official channel we designate) with price and delivery expectations.
+            We may refuse or cancel an order in cases of stock mismatch,
+            suspected fraud, or courier limitations—we will explain when this
+            happens.
+          </p>
+
+          <h2 className="mt-10 text-xl font-semibold tracking-tight text-[#241B1B]">
+            Pricing and promotions
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-[#3B2F2F]/75">
+            Prices on the website reflect current retail unless a time-bound
+            discount is shown. We may adjust pricing or offers to reflect supply
+            or campaign timing; the price confirmed on WhatsApp at purchase
+            applies to that order.
+          </p>
+
+          <h2 className="mt-10 text-xl font-semibold tracking-tight text-[#241B1B]">
+            Product appearance
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-[#3B2F2F]/75">
+            We photograph products carefully, but colors and textures can vary
+            slightly due to lighting, batch dye, or your screen calibration.
+            Functional description and category on the product page remain the
+            reference for what you receive.
+          </p>
+
+          <h2 className="mt-10 text-xl font-semibold tracking-tight text-[#241B1B]">
+            Limitation
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-[#3B2F2F]/75">
+            To the extent permitted under applicable law in Pakistan, Little
+            Smiles is not liable for indirect losses arising from courier delays
+            outside our dispatch window. Our liability for any qualifying claim
+            is limited to the amount paid for the affected product unless a
+            stronger remedy is required by law.
+          </p>
+
+          <h2 className="mt-10 text-xl font-semibold tracking-tight text-[#241B1B]">
+            Updates
+          </h2>
+          <p className="mt-3 text-base leading-relaxed text-[#3B2F2F]/75">
+            We may update these terms to reflect how we operate. Continued use
+            of our services after updates constitutes acceptance of the revised
+            terms for new orders.
           </p>
         </article>
       </section>

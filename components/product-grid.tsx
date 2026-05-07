@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import posthog from "posthog-js";
-
 import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
+import { capturePostHogEvent } from "@/lib/posthog-client";
+import {
+  type Product,
+  formatPkr,
+  getImageCandidates,
+  getWhatsappOrderLink,
+} from "@/lib/products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  type Product,
-  formatPkr,
-  getImageCandidates,
-  getWhatsappOrderLink,
-} from "@/lib/products";
 import { ProductImage } from "@/components/product-image";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +58,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                   <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.5),transparent_65%)]" />
                   <ProductImage
                     sources={getImageCandidates(product.image)}
-                    alt={product.name}
+                    alt={`${product.name} — ${product.category} by Little Smiles`}
                     fill
                     className="object-contain object-center group-hover:scale-[1.015]"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -122,7 +121,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                   target="_blank"
                   rel="noreferrer"
                   onClick={() =>
-                    posthog.capture("whatsapp_order_clicked", {
+                    capturePostHogEvent("whatsapp_order_clicked", {
                       source: "product_grid",
                       product_slug: product.slug,
                     })
