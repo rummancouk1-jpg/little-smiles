@@ -52,7 +52,7 @@ export function clampOrderQuantity(product: Product, quantity: number): number {
   return Math.min(max, Math.max(1, Math.floor(quantity)));
 }
 
-/** Full template when ordering from the product detail page. */
+/** Full template when ordering from the product detail page (scannable on mobile). */
 export function buildWhatsappOrderMessage(
   product: Product,
   fields: WhatsappOrderFields,
@@ -62,74 +62,70 @@ export function buildWhatsappOrderMessage(
   const lines = [
     "Hi Little Smiles,",
     "",
-    "I want to order:",
+    "ORDER (please confirm stock + payment + delivery):",
     "",
-    `Product: ${product.name}`,
-    `Category: ${product.category}`,
+    `• SKU: ${product.slug}`,
+    `• ${product.name}`,
+    `• ${product.category}`,
   ];
 
   if (productShowsVariantField(product)) {
     const v = fields.variantNote?.trim();
     lines.push(
       v
-        ? `Variant / preference: ${v}`
-        : `Variant / preference: As shown on this listing — please confirm before packing`,
+        ? `• Variant: ${v}`
+        : `• Variant: As on listing — please confirm before packing`,
     );
   }
 
   if (productShowsSizeField(product)) {
     const s = fields.sizeNote?.trim();
-    lines.push(
-      s ? `Size: ${s}` : `Size: Please advise available sizes for this style`,
-    );
+    lines.push(s ? `• Size: ${s}` : `• Size: Please advise what's available`);
   }
 
   lines.push(
     "",
-    `Quantity: ${qty}`,
-    `Unit price: ${formatPkr(product.pricePkr)}`,
-    qty > 1 ? `Line total: ${formatPkr(lineTotal)}` : `Total: ${formatPkr(lineTotal)}`,
+    `• Qty: ${qty}`,
+    `• Unit: ${formatPkr(product.pricePkr)}`,
+    qty > 1 ? `• Line total: ${formatPkr(lineTotal)}` : `• Total: ${formatPkr(lineTotal)}`,
     "",
-    "Please confirm availability, payment options, and delivery timeline.",
+    "Pakistan delivery — reply with JazzCash/bank details if needed.",
     "",
-    `Product link: ${productUrl(product)}`,
+    productUrl(product),
   );
 
   return lines.join("\n");
 }
 
-/** Compact inquiry from shop grid / cards (still product-specific + price + link). */
+/** Compact inquiry from shop grid / cards (short prefilled bubble). */
 export function buildWhatsappListingInquiryMessage(product: Product): string {
   return [
     "Hi Little Smiles,",
     "",
-    "I'd like to order:",
+    `I'd like: ${product.name}`,
+    `(${product.category})`,
+    `${formatPkr(product.pricePkr)} — ${product.discountPercent}% off (was ${formatPkr(product.compareAtPricePkr)})`,
+    `SKU: ${product.slug}`,
+    "Qty: 1 — please confirm stock.",
     "",
-    `Product: ${product.name}`,
-    `Category: ${product.category}`,
-    `Price: ${formatPkr(product.pricePkr)} (${product.discountPercent}% off vs ${formatPkr(product.compareAtPricePkr)})`,
-    "",
-    `Quantity: 1 (please confirm stock)`,
-    "",
-    `Product page: ${productUrl(product)}`,
-    "",
-    "Please confirm availability and next steps.",
-    "",
-    "Thank you!",
+    productUrl(product),
   ].join("\n");
 }
 
 type ProductSeed = Omit<Product, "pricePkr" | "discountPercent" | "inStock"> & {
   compareAtPricePkr: number;
+  /** Per-SKU override; omit to use `data/site.json` `launchDiscountPercent`. */
+  discountPercent?: number;
 };
 
-function withLaunchPricing(product: ProductSeed): Product {
-  const discountPercent = siteConfig.launchDiscountPercent;
+function withLaunchPricing(seed: ProductSeed): Product {
+  const { discountPercent: override, ...rest } = seed;
+  const discountPercent = override ?? siteConfig.launchDiscountPercent;
   return {
-    ...product,
+    ...rest,
     discountPercent,
-    pricePkr: Math.round(product.compareAtPricePkr * (1 - discountPercent / 100)),
-    inStock: product.inventoryQty > 0,
+    pricePkr: Math.round(seed.compareAtPricePkr * (1 - discountPercent / 100)),
+    inStock: seed.inventoryQty > 0,
   };
 }
 

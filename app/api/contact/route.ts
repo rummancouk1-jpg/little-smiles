@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { z } from "zod";
 
 const contactSchema = z
@@ -31,26 +32,24 @@ async function sendResendEmail(input: {
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key) return false;
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  try {
+    const resend = new Resend(key);
+    const { error } = await resend.emails.send({
       from: input.from,
-      to: [input.to],
+      to: input.to,
       subject: input.subject,
       html: input.html,
-    }),
-    signal: AbortSignal.timeout(12_000),
-  });
+    });
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    console.warn("[contact] Resend error", res.status, errText);
+    if (error) {
+      console.warn("[contact] Resend error", error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn("[contact] Resend failed", e);
+    return false;
   }
-  return res.ok;
 }
 
 async function notifyWebhook(url: string, body: Record<string, unknown>): Promise<boolean> {

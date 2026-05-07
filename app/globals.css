@@ -126,6 +126,8 @@
     /* Prevent iOS from inflating text on rotate; keeps layout predictable */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Sticky nav: in-page anchors / focus scroll land below the header */
+    scroll-padding-top: 5.5rem;
   }
   body {
     @apply bg-background text-foreground;

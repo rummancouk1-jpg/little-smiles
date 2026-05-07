@@ -23,6 +23,8 @@ const productRowSchema = z.object({
     .refine((p) => p.startsWith("/products/"), "image must be under /products/"),
   description: z.string().min(1),
   compareAtPricePkr: z.number().int().positive(),
+  /** When set, overrides `launchDiscountPercent` from `data/site.json` for this SKU only. */
+  discountPercent: z.number().int().min(0).max(90).optional(),
   inventoryQty: z.number().int().min(0),
   featured: z.boolean().optional(),
   bestSeller: z.boolean().optional(),
