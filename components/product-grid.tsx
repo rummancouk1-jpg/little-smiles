@@ -30,7 +30,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   const reduce = useReducedMotion();
 
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {products.map((product, index) => (
         <motion.div
           key={product.slug}
@@ -47,14 +47,17 @@ export function ProductGrid({ products }: ProductGridProps) {
         >
           <Card
             className={cn(
-              "flex h-full rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 py-0",
+              "flex h-full overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 py-0",
               "shadow-[0_24px_52px_-34px_rgba(59,47,47,0.36)] transition-shadow duration-300",
               "hover:shadow-[0_30px_58px_-34px_rgba(59,47,47,0.45)]"
             )}
           >
             <CardContent className="p-0">
-              <Link href={`/shop/${product.slug}`} className="group block">
-                <div className="relative mx-4 mt-4 h-52 rounded-3xl bg-[#F7F0EA] p-5 sm:h-56">
+              <Link
+                href={`/shop/${product.slug}`}
+                className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/24"
+              >
+                <div className="relative mx-3.5 mt-3.5 h-52 rounded-3xl bg-[#F7F0EA] p-4 sm:mx-4 sm:mt-4 sm:h-56 sm:p-5">
                   <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.5),transparent_65%)]" />
                   <ProductImage
                     sources={getImageCandidates(product.image)}
@@ -66,7 +69,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 </div>
               </Link>
             </CardContent>
-            <CardHeader className="px-5 pb-0 pt-5">
+            <CardHeader className="px-4 pb-0 pt-4 sm:px-5 sm:pt-5">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
@@ -78,12 +81,15 @@ export function ProductGrid({ products }: ProductGridProps) {
                   {product.discountPercent}% OFF
                 </Badge>
               </div>
-              <CardTitle className="pt-1.5 text-[1.36rem] font-semibold leading-[1.1] text-[#241B1B]">
-                <Link href={`/shop/${product.slug}`} className="hover:underline">
+              <CardTitle className="pt-1.5 text-[1.24rem] font-semibold leading-[1.15] text-[#241B1B] sm:text-[1.36rem] sm:leading-[1.1]">
+                <Link
+                  href={`/shop/${product.slug}`}
+                  className="inline-flex min-h-11 items-center rounded-md hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/24"
+                >
                   {product.name}
                 </Link>
               </CardTitle>
-              <p className="min-h-[2.8rem] pt-1 text-sm leading-relaxed text-[#3B2F2F]/67 lg:min-h-[3.6rem]">
+              <p className="min-h-[2.8rem] pt-1 text-sm leading-relaxed text-[#3B2F2F]/67 sm:min-h-[3.1rem] lg:min-h-[3.6rem]">
                 {product.description}
               </p>
               <ul className="mt-3 flex flex-wrap gap-2 text-xs text-[#3B2F2F]/70">
@@ -98,7 +104,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 </li>
               </ul>
             </CardHeader>
-            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-5 py-4 sm:flex-row sm:items-center lg:min-h-[5.35rem]">
+            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-4 py-4 sm:flex-row sm:items-center sm:px-5 lg:min-h-[5.35rem]">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2.5">
                   <span className="text-base font-semibold text-[#2E2323]">
@@ -114,7 +120,7 @@ export function ProductGrid({ products }: ProductGridProps) {
               </div>
               <Button
                 asChild
-                className="h-11 w-full rounded-full bg-[#2F2624] px-5 text-sm font-medium text-[#F6F1EC] shadow-[0_14px_32px_-20px_rgba(47,38,36,0.56)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_38px_-22px_rgba(47,38,36,0.66)] sm:h-10 sm:w-auto"
+                className="h-12 w-full rounded-full bg-[#2F2624] px-5 text-sm font-medium text-[#F6F1EC] shadow-[0_14px_32px_-20px_rgba(47,38,36,0.56)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_38px_-22px_rgba(47,38,36,0.66)] sm:h-10 sm:w-auto"
               >
                 <Link
                   href={getWhatsappOrderLink(product)}

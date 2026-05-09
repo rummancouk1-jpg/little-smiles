@@ -137,8 +137,8 @@ export function HeroSection() {
         <div className="absolute bottom-0 left-1/3 h-[280px] w-[280px] rounded-full bg-[#F7F2ED]/70 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-7 sm:px-6 sm:pb-18 sm:pt-9 lg:px-8 lg:pb-24 lg:pt-12">
-        <div className="grid items-center gap-8 sm:gap-9 lg:grid-cols-2 lg:gap-14 xl:gap-18">
+      <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 sm:pb-18 sm:pt-9 lg:px-8 lg:pb-24 lg:pt-12">
+        <div className="grid items-center gap-6 sm:gap-9 lg:grid-cols-2 lg:gap-14 xl:gap-18">
           <motion.div
             initial={reduce ? false : "hidden"}
             animate="visible"
@@ -165,7 +165,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-4 text-balance text-5xl font-semibold leading-[0.96] tracking-tight text-[#1F1918] sm:text-6xl lg:text-[4.15rem]"
+              className="mt-3 text-balance text-[2.45rem] font-semibold leading-[0.98] tracking-tight text-[#1F1918] sm:mt-4 sm:text-6xl lg:text-[4.15rem]"
             >
               Tiny Essentials for Your Little Smiles
             </motion.h1>
@@ -175,7 +175,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-6 max-w-[38ch] text-pretty text-lg leading-relaxed text-[#372F2D]/70 sm:text-xl"
+              className="mt-4 max-w-[38ch] text-pretty text-base leading-relaxed text-[#372F2D]/70 sm:mt-6 sm:text-xl"
             >
               Soft, practical, and adorable baby products carefully picked for
               everyday comfort.
@@ -186,12 +186,12 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-9 flex flex-col gap-3.5 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+              className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
             >
               <Button
                 asChild
                 size="lg"
-                className="h-12 rounded-full border-transparent bg-[#2F2624] px-9 text-base font-medium text-[#F6F1EC] shadow-[0_14px_34px_-18px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_20px_40px_-20px_rgba(47,38,36,0.68)]"
+                className="h-12 w-full rounded-full border-transparent bg-[#2F2624] px-9 text-base font-medium text-[#F6F1EC] shadow-[0_14px_34px_-18px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_20px_40px_-20px_rgba(47,38,36,0.68)] sm:w-auto"
               >
                 <Link href="/shop">Shop Collection</Link>
               </Button>
@@ -199,7 +199,7 @@ export function HeroSection() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-12 rounded-full border-[#2E2323]/14 bg-white/62 px-9 text-base font-medium text-[#2E2323] shadow-[0_12px_30px_-20px_rgba(59,47,47,0.38)] backdrop-blur-sm transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-white/88 hover:shadow-[0_18px_36px_-22px_rgba(59,47,47,0.48)]"
+                className="h-12 w-full rounded-full border-[#2E2323]/14 bg-white/62 px-9 text-base font-medium text-[#2E2323] shadow-[0_12px_30px_-20px_rgba(59,47,47,0.38)] backdrop-blur-sm transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-white/88 hover:shadow-[0_18px_36px_-22px_rgba(59,47,47,0.48)] sm:w-auto"
               >
                 <Link href="/best-sellers">View Best Sellers</Link>
               </Button>
@@ -210,7 +210,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 10 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-11 flex flex-wrap gap-3 sm:mt-12 sm:gap-4"
+              className="mt-8 flex flex-wrap gap-2.5 sm:mt-12 sm:gap-4"
             >
               {trustItems.map(({ label, icon: Icon }) => (
                 <li
@@ -234,7 +234,7 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          <div className="relative mx-auto w-full max-w-xl lg:mx-0">
+          <div className="relative mx-auto w-full max-w-[30rem] lg:mx-0 lg:max-w-xl">
             <div
               className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_48%,rgba(245,239,233,0.88),rgba(249,245,241,0.14)_70%)] blur-[4px]"
               aria-hidden
@@ -248,7 +248,7 @@ export function HeroSection() {
               aria-hidden
             />
             <div
-              className="relative grid min-h-[360px] grid-cols-10 grid-rows-10 gap-3 sm:min-h-[430px] sm:gap-4 lg:min-h-[540px]"
+              className="relative grid min-h-[320px] grid-cols-10 grid-rows-10 gap-2.5 sm:min-h-[430px] sm:gap-4 lg:min-h-[540px]"
               onMouseMove={handleCollagePointerMove}
               onMouseLeave={handleCollagePointerLeave}
             >
