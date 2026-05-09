@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,9 +104,15 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         </div>
 
         <div className="mt-8 space-y-4 rounded-2xl border border-[#3B2F2F]/10 bg-white/55 p-4 sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
-            WhatsApp order details
-          </p>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+              Quantity &amp; preferences
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-[#3B2F2F]/58">
+              Quantity is used when you add to cart. Preferences below are included in your WhatsApp
+              message if you check out there directly.
+            </p>
+          </div>
 
           <div className="grid gap-2">
             <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-qty">
@@ -227,7 +234,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           </p>
         </div>
 
-        <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center">
+        <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
           {disabled ? (
             <Button
               disabled
@@ -237,33 +244,37 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               Currently unavailable
             </Button>
           ) : (
-            <Button
-              asChild
-              className="h-12 w-full rounded-full bg-[#2F2624] px-7 text-sm font-semibold text-[#F6F1EC] shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_20px_38px_-20px_rgba(47,38,36,0.7)] sm:h-11 sm:w-auto"
-            >
-              <Link
-                href={orderHref}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(event) =>
-                  void trackAndOpenWhatsapp(event, {
-                    whatsappUrl: orderHref,
-                    sourcePage: "product_detail",
-                    productSlug: product.slug,
-                    productName: product.name,
-                    category: product.category,
-                    pricePkr: product.pricePkr,
-                  })
-                }
+            <>
+              <AddToCartButton product={product} quantity={safeQty} className="w-full sm:w-auto" />
+              <Button
+                asChild
+                variant="outline"
+                className="h-12 w-full rounded-full border-[#2E2323]/16 bg-white/62 px-7 text-sm font-semibold text-[#2E2323] hover:bg-white/84 sm:h-11 sm:w-auto"
               >
-                Order on WhatsApp
-              </Link>
-            </Button>
+                <Link
+                  href={orderHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) =>
+                    void trackAndOpenWhatsapp(event, {
+                      whatsappUrl: orderHref,
+                      sourcePage: "product_detail",
+                      productSlug: product.slug,
+                      productName: product.name,
+                      category: product.category,
+                      pricePkr: product.pricePkr,
+                    })
+                  }
+                >
+                  Order on WhatsApp
+                </Link>
+              </Button>
+            </>
           )}
           <Button
             asChild
-            variant="outline"
-            className="h-11 w-full rounded-full border-[#2E2323]/16 bg-white/62 px-7 text-sm font-medium text-[#2E2323] hover:bg-white/84 sm:w-auto"
+            variant="ghost"
+            className="h-11 w-full rounded-full px-7 text-sm font-medium text-[#2E2323] hover:bg-[#F2EAE4] sm:w-auto"
           >
             <Link href="/shop">Back to Shop</Link>
           </Button>
@@ -271,8 +282,8 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-2 sm:hidden">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-[#3B2F2F]/12 bg-[#FCF8F4]/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-[#FCF8F4]/92">
-          <div>
+        <div className="mx-auto max-w-md space-y-2 rounded-2xl border border-[#3B2F2F]/12 bg-[#FCF8F4]/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-[#FCF8F4]/92">
+          <div className="flex items-baseline justify-between gap-2">
             <p className="text-base font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
             {safeQty === 1 && getDiscountBadgeLabel(product) ? (
               <p className="text-[11px] text-[#3B2F2F]/58 line-through">
@@ -287,34 +298,43 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {disabled ? (
             <Button
               disabled
-              className="h-11 min-h-11 min-w-11 shrink-0 rounded-full bg-[#3B2F2F]/35 px-4 text-xs font-medium text-[#F6F1EC]"
+              className="h-11 w-full rounded-full bg-[#3B2F2F]/35 text-xs font-medium text-[#F6F1EC]"
               type="button"
             >
               Unavailable
             </Button>
           ) : (
-            <Button
-              asChild
-              className="h-11 min-h-11 min-w-[5.5rem] shrink-0 rounded-full bg-[#2F2624] px-4 text-xs font-medium text-[#F6F1EC]"
-            >
-              <Link
-                href={orderHref}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(event) =>
-                  void trackAndOpenWhatsapp(event, {
-                    whatsappUrl: orderHref,
-                    sourcePage: "product_detail_sticky",
-                    productSlug: product.slug,
-                    productName: product.name,
-                    category: product.category,
-                    pricePkr: product.pricePkr,
-                  })
-                }
+            <div className="flex gap-2">
+              <AddToCartButton
+                product={product}
+                quantity={safeQty}
+                label="Add to cart"
+                className="h-11 min-h-11 flex-1 text-xs"
+              />
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 min-h-11 shrink-0 rounded-full border-[#2E2323]/16 bg-white/72 px-3 text-xs font-semibold text-[#2E2323]"
               >
-                WhatsApp order
-              </Link>
-            </Button>
+                <Link
+                  href={orderHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) =>
+                    void trackAndOpenWhatsapp(event, {
+                      whatsappUrl: orderHref,
+                      sourcePage: "product_detail_sticky",
+                      productSlug: product.slug,
+                      productName: product.name,
+                      category: product.category,
+                      pricePkr: product.pricePkr,
+                    })
+                  }
+                >
+                  WhatsApp
+                </Link>
+              </Button>
+            </div>
           )}
         </div>
       </div>

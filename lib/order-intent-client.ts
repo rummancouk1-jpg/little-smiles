@@ -76,3 +76,39 @@ export async function trackAndOpenWhatsapp(
 
   window.open(args.whatsappUrl, "_blank", "noopener,noreferrer");
 }
+
+export async function trackCartCheckoutAndOpenWhatsapp(
+  whatsappUrl: string,
+  meta: {
+    itemCount: number;
+    totalQuantity: number;
+    subtotalPkr: number;
+    productSlugs: string[];
+  },
+): Promise<void> {
+  const pageContext =
+    typeof window !== "undefined"
+      ? `cart_checkout:${window.location.pathname}`
+      : "cart_checkout";
+
+  capturePostHogEvent("cart_whatsapp_checkout_clicked", {
+    item_count: meta.itemCount,
+    total_quantity: meta.totalQuantity,
+    subtotal_pkr: meta.subtotalPkr,
+    product_slugs: meta.productSlugs,
+    source: pageContext,
+  });
+
+  const intent = logOrderIntent({
+    productName: `Cart checkout (${meta.itemCount} items)`,
+    pricePkr: Math.round(meta.subtotalPkr),
+    sourcePage: pageContext,
+  });
+
+  await Promise.race([
+    intent,
+    new Promise<void>((resolve) => window.setTimeout(resolve, 180)),
+  ]);
+
+  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+}

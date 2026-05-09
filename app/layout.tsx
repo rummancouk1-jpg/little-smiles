@@ -5,6 +5,8 @@ import { products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
 import { validateProductImagesOnServer } from "@/lib/validate-product-images.server";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { CartProvider } from "@/components/cart-provider";
+import { CartToast } from "@/components/cart-toast";
 import { Navbar } from "@/components/navbar";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { SiteFooter } from "@/components/site-footer";
@@ -81,9 +83,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(sitewideStructuredData) }}
         />
         <PostHogProvider>
-          <Navbar />
-          <div className="flex-1">{children}</div>
-          <SiteFooter />
+          <CartProvider>
+            <Navbar />
+            <div className="flex-1">{children}</div>
+            <CartToast />
+            <SiteFooter />
+          </CartProvider>
         </PostHogProvider>
       </body>
     </html>

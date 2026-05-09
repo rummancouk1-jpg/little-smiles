@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, ShoppingBag } from "lucide-react";
+
+import { useCart } from "@/components/cart-provider";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +31,7 @@ const navLinks = [
 ] as const;
 
 export function Navbar() {
+  const { totalQuantity, isCartReady } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -76,10 +79,25 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center lg:flex">
+        <div className="hidden items-center gap-3 lg:flex">
+          <Link
+            href="/cart"
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#3B2F2F]/14 bg-white/66 text-[#2E2323] shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-white/88"
+            aria-label={
+              totalQuantity > 0 ? `Cart, ${totalQuantity} items` : "View shopping cart"
+            }
+          >
+            <ShoppingBag className="size-[1.2rem]" aria-hidden />
+            {isCartReady && totalQuantity > 0 ? (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2F2624] px-1 text-[10px] font-semibold tabular-nums text-[#F6F1EC]">
+                {totalQuantity > 99 ? "99+" : totalQuantity}
+              </span>
+            ) : null}
+          </Link>
           <Button
             asChild
-            className="h-11 rounded-full bg-[#2F2624] px-6 text-sm font-medium text-[#F6F1EC] shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_40px_-22px_rgba(47,38,36,0.66)]"
+            variant="outline"
+            className="h-11 rounded-full border-[#2E2323]/18 bg-white/62 px-5 text-sm font-medium text-[#2E2323] shadow-[0_10px_26px_-22px_rgba(59,47,47,0.4)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-white/88"
           >
             <Link
               href={whatsappBaseUrl}
@@ -128,12 +146,53 @@ export function Navbar() {
                     </Link>
                   </SheetClose>
                 ))}
+                <SheetClose asChild>
+                  <Link
+                    href="/cart"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex min-h-12 items-center justify-between gap-3 rounded-xl px-3.5 py-3 text-[1.02rem] font-medium text-[#3B2F2F]/82 transition-colors hover:bg-[#F2EAE4] hover:text-[#2E2323]"
+                  >
+                    <span className="inline-flex items-center gap-2.5">
+                      <ShoppingBag
+                        className="size-[1.05rem] shrink-0 text-[#3B2F2F]/72"
+                        aria-hidden
+                      />
+                      Cart
+                    </span>
+                    {isCartReady && totalQuantity > 0 ? (
+                      <span className="rounded-full bg-[#2F2624] px-2.5 py-0.5 text-xs font-semibold tabular-nums text-[#F6F1EC]">
+                        {totalQuantity > 99 ? "99+" : totalQuantity}
+                      </span>
+                    ) : null}
+                  </Link>
+                </SheetClose>
               </nav>
-              <div className="mt-5">
+              <div className="mt-5 space-y-3">
                 <SheetClose asChild>
                   <Button
                     asChild
                     className="h-12 w-full rounded-full bg-[#2F2624] px-5 text-[0.95rem] font-medium text-[#F6F1EC] shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_40px_-22px_rgba(47,38,36,0.66)]"
+                  >
+                    <Link
+                      href="/cart"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="inline-flex items-center justify-center gap-2"
+                    >
+                      <ShoppingBag className="size-4" aria-hidden />
+                      View cart
+                      {isCartReady && totalQuantity > 0 ? (
+                        <span className="rounded-full bg-[#F6F1EC]/15 px-2 py-0.5 text-xs font-semibold tabular-nums">
+                          {totalQuantity > 99 ? "99+" : totalQuantity}
+                        </span>
+                      ) : null}
+                    </Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-11 w-full rounded-full border-[#2E2323]/16 bg-white/62 px-5 text-[0.95rem] font-medium text-[#2E2323]"
                   >
                     <Link
                       href={whatsappBaseUrl}

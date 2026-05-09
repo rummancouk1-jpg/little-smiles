@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product-grid";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,6 +16,7 @@ type ShopCategoryTabsProps = {
 };
 
 export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
+  const { totalQuantity, isCartReady } = useCart();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -148,15 +150,32 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
           <p className="text-[11px] font-medium tracking-[0.09em] text-[#3B2F2F]/62 uppercase">
             {activeTab === "all" ? "All Categories" : activeTab} • {sortLabelMap[sortBy]}
           </p>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={scrollToCategories}
-              className="touch-feedback inline-flex h-10 items-center rounded-full border border-[#2E2323]/14 bg-white/70 px-3.5 text-xs font-medium text-[#2E2323]"
+              className="touch-feedback inline-flex h-10 shrink-0 items-center rounded-full border border-[#2E2323]/14 bg-white/70 px-3.5 text-xs font-medium text-[#2E2323]"
             >
               Categories
             </button>
-            <Button asChild className="h-10 rounded-full bg-[#2F2624] px-4 text-xs text-[#F6F1EC]">
+            <Button
+              asChild
+              className="h-10 min-w-0 flex-1 rounded-full bg-[#2F2624] px-3 text-xs font-semibold text-[#F6F1EC]"
+            >
+              <Link href="/cart" className="inline-flex items-center justify-center gap-1.5">
+                View cart
+                {isCartReady && totalQuantity > 0 ? (
+                  <span className="rounded-full bg-[#F6F1EC]/18 px-1.5 py-0.5 text-[0.65rem] font-bold tabular-nums">
+                    {totalQuantity > 99 ? "99+" : totalQuantity}
+                  </span>
+                ) : null}
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="h-10 shrink-0 rounded-full border-[#2E2323]/16 bg-white/70 px-3 text-[0.65rem] font-semibold text-[#2E2323] sm:text-xs"
+            >
               <Link
                 href={whatsappBaseUrl}
                 target="_blank"
@@ -168,7 +187,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
                   })
                 }
               >
-                Order on WhatsApp
+                WhatsApp
               </Link>
             </Button>
           </div>

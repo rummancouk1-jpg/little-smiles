@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
@@ -71,25 +72,32 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
                 {getAvailabilityLabel(item)}
               </p>
             </div>
-            <Button asChild className="mt-3 h-10 w-full rounded-full bg-[#2F2624] text-xs font-medium text-[#F6F1EC]">
-              <Link
-                href={getWhatsappOrderLink(item)}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(event) =>
-                  void trackAndOpenWhatsapp(event, {
-                    whatsappUrl: getWhatsappOrderLink(item),
-                    sourcePage: "related_products",
-                    productSlug: item.slug,
-                    productName: item.name,
-                    category: item.category,
-                    pricePkr: item.pricePkr,
-                  })
-                }
+            <div className="mt-3 flex flex-col gap-2">
+              <AddToCartButton product={item} size="sm" className="h-10 w-full text-xs" />
+              <Button
+                asChild
+                variant="outline"
+                className="h-9 w-full rounded-full border-[#2E2323]/14 bg-white/62 text-xs font-medium text-[#2E2323]"
               >
-                WhatsApp Order
-              </Link>
-            </Button>
+                <Link
+                  href={getWhatsappOrderLink(item)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) =>
+                    void trackAndOpenWhatsapp(event, {
+                      whatsappUrl: getWhatsappOrderLink(item),
+                      sourcePage: "related_products",
+                      productSlug: item.slug,
+                      productName: item.name,
+                      category: item.category,
+                      pricePkr: item.pricePkr,
+                    })
+                  }
+                >
+                  WhatsApp instead
+                </Link>
+              </Button>
+            </div>
           </article>
         ))}
       </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
+import { AddToCartButton } from "@/components/add-to-cart-button";
 import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
   type Product,
@@ -108,7 +109,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 </li>
               </ul>
             </CardHeader>
-            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-4 py-4 sm:flex-row sm:items-center sm:px-5 lg:min-h-[5.35rem]">
+            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-4 py-4 sm:flex-row sm:items-end sm:px-5 lg:min-h-[5.35rem]">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2.5">
                   <span className="text-base font-semibold text-[#2E2323]">
@@ -124,28 +125,32 @@ export function ProductGrid({ products }: ProductGridProps) {
                   {getAvailabilityLabel(product)}
                 </p>
               </div>
-              <Button
-                asChild
-                className="h-12 w-full rounded-full bg-[#2F2624] px-5 text-sm font-medium text-[#F6F1EC] shadow-[0_14px_32px_-20px_rgba(47,38,36,0.56)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_38px_-22px_rgba(47,38,36,0.66)] sm:h-10 sm:w-auto"
-              >
-                <Link
-                  href={getWhatsappOrderLink(product)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(event) =>
-                    void trackAndOpenWhatsapp(event, {
-                      whatsappUrl: getWhatsappOrderLink(product),
-                      sourcePage: "product_grid",
-                      productSlug: product.slug,
-                      productName: product.name,
-                      category: product.category,
-                      pricePkr: product.pricePkr,
-                    })
-                  }
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[11.5rem]">
+                <AddToCartButton product={product} className="w-full" />
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-10 w-full rounded-full border-[#2E2323]/14 bg-white/62 text-xs font-medium text-[#2E2323] hover:bg-white/84"
                 >
-                  WhatsApp Order
-                </Link>
-              </Button>
+                  <Link
+                    href={getWhatsappOrderLink(product)}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) =>
+                      void trackAndOpenWhatsapp(event, {
+                        whatsappUrl: getWhatsappOrderLink(product),
+                        sourcePage: "product_grid",
+                        productSlug: product.slug,
+                        productName: product.name,
+                        category: product.category,
+                        pricePkr: product.pricePkr,
+                      })
+                    }
+                  >
+                    WhatsApp instead
+                  </Link>
+                </Button>
+              </div>
             </CardFooter>
           </Card>
         </motion.div>
