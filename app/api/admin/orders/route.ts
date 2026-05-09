@@ -83,7 +83,16 @@ export async function POST(request: Request) {
 
   const parsed = createOrderSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
+    const issues = parsed.error.issues.map((issue) => ({
+      path: issue.path.join("."),
+      message: issue.message,
+    }));
+    await logAdminAudit(request, {
+      action: "order_create_invalid_body",
+      targetType: "order",
+      metadata: { issues },
+    });
+    return NextResponse.json({ ok: false, error: "Invalid request body", details: issues }, { status: 400 });
   }
 
   const payload = parsed.data;
@@ -150,15 +159,53 @@ export async function POST(request: Request) {
     .single();
 
   if (insertError || !inserted) {
-    captureServerError("api_admin_orders_create_failed", new Error(insertError?.message ?? "Could not create order"), {
-      productSlug: payload.productSlug,
+    const safeError = {
+      code: insertError?.code ?? null,
+      message: insertError?.message ?? "Could not create order",
+      details: insertError?.details ?? null,
+      hint: insertError?.hint ?? null,
+    };
+    captureServerError("api_admin_orders_create_failed", new Error(safeError.message), {
+      payload: {
+        productSlug: payload.productSlug,
+        productName: payload.productName,
+        category: payload.category,
+        sourcePage: payload.sourcePage ?? null,
+        pricePkr: payload.pricePkr,
+        quantity: payload.quantity,
+      },
+      supabaseError: safeError,
+      mappedColumns: [
+        "product_slug",
+        "product_name",
+        "category",
+        "source_page",
+        "price_pkr",
+        "status",
+        "quantity",
+      ],
+      requiredLikely: ["product_slug", "product_name", "category", "price_pkr", "quantity", "status"],
     });
     await logAdminAudit(request, {
       action: "order_create_failed",
       targetType: "order",
-      metadata: { productSlug: payload.productSlug },
+      metadata: {
+        productSlug: payload.productSlug,
+        productName: payload.productName,
+        category: payload.category,
+        sourcePage: payload.sourcePage ?? null,
+        pricePkr: payload.pricePkr,
+        errorCode: safeError.code,
+        errorMessage: safeError.message,
+      },
     });
-    return NextResponse.json({ ok: false, error: "Could not create order" }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: safeError.code ? `Could not create order (${safeError.code})` : "Could not create order",
+      },
+      { status: 500 },
+    );
   }
 
   const { error: historyError } = await supabase.from("order_status_history").insert([
@@ -193,6 +240,9 @@ export async function POST(request: Request) {
     targetId: inserted.id,
     metadata: {
       productSlug: payload.productSlug,
+      productName: payload.productName,
+      category: payload.category,
+      sourcePage: payload.sourcePage ?? null,
       quantity: payload.quantity,
       pricePkr: payload.pricePkr,
       totalPkr,

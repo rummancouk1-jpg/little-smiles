@@ -36,6 +36,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const statusFilter = asSingle(params.status);
   const missingCustomerFilter = asSingle(params.missingCustomer) === "1";
+  const createdOrderId = asSingle(params.created);
   if (!isAdminAuthConfigured()) {
     return (
       <main className="min-h-screen bg-[#FDF8F4] px-5 py-10 sm:px-6 lg:px-8">
@@ -234,6 +235,14 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             </Link>
           </article>
         </div>
+
+        {createdOrderId ? (
+          <section className="rounded-2xl border border-[#2E6A41]/25 bg-[#EAF5EE] px-4 py-3">
+            <p className="text-sm font-medium text-[#1E5A37]">
+              Order created successfully ({createdOrderId.slice(0, 8)}). Showing new-intent orders.
+            </p>
+          </section>
+        ) : null}
 
         <OrderDetailsQueue orders={incompleteQueue} />
 
