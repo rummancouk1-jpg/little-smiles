@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
-import { capturePostHogEvent } from "@/lib/posthog-client";
+import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
   type Product,
   formatPkr,
+  getAvailabilityLabel,
+  getDiscountBadgeLabel,
   getImageCandidates,
   getWhatsappOrderLink,
 } from "@/lib/products";
@@ -77,9 +79,11 @@ export function ProductGrid({ products }: ProductGridProps) {
                 >
                   {product.category}
                 </Badge>
-                <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
-                  {product.discountPercent}% OFF
-                </Badge>
+                {getDiscountBadgeLabel(product) ? (
+                  <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
+                    {getDiscountBadgeLabel(product)}
+                  </Badge>
+                ) : null}
               </div>
               <CardTitle className="pt-1.5 text-[1.24rem] font-semibold leading-[1.15] text-[#241B1B] sm:text-[1.36rem] sm:leading-[1.1]">
                 <Link
@@ -110,12 +114,14 @@ export function ProductGrid({ products }: ProductGridProps) {
                   <span className="text-base font-semibold text-[#2E2323]">
                     {formatPkr(product.pricePkr)}
                   </span>
-                  <span className="text-xs text-[#3B2F2F]/56 line-through">
-                    {formatPkr(product.compareAtPricePkr)}
-                  </span>
+                  {getDiscountBadgeLabel(product) ? (
+                    <span className="text-xs text-[#3B2F2F]/56 line-through">
+                      {formatPkr(product.compareAtPricePkr)}
+                    </span>
+                  ) : null}
                 </div>
                 <p className="text-[11px] font-medium tracking-[0.08em] text-[#6E2D2D] uppercase">
-                  {product.inStock ? `Only ${product.inventoryQty} left` : "Out of stock"}
+                  {getAvailabilityLabel(product)}
                 </p>
               </div>
               <Button
@@ -126,10 +132,14 @@ export function ProductGrid({ products }: ProductGridProps) {
                   href={getWhatsappOrderLink(product)}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() =>
-                    capturePostHogEvent("whatsapp_order_clicked", {
-                      source: "product_grid",
-                      product_slug: product.slug,
+                  onClick={(event) =>
+                    void trackAndOpenWhatsapp(event, {
+                      whatsappUrl: getWhatsappOrderLink(product),
+                      sourcePage: "product_grid",
+                      productSlug: product.slug,
+                      productName: product.name,
+                      category: product.category,
+                      pricePkr: product.pricePkr,
                     })
                   }
                 >

@@ -14,7 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { capturePostHogEvent } from "@/lib/posthog-client";
+import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import { whatsappBaseUrl } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -84,9 +84,10 @@ export function Navbar() {
               href={whatsappBaseUrl}
               target="_blank"
               rel="noreferrer"
-              onClick={() =>
-                capturePostHogEvent("whatsapp_order_clicked", {
-                  source: "desktop_navbar",
+              onClick={(event) =>
+                void trackAndOpenWhatsapp(event, {
+                  whatsappUrl: whatsappBaseUrl,
+                  sourcePage: "desktop_navbar",
                 })
               }
             >
@@ -138,10 +139,11 @@ export function Navbar() {
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center justify-center"
-                      onClick={() => {
+                      onClick={(event) => {
                         setIsMobileMenuOpen(false);
-                        capturePostHogEvent("whatsapp_order_clicked", {
-                          source: "mobile_navbar",
+                        void trackAndOpenWhatsapp(event, {
+                          whatsappUrl: whatsappBaseUrl,
+                          sourcePage: "mobile_navbar",
                         });
                       }}
                     >

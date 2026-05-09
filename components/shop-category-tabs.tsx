@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/product-grid";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import { type Product, whatsappBaseUrl } from "@/lib/products";
 
 type ShopCategoryTabsProps = {
@@ -156,7 +157,17 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
               Categories
             </button>
             <Button asChild className="h-10 rounded-full bg-[#2F2624] px-4 text-xs text-[#F6F1EC]">
-              <Link href={whatsappBaseUrl} target="_blank" rel="noreferrer">
+              <Link
+                href={whatsappBaseUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) =>
+                  void trackAndOpenWhatsapp(event, {
+                    whatsappUrl: whatsappBaseUrl,
+                    sourcePage: "shop_mobile_sticky",
+                  })
+                }
+              >
                 Order on WhatsApp
               </Link>
             </Button>

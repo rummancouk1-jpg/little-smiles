@@ -2,10 +2,16 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ProductWhatsappOrder } from "@/components/product-whatsapp-order";
+import { RelatedProductsSection } from "@/components/related-products-section";
 import { ProductImage } from "@/components/product-image";
 import { getProductDetailMetadata } from "@/lib/commercial-seo";
 import { breadcrumbJsonLdDocument, productJsonLd } from "@/lib/json-ld";
-import { getImageCandidates, getProductBySlug, products } from "@/lib/products";
+import {
+  getImageCandidates,
+  getProductBySlug,
+  getRelatedProducts,
+  products,
+} from "@/lib/products";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -43,6 +49,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { name: "Shop", path: "/shop" },
     { name: product.name, path: `/shop/${product.slug}` },
   ]);
+  const relatedProducts = getRelatedProducts(product, 4);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#F9F5F1] pt-10 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] max-sm:pb-[calc(7.25rem+env(safe-area-inset-bottom,0px))] sm:pt-12 lg:pt-16">
@@ -80,6 +87,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
           <ProductWhatsappOrder product={product} />
         </article>
+        <RelatedProductsSection products={relatedProducts} />
       </section>
     </main>
   );

@@ -6,11 +6,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { capturePostHogEvent } from "@/lib/posthog-client";
+import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
   type Product,
   clampOrderQuantity,
   formatPkr,
+  getAvailabilityLabel,
+  getDiscountBadgeLabel,
   getWhatsappOrderLink,
   productShowsSizeField,
   productShowsVariantField,
@@ -25,6 +27,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
   const [quantity, setQuantity] = useState(1);
   const [variantNote, setVariantNote] = useState("");
   const [sizeNote, setSizeNote] = useState("");
+  const [customerNote, setCustomerNote] = useState("");
 
   useEffect(() => {
     setQuantity((previous) => clampOrderQuantity(product, previous));
@@ -38,8 +41,9 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         quantity: safeQty,
         variantNote: variantNote.trim() || undefined,
         sizeNote: sizeNote.trim() || undefined,
+        customerNote: customerNote.trim() || undefined,
       }),
-    [product, safeQty, variantNote, sizeNote],
+    [product, safeQty, variantNote, sizeNote, customerNote],
   );
 
   const lineTotal = product.pricePkr * safeQty;
@@ -50,16 +54,6 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
       : product.category === "Food Container"
         ? "Which design / option (reference listing)"
         : "Color, print, or style preference";
-
-  const trackWhatsApp = () => {
-    capturePostHogEvent("whatsapp_order_clicked", {
-      source: "product_detail",
-      product_slug: product.slug,
-      quantity: safeQty,
-      has_variant_note: Boolean(variantNote.trim()),
-      has_size_note: Boolean(sizeNote.trim()),
-    });
-  };
 
   const disabled = !product.inStock;
 
@@ -76,9 +70,11 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           >
             {product.category}
           </Badge>
-          <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
-            {product.discountPercent}% OFF
-          </Badge>
+          {getDiscountBadgeLabel(product) ? (
+            <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
+              {getDiscountBadgeLabel(product)}
+            </Badge>
+          ) : null}
         </div>
         <h1
           id="product-title"
@@ -86,21 +82,25 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         >
           {product.name}
         </h1>
-        <p className="mt-6 max-w-[42ch] text-lg leading-relaxed text-[#3B2F2F]/72">
-          {product.description}
+        <p className="mt-5 max-w-[42ch] text-base leading-relaxed text-[#3B2F2F]/72 sm:text-lg">
+          {product.longDescription}
         </p>
 
-        <div className="mt-8 flex flex-wrap items-end gap-x-3 gap-y-1">
-          <p className="text-2xl font-semibold text-[#2E2323]">
-            {formatPkr(product.pricePkr)}
-          </p>
-          <p className="text-base text-[#3B2F2F]/56 line-through">
-            {formatPkr(product.compareAtPricePkr)}
+        <div className="mt-7 rounded-2xl border border-[#3B2F2F]/10 bg-white/58 p-4 sm:p-5">
+          <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+            <p className="text-3xl font-semibold text-[#2E2323] sm:text-[2rem]">
+              {formatPkr(product.pricePkr)}
+            </p>
+            {getDiscountBadgeLabel(product) ? (
+              <p className="text-base text-[#3B2F2F]/56 line-through">
+                {formatPkr(product.compareAtPricePkr)}
+              </p>
+            ) : null}
+          </div>
+          <p className="mt-2 text-xs font-semibold tracking-[0.1em] text-[#6E2D2D] uppercase">
+            {getAvailabilityLabel(product)}
           </p>
         </div>
-        <p className="mt-2 text-xs font-semibold tracking-[0.1em] text-[#6E2D2D] uppercase">
-          {product.inStock ? `Only ${product.inventoryQty} left` : "Out of stock"}
-        </p>
 
         <div className="mt-8 space-y-4 rounded-2xl border border-[#3B2F2F]/10 bg-white/55 p-4 sm:p-5">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
@@ -164,6 +164,20 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             </div>
           ) : null}
 
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-note">
+              Customer note
+            </label>
+            <textarea
+              id="order-note"
+              placeholder="Optional: gift note, preferred delivery timing, or other instructions"
+              value={customerNote}
+              disabled={disabled}
+              onChange={(event) => setCustomerNote(event.target.value)}
+              className="min-h-22 w-full rounded-2xl border border-[#3B2F2F]/14 bg-white/90 px-4 py-2.5 text-sm text-[#2E2323] outline-none focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/25"
+            />
+          </div>
+
           <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-[#3B2F2F]/10 pt-4">
             <span className="text-sm text-[#3B2F2F]/72">
               {safeQty > 1 ? "Line total" : "Total"}
@@ -176,17 +190,33 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
 
         <ul className="mt-6 flex flex-wrap gap-2.5 text-sm text-[#3B2F2F]/76">
           <li className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3.5 py-1.5">
-            Fabric: Skin-friendly
+            Care: Daily-use ready
           </li>
           <li className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3.5 py-1.5">
-            Use: Daily essential
+            Dispatch: 24-48 hours
           </li>
           <li className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3.5 py-1.5">
-            Delivery: Pakistan-wide
+            Delivery: 2-5 business days
           </li>
         </ul>
+        <div className="mt-5 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/88 p-4 text-sm leading-relaxed text-[#3B2F2F]/76">
+          <p>
+            <span className="font-semibold text-[#241B1B]">Delivery:</span> {product.dispatchTimeline}{" "}
+            {product.deliveryEstimate}
+          </p>
+          <p className="mt-2">
+            <span className="font-semibold text-[#241B1B]">Care:</span> {product.careNote}
+          </p>
+          <p className="mt-2">
+            <span className="font-semibold text-[#241B1B]">Gifting:</span> {product.giftingNote}
+          </p>
+          <p className="mt-2">
+            <span className="font-semibold text-[#241B1B]">Returns support:</span> For damaged or
+            incorrect items, message us within 48 hours of delivery with photos.
+          </p>
+        </div>
 
-        <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center">
           {disabled ? (
             <Button
               disabled
@@ -198,13 +228,22 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           ) : (
             <Button
               asChild
-              className="h-11 w-full rounded-full bg-[#2F2624] px-7 text-sm font-medium text-[#F6F1EC] shadow-[0_14px_32px_-20px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_36px_-22px_rgba(47,38,36,0.66)] sm:w-auto"
+              className="h-12 w-full rounded-full bg-[#2F2624] px-7 text-sm font-semibold text-[#F6F1EC] shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_20px_38px_-20px_rgba(47,38,36,0.7)] sm:h-11 sm:w-auto"
             >
               <Link
                 href={orderHref}
                 target="_blank"
                 rel="noreferrer"
-                onClick={trackWhatsApp}
+                onClick={(event) =>
+                  void trackAndOpenWhatsapp(event, {
+                    whatsappUrl: orderHref,
+                    sourcePage: "product_detail",
+                    productSlug: product.slug,
+                    productName: product.name,
+                    category: product.category,
+                    pricePkr: product.pricePkr,
+                  })
+                }
               >
                 Order on WhatsApp
               </Link>
@@ -223,8 +262,8 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
       <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-2 sm:hidden">
         <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border border-[#3B2F2F]/12 bg-[#FCF8F4]/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-[#FCF8F4]/92">
           <div>
-            <p className="text-sm font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
-            {safeQty === 1 ? (
+            <p className="text-base font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
+            {safeQty === 1 && getDiscountBadgeLabel(product) ? (
               <p className="text-[11px] text-[#3B2F2F]/58 line-through">
                 {formatPkr(product.compareAtPricePkr)}
               </p>
@@ -251,7 +290,16 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 href={orderHref}
                 target="_blank"
                 rel="noreferrer"
-                onClick={trackWhatsApp}
+                onClick={(event) =>
+                  void trackAndOpenWhatsapp(event, {
+                    whatsappUrl: orderHref,
+                    sourcePage: "product_detail_sticky",
+                    productSlug: product.slug,
+                    productName: product.name,
+                    category: product.category,
+                    pricePkr: product.pricePkr,
+                  })
+                }
               >
                 WhatsApp order
               </Link>
