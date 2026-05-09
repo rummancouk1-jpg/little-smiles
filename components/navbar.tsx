@@ -24,6 +24,7 @@ const navLinks = [
   { label: "Blog", href: "/blog" },
   { label: "Best Sellers", href: "/best-sellers" },
   { label: "Reviews", href: "/reviews" },
+  { label: "Track Order", href: "/track-order" },
   { label: "Contact", href: "/contact" },
 ] as const;
 

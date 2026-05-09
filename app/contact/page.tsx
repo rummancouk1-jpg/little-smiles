@@ -37,6 +37,13 @@ export default function ContactPage() {
             WhatsApp support hours: 10:00 AM – 10:00 PM (PKT). We usually reply
             within 15–60 minutes during support hours.
           </p>
+          <p className="mt-3 text-sm leading-relaxed text-[#3B2F2F]/68">
+            Need your order status?{" "}
+            <Link href="/track-order" className="font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#241B1B]">
+              Track your order
+            </Link>
+            {" "}with your order ID and phone number.
+          </p>
 
           <PakistanServiceNotes variant="panel" className="mt-8" />
 

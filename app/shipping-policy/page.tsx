@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { faqPageJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { shippingPolicyFaqs } from "@/lib/shipping-faq";
 import { staticPageMetadata } from "@/lib/seo-metadata";
@@ -36,6 +38,13 @@ export default function ShippingPolicyPage() {
             Little Smiles ships premium baby essentials across Pakistan. This
             page explains typical timelines, how we communicate with you, and
             what to expect once your order is confirmed on WhatsApp.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-[#3B2F2F]/70">
+            After confirmation, you can also{" "}
+            <Link href="/track-order" className="font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#241B1B]">
+              check your order status
+            </Link>{" "}
+            online with your order ID and phone number.
           </p>
 
           <h2 className="mt-10 text-xl font-semibold tracking-tight text-[#241B1B]">

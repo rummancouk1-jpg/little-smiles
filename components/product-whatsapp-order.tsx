@@ -218,6 +218,13 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             <span className="font-semibold text-[#241B1B]">Returns support:</span> For damaged or
             incorrect items, message us within 48 hours of delivery with photos.
           </p>
+          <p className="mt-3 text-xs text-[#3B2F2F]/68">
+            Already placed an order?{" "}
+            <Link href="/track-order" className="font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#241B1B]">
+              Track your order
+            </Link>
+            .
+          </p>
         </div>
 
         <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center">

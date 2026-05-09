@@ -41,6 +41,9 @@ export function SiteFooter() {
             <Link href="/contact" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
               Contact
             </Link>
+            <Link href="/track-order" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
+              Track Order
+            </Link>
             <Link href="/shipping-policy" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
               Shipping Policy
             </Link>
