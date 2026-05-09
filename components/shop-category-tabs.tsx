@@ -154,7 +154,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
             <button
               type="button"
               onClick={scrollToCategories}
-              className="touch-feedback inline-flex h-10 shrink-0 items-center rounded-full border border-[#2E2323]/14 bg-white/70 px-3.5 text-xs font-medium text-[#2E2323]"
+              className="touch-feedback inline-flex h-10 shrink-0 items-center rounded-full border border-[#2E2323]/14 bg-white/70 px-3.5 text-xs font-medium text-[#2E2323] transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
             >
               Categories
             </button>

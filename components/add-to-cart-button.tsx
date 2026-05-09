@@ -50,7 +50,7 @@ export function AddToCartButton({
         variant === "primary" &&
           "h-12 border-transparent bg-[#2F2624] px-5 text-[#F6F1EC] shadow-[0_14px_32px_-20px_rgba(47,38,36,0.56)] hover:bg-[#251E1D] sm:h-10",
         variant === "outline" &&
-          "h-12 border-[#2E2323]/16 bg-white/62 text-[#2E2323] hover:bg-white/84 sm:h-10",
+          "h-12 border-[#2E2323]/16 bg-white/72 text-[#2E2323] sm:h-10",
         variant === "ghost" && "h-11 text-[#2E2323]",
         className,
       )}

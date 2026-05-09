@@ -137,7 +137,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
       "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
       isActive
         ? "bg-[#2F2624] text-[#F6F1EC]"
-        : "border border-[#3B2F2F]/14 bg-white/75 text-[#2E2323] hover:bg-white",
+        : "border border-[#3B2F2F]/14 bg-white/75 text-[#2E2323] transition-colors hover:border-[#3B2F2F]/24 hover:bg-[#F2EAE4]",
     ].join(" ");
 
   return (

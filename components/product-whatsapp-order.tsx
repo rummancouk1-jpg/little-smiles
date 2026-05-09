@@ -249,7 +249,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <Button
                 asChild
                 variant="outline"
-                className="h-12 w-full rounded-full border-[#2E2323]/16 bg-white/62 px-7 text-sm font-semibold text-[#2E2323] hover:bg-white/84 sm:h-11 sm:w-auto"
+                className="h-12 w-full rounded-full border-[#2E2323]/16 bg-white/72 px-7 text-sm font-semibold text-[#2E2323] sm:h-11 sm:w-auto"
               >
                 <Link
                   href={orderHref}
@@ -274,7 +274,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           <Button
             asChild
             variant="ghost"
-            className="h-11 w-full rounded-full px-7 text-sm font-medium text-[#2E2323] hover:bg-[#F2EAE4] sm:w-auto"
+            className="h-11 w-full rounded-full px-7 text-sm font-medium text-[#2E2323] sm:w-auto"
           >
             <Link href="/shop">Back to Shop</Link>
           </Button>

@@ -199,7 +199,7 @@ export function HeroSection() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-12 w-full rounded-full border-[#2E2323]/14 bg-white/62 px-9 text-base font-medium text-[#2E2323] shadow-[0_12px_30px_-20px_rgba(59,47,47,0.38)] backdrop-blur-sm transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-white/88 hover:shadow-[0_18px_36px_-22px_rgba(59,47,47,0.48)] sm:w-auto"
+                className="h-12 w-full rounded-full border-[#2E2323]/16 bg-white/75 px-9 text-base font-medium text-[#2E2323] shadow-[0_12px_30px_-20px_rgba(59,47,47,0.38)] backdrop-blur-sm transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-22px_rgba(59,47,47,0.48)] sm:w-auto"
               >
                 <Link href="/best-sellers">View Best Sellers</Link>
               </Button>

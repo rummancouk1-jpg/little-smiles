@@ -6,18 +6,42 @@ export type CartCheckoutLine = {
   quantity: number;
 };
 
+/** Collected on /cart only — not stored in localStorage. */
+export type CartCheckoutCustomerDetails = {
+  fullName: string;
+  phone: string;
+  city: string;
+  address: string;
+  note: string;
+};
+
 export function cartSubtotalPkr(lines: CartCheckoutLine[]): number {
   return lines.reduce((sum, line) => sum + line.product.pricePkr * line.quantity, 0);
 }
 
-export function buildCartWhatsappCheckoutMessage(lines: CartCheckoutLine[]): string {
+export function buildCartWhatsappCheckoutMessage(
+  lines: CartCheckoutLine[],
+  customer: CartCheckoutCustomerDetails,
+): string {
   const subtotal = cartSubtotalPkr(lines);
   const blocks: string[] = [
     "Hi Little Smiles,",
     "",
-    "CART ORDER — please confirm stock, pricing, and delivery:",
+    "COD ORDER — please confirm on WhatsApp:",
     "",
+    "CUSTOMER",
+    `• Name: ${customer.fullName.trim()}`,
+    `• Phone: ${customer.phone.trim()}`,
+    `• City: ${customer.city.trim()}`,
+    `• Address: ${customer.address.trim()}`,
   ];
+
+  const note = customer.note.trim();
+  if (note.length > 0) {
+    blocks.push(`• Note: ${note}`);
+  }
+
+  blocks.push("", "ORDER LINES", "");
 
   lines.forEach((line, index) => {
     const { product, quantity } = line;
@@ -34,17 +58,25 @@ export function buildCartWhatsappCheckoutMessage(lines: CartCheckoutLine[]): str
   });
 
   blocks.push(
-    `Subtotal: ${formatPkr(subtotal)}`,
+    `Cart subtotal: ${formatPkr(subtotal)}`,
     "",
-    "Customer note: [Please add variant/size, city, phone, and any delivery preferences]",
+    "SETTLEMENT",
+    "• Shipping fee: to be confirmed after city/address",
+    "• Final total (including delivery): confirmed before dispatch",
+    "• Payment: Cash on Delivery (COD) — no online payment required",
     "",
-    "Pakistan delivery — reply with confirmation and payment details if needed.",
+    "Please confirm stock, delivery fee, and final amount on WhatsApp before dispatch.",
+    "",
+    "Thank you — Little Smiles",
   );
 
   return blocks.join("\n");
 }
 
-export function getCartWhatsappCheckoutUrl(lines: CartCheckoutLine[]): string {
-  const text = buildCartWhatsappCheckoutMessage(lines);
+export function getCartWhatsappCheckoutUrl(
+  lines: CartCheckoutLine[],
+  customer: CartCheckoutCustomerDetails,
+): string {
+  const text = buildCartWhatsappCheckoutMessage(lines, customer);
   return `${whatsappBaseUrl}?text=${encodeURIComponent(text)}`;
 }

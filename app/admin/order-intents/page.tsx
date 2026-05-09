@@ -238,7 +238,7 @@ export default async function OrderIntentsAdminPage({ searchParams }: PageProps)
       "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
       range === r
         ? "bg-[#2F2624] text-[#F6F1EC]"
-        : "border border-[#3B2F2F]/14 bg-white/75 text-[#2E2323] hover:bg-white",
+        : "border border-[#3B2F2F]/14 bg-white/75 text-[#2E2323] transition-colors hover:border-[#3B2F2F]/24 hover:bg-[#F2EAE4]",
     ].join(" ");
 
   return (
@@ -315,7 +315,7 @@ export default async function OrderIntentsAdminPage({ searchParams }: PageProps)
           </article>
           <Link
             href="/admin/audit?action=order_intents_exported"
-            className="rounded-2xl border border-[#3B2F2F]/10 bg-white/85 p-4 transition-colors hover:bg-white"
+            className="rounded-2xl border border-[#3B2F2F]/10 bg-white/85 p-4 transition-colors hover:border-[#3B2F2F]/18 hover:bg-[#FAF6F2]"
           >
             <p className="text-xs uppercase tracking-[0.14em] text-[#3B2F2F]/55">Last export</p>
             <p className="mt-2 text-sm font-semibold text-[#1F1918]">

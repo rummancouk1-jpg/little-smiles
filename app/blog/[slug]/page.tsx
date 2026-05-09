@@ -192,7 +192,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                     <Link
                       href={`/shop/${product.slug}`}
-                      className="mt-3 inline-flex rounded-full border border-[#2E2323]/14 bg-white/70 px-3 py-1.5 text-xs font-medium text-[#2E2323] transition-colors hover:bg-white/92"
+                      className="mt-3 inline-flex rounded-full border border-[#2E2323]/14 bg-white/70 px-3 py-1.5 text-xs font-medium text-[#2E2323] transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
                     >
                       View Product
                     </Link>

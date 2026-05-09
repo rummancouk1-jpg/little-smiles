@@ -23,7 +23,7 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
           </div>
           <Link
             href="/blog"
-            className="inline-flex rounded-full border border-[#2E2323]/14 bg-white/68 px-4 py-2 text-sm font-medium text-[#2E2323] transition-colors hover:bg-white/88"
+            className="inline-flex rounded-full border border-[#2E2323]/14 bg-white/68 px-4 py-2 text-sm font-medium text-[#2E2323] transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
           >
             View All Articles
           </Link>

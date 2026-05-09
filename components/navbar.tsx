@@ -82,7 +82,7 @@ export function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           <Link
             href="/cart"
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#3B2F2F]/14 bg-white/66 text-[#2E2323] shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-white/88"
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#3B2F2F]/14 bg-white/66 text-[#2E2323] shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[#3B2F2F]/26 hover:bg-[#F2EAE4]"
             aria-label={
               totalQuantity > 0 ? `Cart, ${totalQuantity} items` : "View shopping cart"
             }
@@ -97,7 +97,7 @@ export function Navbar() {
           <Button
             asChild
             variant="outline"
-            className="h-11 rounded-full border-[#2E2323]/18 bg-white/62 px-5 text-sm font-medium text-[#2E2323] shadow-[0_10px_26px_-22px_rgba(59,47,47,0.4)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-white/88"
+            className="h-11 rounded-full border-[#2E2323]/18 bg-white/70 px-5 text-sm font-medium text-[#2E2323] shadow-[0_10px_26px_-22px_rgba(59,47,47,0.4)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5"
           >
             <Link
               href={whatsappBaseUrl}
@@ -121,7 +121,7 @@ export function Navbar() {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-11 rounded-full border-[#3B2F2F]/14 bg-white/66 text-[#2E2323] shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm hover:bg-white/88"
+                className="size-11 rounded-full border-[#3B2F2F]/14 bg-white/66 text-[#2E2323] shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/24 hover:bg-[#F2EAE4]"
               >
                 <Menu className="size-[1.1rem]" />
                 <span className="sr-only">Open menu</span>

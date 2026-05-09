@@ -63,7 +63,7 @@ export default function BlogPage() {
               </p>
               <Link
                 href={`/blog/${post.slug}`}
-                className="mt-5 inline-flex rounded-full border border-[#2E2323]/14 bg-white/70 px-4 py-2 text-sm font-medium text-[#2E2323] transition-colors hover:bg-white/92"
+                className="mt-5 inline-flex rounded-full border border-[#2E2323]/14 bg-white/70 px-4 py-2 text-sm font-medium text-[#2E2323] transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
               >
                 Read Article
               </Link>

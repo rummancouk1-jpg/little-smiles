@@ -130,7 +130,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 <Button
                   asChild
                   variant="outline"
-                  className="h-10 w-full rounded-full border-[#2E2323]/14 bg-white/62 text-xs font-medium text-[#2E2323] hover:bg-white/84"
+                  className="h-10 w-full rounded-full border-[#2E2323]/14 bg-white/72 text-xs font-medium text-[#2E2323]"
                 >
                   <Link
                     href={getWhatsappOrderLink(product)}
