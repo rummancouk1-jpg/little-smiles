@@ -4,9 +4,11 @@ import { z } from "zod";
 
 const contactSchema = z
   .object({
-    name: z.string().min(2).max(120),
-    phone: z.string().min(10).max(40),
-    message: z.string().min(10).max(8000),
+    name: z.string().trim().min(2).max(120),
+    email: z.string().trim().email().max(200),
+    phone: z.string().trim().min(7).max(40),
+    message: z.string().trim().min(10).max(8000),
+    pageUrl: z.string().trim().url().max(1500).optional(),
     /** Honeypot — must be empty (bots often fill hidden fields). */
     website: z.string().optional(),
   })
@@ -14,6 +16,27 @@ const contactSchema = z
     path: ["website"],
     message: "Invalid submission.",
   });
+
+const urlLikePattern = /(https?:\/\/|www\.|\.com\b|\.pk\b|\.net\b)/i;
+
+function isSuspiciousSubmission(input: {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}): boolean {
+  const compactMessage = input.message.replace(/\s+/g, " ").trim();
+  const digitsInPhone = input.phone.replace(/\D/g, "");
+  const linksInMessage = (compactMessage.match(/https?:\/\//gi) ?? []).length;
+
+  if (digitsInPhone.length < 7 || digitsInPhone.length > 15) return true;
+  if (linksInMessage > 1) return true;
+  if (compactMessage.length > 0 && /^([a-z0-9])\1{12,}$/i.test(compactMessage)) return true;
+  if (urlLikePattern.test(input.name)) return true;
+  if (compactMessage.toLowerCase().includes("<script")) return true;
+
+  return false;
+}
 
 function escapeHtml(s: string): string {
   return s
@@ -28,6 +51,7 @@ async function sendResendEmail(input: {
   from: string;
   subject: string;
   html: string;
+  replyTo: string;
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key) return false;
@@ -39,6 +63,7 @@ async function sendResendEmail(input: {
       to: input.to,
       subject: input.subject,
       html: input.html,
+      replyTo: input.replyTo,
     });
 
     if (error) {
@@ -52,28 +77,6 @@ async function sendResendEmail(input: {
   }
 }
 
-async function notifyWebhook(url: string, body: Record<string, unknown>): Promise<boolean> {
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(8_000),
-    });
-    return res.ok;
-  } catch (e) {
-    console.warn("[contact] webhook failed", e);
-    return false;
-  }
-}
-
-/**
- * Contact form delivery (configure at least one in production for real delivery):
- * - `RESEND_API_KEY` + `CONTACT_EMAIL_FROM` + `CONTACT_EMAIL_TO`
- * - `CONTACT_NOTIFY_WEBHOOK_URL` (Slack / Discord / Zapier / Make)
- *
- * If neither is configured, submissions are logged to the server console only (dev-friendly).
- */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -86,56 +89,70 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, phone, message } = parsed.data;
+    const { name, email, phone, message, pageUrl } = parsed.data;
+    if (isSuspiciousSubmission({ name, email, phone, message })) {
+      return NextResponse.json(
+        { ok: false, error: "Please submit a valid message." },
+        { status: 400 },
+      );
+    }
+
     const receivedAt = new Date().toISOString();
+    const sourceUrl =
+      pageUrl ||
+      request.headers.get("origin") ||
+      request.headers.get("referer") ||
+      undefined;
 
     const summary = {
       kind: "contact_form" as const,
       receivedAt,
       name,
+      email,
       phone,
       messagePreview: message.slice(0, 280),
+      sourceUrl,
     };
 
     console.info("[contact]", JSON.stringify(summary));
 
-    const webhookUrl = process.env.CONTACT_NOTIFY_WEBHOOK_URL?.trim();
     let delivered = false;
-
-    if (webhookUrl) {
-      delivered = await notifyWebhook(webhookUrl, {
-        ...summary,
-        message,
-      });
-    }
-
-    const to = process.env.CONTACT_EMAIL_TO?.trim();
-    const from = process.env.CONTACT_EMAIL_FROM?.trim();
+    const to = process.env.CONTACT_TO_EMAIL?.trim();
+    const from = process.env.CONTACT_FROM_EMAIL?.trim();
     const resendKey = process.env.RESEND_API_KEY?.trim();
 
     if (resendKey && to && from) {
       const html = `
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-        <p><strong>Message:</strong></p>
-        <p>${escapeHtml(message).replaceAll("\n", "<br/>")}</p>
-        <hr/>
-        <p style="color:#666;font-size:12px">Received ${escapeHtml(receivedAt)} — Little Smiles site</p>
+        <div style="font-family:Arial,sans-serif;background:#f8f4ef;padding:24px;color:#231b1a;line-height:1.6">
+          <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #efe6de;border-radius:14px;overflow:hidden">
+            <div style="padding:18px 22px;background:#fbf4ee;border-bottom:1px solid #f0e7df">
+              <h2 style="margin:0;font-size:18px;color:#1f1918">New Contact Inquiry</h2>
+              <p style="margin:6px 0 0;font-size:13px;color:#4a3f3d">Little Smiles website</p>
+            </div>
+            <div style="padding:18px 22px">
+              <p style="margin:0 0 8px"><strong>Customer Name:</strong> ${escapeHtml(name)}</p>
+              <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(email)}</p>
+              <p style="margin:0 0 8px"><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+              <p style="margin:16px 0 6px"><strong>Message:</strong></p>
+              <div style="padding:12px;border:1px solid #efe6de;border-radius:10px;background:#fdfaf7">${escapeHtml(message).replaceAll("\n", "<br/>")}</div>
+              <p style="margin:14px 0 0;font-size:12px;color:#655754"><strong>Source URL:</strong> ${sourceUrl ? escapeHtml(sourceUrl) : "N/A"}</p>
+              <p style="margin:6px 0 0;font-size:12px;color:#655754"><strong>Timestamp:</strong> ${escapeHtml(receivedAt)}</p>
+            </div>
+          </div>
+        </div>
       `;
       const ok = await sendResendEmail({
         from,
         to,
-        subject: `Little Smiles contact: ${name.slice(0, 60)}`,
+        replyTo: email,
+        subject: `Little Smiles contact inquiry: ${name.slice(0, 60)}`,
         html,
       });
-      delivered = delivered || ok;
+      delivered = ok;
     }
 
-    const isProd = process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
-    if (isProd && !delivered && !webhookUrl && !(resendKey && to && from)) {
-      console.warn(
-        "[contact] No delivery channel configured — set RESEND_* or CONTACT_NOTIFY_WEBHOOK_URL",
-      );
+    if (!delivered) {
+      console.warn("[contact] Email delivery unavailable. Configure RESEND_API_KEY and contact emails.");
     }
 
     return NextResponse.json({ ok: true, delivered });

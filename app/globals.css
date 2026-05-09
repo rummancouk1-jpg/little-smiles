@@ -145,6 +145,33 @@
 }
 
 @layer utilities {
+  .contact-input,
+  .contact-textarea {
+    color: #2e2323;
+    caret-color: #2e2323;
+    -webkit-text-fill-color: #2e2323;
+  }
+
+  .contact-input::placeholder,
+  .contact-textarea::placeholder {
+    color: rgb(107 91 89 / 0.65);
+    -webkit-text-fill-color: rgb(107 91 89 / 0.65);
+  }
+
+  .contact-input:-webkit-autofill,
+  .contact-input:-webkit-autofill:hover,
+  .contact-input:-webkit-autofill:focus,
+  .contact-textarea:-webkit-autofill,
+  .contact-textarea:-webkit-autofill:hover,
+  .contact-textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: #2e2323;
+    caret-color: #2e2323;
+    border-color: rgb(46 35 35 / 0.2);
+    -webkit-box-shadow: 0 0 0px 1000px rgb(255 255 255 / 0.8) inset;
+    box-shadow: 0 0 0px 1000px rgb(255 255 255 / 0.8) inset;
+    transition: background-color 9999s ease-out 0s;
+  }
+
   .mobile-rail {
     -ms-overflow-style: none;
     scrollbar-width: none;

@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 
 import { capturePostHogEvent } from "@/lib/posthog-client";
+import { whatsappBaseUrl } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const contactSchema = z
   .object({
     name: z.string().min(2, "Please enter your name."),
+    email: z.string().email("Please enter a valid email address."),
     phone: z.string().min(10, "Please enter a valid phone number."),
     message: z.string().min(10, "Please add a short message."),
     /** Leave empty — spam bots often fill this hidden field. */
@@ -49,9 +52,11 @@ export function ContactForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: values.name,
+        email: values.email,
         phone: values.phone,
         message: values.message,
         website: values.website ?? "",
+        pageUrl: typeof window !== "undefined" ? window.location.href : undefined,
       }),
     });
 
@@ -69,6 +74,11 @@ export function ContactForm() {
       source: "contact_page",
       delivered,
     });
+    if (!delivered) {
+      capturePostHogEvent("contact_form_delivery_failed", {
+        source: "contact_page",
+      });
+    }
 
     setDeliveredToInbox(delivered);
     setSubmitted(true);
@@ -91,7 +101,7 @@ export function ContactForm() {
       <div>
         <Input
           placeholder="Your Name"
-          className="h-11 rounded-2xl border-[#2E2323]/12 bg-white/80"
+          className="contact-input h-11 rounded-2xl border-[#2E2323]/12 bg-white/80 text-[#2E2323] caret-[#2E2323] placeholder:text-[#6B5B59]/65 focus-visible:border-[#2E2323]/32 focus-visible:ring-[#2E2323]/18"
           {...register("name")}
         />
         {errors.name ? (
@@ -100,8 +110,23 @@ export function ContactForm() {
       </div>
       <div>
         <Input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="Email Address"
+          className="contact-input h-11 rounded-2xl border-[#2E2323]/12 bg-white/80 text-[#2E2323] caret-[#2E2323] placeholder:text-[#6B5B59]/65 focus-visible:border-[#2E2323]/32 focus-visible:ring-[#2E2323]/18"
+          {...register("email")}
+        />
+        {errors.email ? (
+          <p className="mt-1 text-xs text-[#9A4C5A]">{errors.email.message}</p>
+        ) : null}
+      </div>
+      <div>
+        <Input
           placeholder="Phone Number"
-          className="h-11 rounded-2xl border-[#2E2323]/12 bg-white/80"
+          inputMode="tel"
+          autoComplete="tel"
+          className="contact-input h-11 rounded-2xl border-[#2E2323]/12 bg-white/80 text-[#2E2323] caret-[#2E2323] placeholder:text-[#6B5B59]/65 focus-visible:border-[#2E2323]/32 focus-visible:ring-[#2E2323]/18"
           {...register("phone")}
         />
         {errors.phone ? (
@@ -111,7 +136,7 @@ export function ContactForm() {
       <div>
         <textarea
           placeholder="How can we help?"
-          className="min-h-28 w-full rounded-2xl border border-[#2E2323]/12 bg-white/80 px-3 py-2 text-base leading-relaxed outline-none ring-0 placeholder:text-muted-foreground focus:border-[#2E2323]/20 lg:text-sm"
+          className="contact-textarea min-h-28 w-full rounded-2xl border border-[#2E2323]/12 bg-white/80 px-3 py-2 text-base leading-relaxed text-[#2E2323] caret-[#2E2323] outline-none ring-0 placeholder:text-[#6B5B59]/65 focus:border-[#2E2323]/32 focus:ring-3 focus:ring-[#2E2323]/18 lg:text-sm"
           {...register("message")}
         />
         {errors.message ? (
@@ -130,8 +155,16 @@ export function ContactForm() {
           <p>Thank you — we received your message.</p>
           {deliveredToInbox === false ? (
             <p className="text-[#3B2F2F]/62">
-              If you don&apos;t hear back within a day, message us on WhatsApp so we can help you
-              directly.
+              Email delivery is temporarily delayed. Please message us on{" "}
+              <Link
+                href={whatsappBaseUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
+                WhatsApp
+              </Link>{" "}
+              so we can help you directly.
             </p>
           ) : (
             <p>We&apos;ll get back to you as soon as we can.</p>
