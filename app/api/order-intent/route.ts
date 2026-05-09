@@ -71,17 +71,18 @@ export async function POST(request: Request) {
       });
     }
 
-    const { error } = await supabase.from("order_intents").insert({
-      product_slug: payload.productSlug ?? null,
-      product_name: payload.productName ?? null,
-      category: payload.category ?? null,
-      price_pkr: payload.pricePkr ?? null,
-      source_page: payload.sourcePage,
-      event_timestamp: payload.timestamp,
-      user_agent: payload.userAgent ?? null,
-      // Server-side ingestion timestamp (separate from click timestamp from client).
-      created_at: new Date().toISOString(),
-    });
+    const { error } = await supabase.from("order_intents").insert([
+      {
+        product_slug: payload.productSlug ?? null,
+        product_name: payload.productName ?? null,
+        category: payload.category ?? null,
+        price_pkr: payload.pricePkr ?? null,
+        source_page: payload.sourcePage,
+        event_timestamp: payload.timestamp,
+        user_agent: payload.userAgent ?? null,
+        // Let DB default manage created_at.
+      },
+    ]);
 
     if (error) {
       console.warn("[order-intent] supabase insert failed", {

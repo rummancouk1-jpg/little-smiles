@@ -23,16 +23,18 @@ export async function GET() {
 
     canConnectToSupabase = !connectError;
 
-    const { error: insertError } = await supabase.from("order_intents").insert({
-      product_slug: "diagnostic-test",
-      product_name: "Diagnostic Test",
-      category: "debug",
-      price_pkr: 0,
-      source_page: "/api/order-intent/health",
-      event_timestamp: new Date().toISOString(),
-      user_agent: "diagnostic-health-check",
-      created_at: new Date().toISOString(),
-    });
+    const { error: insertError } = await supabase.from("order_intents").insert([
+      {
+        product_slug: "diagnostic-test",
+        product_name: "Diagnostic Test",
+        category: "debug",
+        price_pkr: 0,
+        source_page: "/api/order-intent/health",
+        event_timestamp: new Date().toISOString(),
+        user_agent: "diagnostic-health-check",
+        // Let DB default manage created_at.
+      },
+    ]);
 
     if (insertError) {
       insertErrorCode = insertError.code ?? null;
@@ -47,6 +49,8 @@ export async function GET() {
     hasServiceRoleKey: checks.hasServiceRoleKey,
     isSupabaseUrlValid: checks.urlIsValid,
     supabaseHost: checks.urlHost ?? null,
+    normalizedSupabaseUrl: checks.normalizedUrl ?? null,
+    hadPathSuffix: checks.hadPathSuffix,
     canConnectToSupabase,
     canInsertTestOrderIntent,
     insertErrorCode,
