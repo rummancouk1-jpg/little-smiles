@@ -278,6 +278,24 @@ export function getRelatedProducts(product: Product, limit = 4): Product[] {
   return [...sameCategory, ...filler].slice(0, limit);
 }
 
+/** In-stock picks not already in cart; prefers same categories as cart lines. */
+export function getCartUpsellProducts(excludeSlugs: string[], limit = 4): Product[] {
+  const exclude = new Set(excludeSlugs);
+  const inCart = products.filter((p) => exclude.has(p.slug));
+  const categories = new Set(inCart.map((p) => p.category));
+
+  const pool = products.filter(
+    (p) => !exclude.has(p.slug) && p.inStock && p.inventoryQty > 0,
+  );
+
+  const score = (p: Product) =>
+    (categories.has(p.category) ? 4 : 0) +
+    Number(p.featured) * 2 +
+    Number(p.bestSeller) * 2;
+
+  return [...pool].sort((a, b) => score(b) - score(a)).slice(0, limit);
+}
+
 export function formatPkr(pricePkr: number) {
   return `Rs. ${pricePkr.toLocaleString("en-PK")}`;
 }

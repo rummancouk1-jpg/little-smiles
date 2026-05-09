@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { AddToCartButton } from "@/components/add-to-cart-button";
 import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { getCartWhatsappCheckoutUrl } from "@/lib/cart-checkout";
 import { trackCartCheckoutAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
   formatPkr,
+  getCartUpsellProducts,
   getDiscountBadgeLabel,
   getImageCandidates,
 } from "@/lib/products";
@@ -34,9 +36,17 @@ function validateCheckoutForm(data: {
   return null;
 }
 
+const stepperBtnClass =
+  "size-9 shrink-0 rounded-full border-[#3B2F2F]/24 bg-white/95 text-[#2E2323] shadow-sm hover:bg-[#F2EAE4] disabled:opacity-40";
+
 export function CartPageClient() {
   const { resolvedLines, setQuantity, removeLine, totalQuantity, subtotalPkr } =
     useCart();
+
+  const upsellProducts = getCartUpsellProducts(
+    resolvedLines.map((l) => l.productSlug),
+    4,
+  );
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -136,7 +146,7 @@ export function CartPageClient() {
           return (
             <li
               key={productSlug}
-              className="flex flex-col gap-4 rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-4 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.32)] sm:flex-row sm:items-center sm:gap-5 sm:p-5"
+              className="flex flex-col gap-4 rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-4 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.32)] sm:flex-row sm:items-start sm:gap-5 sm:p-5"
             >
               <Link
                 href={`/shop/${product.slug}`}
@@ -185,56 +195,117 @@ export function CartPageClient() {
                 ) : null}
               </div>
 
-              <div className="flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-end">
-                <div className="flex items-center gap-1 rounded-full border border-[#3B2F2F]/14 bg-white/72 p-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-full text-[#2E2323]"
-                    aria-label="Decrease quantity"
-                    disabled={quantity <= 1}
-                    onClick={() => setQuantity(productSlug, quantity - 1)}
-                  >
-                    <Minus className="size-4" />
-                  </Button>
-                  <span className="min-w-8 text-center text-sm font-semibold tabular-nums text-[#2E2323]">
-                    {quantity}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-full text-[#2E2323]"
-                    aria-label="Increase quantity"
-                    disabled={quantity >= maxQty}
-                    onClick={() => setQuantity(productSlug, quantity + 1)}
-                  >
-                    <Plus className="size-4" />
-                  </Button>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-[#3B2F2F]/62">Line total</p>
-                  <p className="text-lg font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
+              <div className="flex w-full shrink-0 flex-col gap-4 border-t border-[#3B2F2F]/10 pt-4 sm:mt-0 sm:w-72 sm:border-t-0 sm:border-l sm:pl-5 sm:pt-0">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.1em] text-[#3B2F2F]/58">
+                      Quantity
+                    </p>
+                    <div className="inline-flex items-center gap-1 rounded-full border border-[#3B2F2F]/20 bg-white/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        className={stepperBtnClass}
+                        aria-label="Decrease quantity"
+                        disabled={quantity <= 1}
+                        onClick={() => setQuantity(productSlug, quantity - 1)}
+                      >
+                        <Minus className="size-4" strokeWidth={2.25} />
+                      </Button>
+                      <span className="min-w-10 px-1 text-center text-sm font-semibold tabular-nums text-[#2E2323]">
+                        {quantity}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        className={stepperBtnClass}
+                        aria-label="Increase quantity"
+                        disabled={quantity >= maxQty}
+                        onClick={() => setQuantity(productSlug, quantity + 1)}
+                      >
+                        <Plus className="size-4" strokeWidth={2.25} />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-[#3B2F2F]/62">Line total</p>
+                    <p className="text-lg font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
+                  </div>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={cn(
-                    "rounded-full border-[#3B2F2F]/18 text-[#6E2D2D] hover:text-[#5C2528]",
-                    "sm:mt-1",
-                  )}
+                  className="h-10 w-full rounded-full border-[#3B2F2F]/22 text-sm font-medium text-[#6E2D2D] sm:w-auto"
                   onClick={() => removeLine(productSlug)}
                 >
-                  <Trash2 className="mr-1.5 size-3.5" />
-                  Remove
+                  <Trash2 className="mr-2 size-4" aria-hidden />
+                  Remove from cart
                 </Button>
               </div>
             </li>
           );
         })}
       </ul>
+
+      {upsellProducts.length > 0 ? (
+        <section
+          className="mt-10"
+          aria-labelledby="cart-upsell-heading"
+        >
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
+                Complete the order
+              </p>
+              <h2
+                id="cart-upsell-heading"
+                className="mt-1.5 text-xl font-semibold tracking-tight text-[#1F1918] sm:text-2xl"
+              >
+                You may also like
+              </h2>
+            </div>
+            <Link
+              href="/shop"
+              className="text-sm font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#1F1918]"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {upsellProducts.map((item) => (
+              <article
+                key={item.slug}
+                className="flex flex-col rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-3.5 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.3)]"
+              >
+                <Link href={`/shop/${item.slug}`} className="group block">
+                  <div className="relative h-36 rounded-xl bg-[#F5EEE7] p-3">
+                    <ProductImage
+                      sources={getImageCandidates(item.image)}
+                      alt={item.name}
+                      fill
+                      className="object-contain object-center"
+                      sizes="(max-width: 640px) 100vw, 25vw"
+                    />
+                  </div>
+                  <p className="mt-2.5 line-clamp-2 text-sm font-semibold text-[#2E2323] group-hover:underline">
+                    {item.name}
+                  </p>
+                </Link>
+                <p className="mt-1 text-sm font-semibold text-[#2E2323]">{formatPkr(item.pricePkr)}</p>
+                <AddToCartButton
+                  product={item}
+                  size="sm"
+                  className="mt-3 h-9 w-full text-xs"
+                  label="Add to cart"
+                />
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="mt-10 space-y-8 rounded-3xl border border-[#3B2F2F]/10 bg-white/55 p-6 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.22)] sm:p-8">
         <div className="border-b border-[#3B2F2F]/10 pb-6">
