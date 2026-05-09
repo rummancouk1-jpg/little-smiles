@@ -238,7 +238,7 @@ export function CartPageClient() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-10 w-full rounded-full border-[#3B2F2F]/22 text-sm font-medium text-[#6E2D2D] sm:w-auto"
+                  className="h-10 w-full rounded-full border-[#3B2F2F]/36 bg-white/95 text-sm font-semibold text-[#1F1918] hover:bg-[#F8F4F0] hover:text-[#1F1918] dark:text-[#1F1918] dark:hover:text-[#1F1918] sm:w-auto [&_svg]:text-[#1F1918]"
                   onClick={() => removeLine(productSlug)}
                 >
                   <Trash2 className="mr-2 size-4" aria-hidden />
