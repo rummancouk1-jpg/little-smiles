@@ -309,14 +309,14 @@ export function CartPageClient() {
         </div>
 
         <form
-          className="contents"
+          className="flex flex-col gap-8"
           onChange={() => setFormError(null)}
           onSubmit={(e) => {
             e.preventDefault();
             handleCheckout();
           }}
         >
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#3B2F2F]/55">
               Delivery details
             </p>
@@ -324,7 +324,7 @@ export function CartPageClient() {
               We&apos;ll pre-fill WhatsApp with this information. Double-check your phone number.
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+              <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-name">
                 Full name
               </label>
@@ -337,8 +337,8 @@ export function CartPageClient() {
                 className={fieldClass}
                 placeholder="e.g. Ayesha Khan"
               />
-            </div>
-            <div>
+              </div>
+              <div>
               <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-phone">
                 Phone (WhatsApp)
               </label>
@@ -353,8 +353,8 @@ export function CartPageClient() {
                 className={fieldClass}
                 placeholder="e.g. 0300 1234567"
               />
-            </div>
-            <div>
+              </div>
+              <div>
               <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-city">
                 City
               </label>
@@ -367,8 +367,8 @@ export function CartPageClient() {
                 className={fieldClass}
                 placeholder="e.g. Karachi"
               />
-            </div>
-            <div className="sm:col-span-2">
+              </div>
+              <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-address">
                 Address
               </label>
@@ -382,8 +382,8 @@ export function CartPageClient() {
                 className={cn(fieldClass, "min-h-[5.5rem] resize-y py-3")}
                 placeholder="Area, street, house or flat no., landmark"
               />
-            </div>
-            <div className="sm:col-span-2">
+              </div>
+              <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-note">
                 Note <span className="font-normal text-[#3B2F2F]/58">(optional)</span>
               </label>
@@ -396,8 +396,8 @@ export function CartPageClient() {
                 className={cn(fieldClass, "min-h-[4.5rem] resize-y py-3")}
                 placeholder="Gift message, delivery timing, or product preferences"
               />
+              </div>
             </div>
-          </div>
             {formError ? (
               <p className="mt-3 text-sm font-medium text-[#8B3A3A]" role="alert">
                 {formError}
@@ -405,21 +405,23 @@ export function CartPageClient() {
             ) : null}
           </div>
 
-          <div className="flex flex-col gap-5 border-t border-[#3B2F2F]/10 pt-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <div className="flex w-full min-w-0 flex-col gap-4 border-t border-[#3B2F2F]/10 pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+            <div className="min-w-0 max-w-xl">
               <p className="text-sm text-[#3B2F2F]/72">Cart subtotal</p>
               <p className="text-2xl font-semibold text-[#2E2323]">{formatPkr(subtotalPkr)}</p>
-              <p className="mt-1 max-w-md text-xs leading-relaxed text-[#3B2F2F]/62">
+              <p className="mt-1 text-xs leading-relaxed text-[#3B2F2F]/62">
                 Delivery is added after we confirm your city. Final COD total is shared on WhatsApp
                 before we dispatch.
               </p>
             </div>
-            <Button
-              type="submit"
-              className="h-12 w-full rounded-full bg-[#2F2624] px-6 text-sm font-semibold text-[#F6F1EC] shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] sm:w-auto sm:min-w-[14rem] sm:shrink-0"
-            >
-              Confirm COD Order on WhatsApp
-            </Button>
+            <div className="w-full shrink-0 sm:w-auto sm:max-w-[min(100%,18.5rem)] sm:pt-0.5">
+              <Button
+                type="submit"
+                className="h-12 w-full rounded-full bg-[#2F2624] px-6 text-sm font-semibold text-[#F6F1EC] shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[box-shadow,background-color] duration-300 hover:bg-[#251E1D] sm:min-w-[14rem]"
+              >
+                Confirm COD Order on WhatsApp
+              </Button>
+            </div>
           </div>
         </form>
 
