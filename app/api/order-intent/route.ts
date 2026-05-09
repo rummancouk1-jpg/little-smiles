@@ -66,6 +66,7 @@ export async function POST(request: Request) {
           hasServiceRoleKey: checks.hasServiceRoleKey,
           urlIsValid: checks.urlIsValid,
           urlHost: checks.urlHost,
+          hadPathSuffix: checks.hadPathSuffix,
         },
       });
     }

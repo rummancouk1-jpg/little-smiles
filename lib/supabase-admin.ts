@@ -38,7 +38,33 @@ export type SupabaseRuntimeChecks = {
   hasServiceRoleKey: boolean;
   urlIsValid: boolean;
   urlHost?: string;
+  normalizedUrl?: string;
+  hadPathSuffix: boolean;
 };
+
+function parseSupabaseBaseUrl(rawUrl: string): {
+  urlIsValid: boolean;
+  urlHost?: string;
+  normalizedUrl?: string;
+  hadPathSuffix: boolean;
+} {
+  try {
+    const parsed = new URL(rawUrl);
+    const normalizedPath = parsed.pathname.replace(/\/+$/, "");
+    const hadPathSuffix = normalizedPath !== "";
+    return {
+      urlIsValid: true,
+      urlHost: parsed.host,
+      normalizedUrl: parsed.origin,
+      hadPathSuffix,
+    };
+  } catch {
+    return {
+      urlIsValid: false,
+      hadPathSuffix: false,
+    };
+  }
+}
 
 export function getSupabaseRuntimeChecks(): SupabaseRuntimeChecks {
   const rawUrl = process.env.SUPABASE_URL?.trim();
@@ -50,24 +76,19 @@ export function getSupabaseRuntimeChecks(): SupabaseRuntimeChecks {
       hasUrl,
       hasServiceRoleKey,
       urlIsValid: false,
+      hadPathSuffix: false,
     };
   }
 
-  try {
-    const parsed = new URL(rawUrl);
-    return {
-      hasUrl,
-      hasServiceRoleKey,
-      urlIsValid: true,
-      urlHost: parsed.host,
-    };
-  } catch {
-    return {
-      hasUrl,
-      hasServiceRoleKey,
-      urlIsValid: false,
-    };
-  }
+  const parsed = parseSupabaseBaseUrl(rawUrl);
+  return {
+    hasUrl,
+    hasServiceRoleKey,
+    urlIsValid: parsed.urlIsValid,
+    urlHost: parsed.urlHost,
+    normalizedUrl: parsed.normalizedUrl,
+    hadPathSuffix: parsed.hadPathSuffix,
+  };
 }
 
 /**
@@ -81,12 +102,14 @@ export function getSupabaseAdminClient(): SupabaseClient<SupabaseSchema> | null 
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   const checks = getSupabaseRuntimeChecks();
 
-  if (!url || !serviceRoleKey || !checks.urlIsValid) {
+  if (!url || !serviceRoleKey || !checks.urlIsValid || !checks.normalizedUrl) {
     client = null;
     return client;
   }
 
-  client = createClient<SupabaseSchema>(url, serviceRoleKey, {
+  // Always use the base project URL (origin). This prevents PGRST125 from
+  // malformed URLs such as ".../rest/v1" being passed as SUPABASE_URL.
+  client = createClient<SupabaseSchema>(checks.normalizedUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
