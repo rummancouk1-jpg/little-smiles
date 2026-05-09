@@ -33,6 +33,43 @@ type SupabaseSchema = {
 
 let client: SupabaseClient<SupabaseSchema> | null | undefined;
 
+export type SupabaseRuntimeChecks = {
+  hasUrl: boolean;
+  hasServiceRoleKey: boolean;
+  urlIsValid: boolean;
+  urlHost?: string;
+};
+
+export function getSupabaseRuntimeChecks(): SupabaseRuntimeChecks {
+  const rawUrl = process.env.SUPABASE_URL?.trim();
+  const hasUrl = Boolean(rawUrl);
+  const hasServiceRoleKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+
+  if (!rawUrl) {
+    return {
+      hasUrl,
+      hasServiceRoleKey,
+      urlIsValid: false,
+    };
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+    return {
+      hasUrl,
+      hasServiceRoleKey,
+      urlIsValid: true,
+      urlHost: parsed.host,
+    };
+  } catch {
+    return {
+      hasUrl,
+      hasServiceRoleKey,
+      urlIsValid: false,
+    };
+  }
+}
+
 /**
  * Creates a server-side Supabase client using service role credentials.
  * Returns null when env vars are missing so API handlers can gracefully fallback.
@@ -42,8 +79,9 @@ export function getSupabaseAdminClient(): SupabaseClient<SupabaseSchema> | null 
 
   const url = process.env.SUPABASE_URL?.trim();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const checks = getSupabaseRuntimeChecks();
 
-  if (!url || !serviceRoleKey) {
+  if (!url || !serviceRoleKey || !checks.urlIsValid) {
     client = null;
     return client;
   }

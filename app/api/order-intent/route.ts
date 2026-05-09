@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getProductBySlug } from "@/lib/products";
-import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { getSupabaseAdminClient, getSupabaseRuntimeChecks } from "@/lib/supabase-admin";
 
 const orderIntentSchema = z.object({
   productSlug: z.string().min(1).max(200).optional(),
@@ -14,17 +14,35 @@ const orderIntentSchema = z.object({
   userAgent: z.string().min(1).max(1000).optional(),
 });
 
+const isProduction =
+  process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+
+function successResponse(
+  tracked: boolean,
+  debug?: { reason?: string; details?: Record<string, unknown> },
+) {
+  if (isProduction || !debug) {
+    return NextResponse.json({ ok: true, tracked });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    tracked,
+    debug,
+  });
+}
+
 export async function POST(request: Request) {
   let json: unknown;
   try {
     json = await request.json();
   } catch {
-    return NextResponse.json({ ok: true, tracked: false });
+    return successResponse(false, { reason: "invalid_json" });
   }
 
   const parsed = orderIntentSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ ok: true, tracked: false });
+    return successResponse(false, { reason: "invalid_body" });
   }
 
   const payload = parsed.data;
@@ -32,15 +50,24 @@ export async function POST(request: Request) {
     const product = getProductBySlug(payload.productSlug);
     if (!product) {
       console.warn("[order-intent] unknown product slug", payload.productSlug);
-      return NextResponse.json({ ok: true, tracked: false, reason: "unknown_product" });
+      return successResponse(false, { reason: "unknown_product" });
     }
   }
 
   try {
     console.info("[order-intent]", JSON.stringify(payload));
+    const checks = getSupabaseRuntimeChecks();
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
-      return NextResponse.json({ ok: true, tracked: false, reason: "supabase_not_configured" });
+      return successResponse(false, {
+        reason: "supabase_not_configured_or_invalid",
+        details: {
+          hasUrl: checks.hasUrl,
+          hasServiceRoleKey: checks.hasServiceRoleKey,
+          urlIsValid: checks.urlIsValid,
+          urlHost: checks.urlHost,
+        },
+      });
     }
 
     const { error } = await supabase.from("order_intents").insert({
@@ -56,12 +83,25 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      console.warn("[order-intent] supabase insert failed", error.message);
-      return NextResponse.json({ ok: true, tracked: false, reason: "insert_failed" });
+      console.warn("[order-intent] supabase insert failed", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      return successResponse(false, {
+        reason: "insert_failed",
+        details: {
+          code: error.code,
+        },
+      });
     }
 
-    return NextResponse.json({ ok: true, tracked: true });
-  } catch {
-    return NextResponse.json({ ok: true, tracked: false });
+    return successResponse(true);
+  } catch (error) {
+    console.warn("[order-intent] unexpected error", {
+      message: error instanceof Error ? error.message : "unknown",
+    });
+    return successResponse(false, { reason: "unexpected_error" });
   }
 }
