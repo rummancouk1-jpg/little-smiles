@@ -201,6 +201,10 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         </ul>
         <div className="mt-5 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/88 p-4 text-sm leading-relaxed text-[#3B2F2F]/76">
           <p>
+            <span className="font-semibold text-[#241B1B]">Payment:</span> Cash on Delivery available across
+            Pakistan for most orders.
+          </p>
+          <p>
             <span className="font-semibold text-[#241B1B]">Delivery:</span> {product.dispatchTimeline}{" "}
             {product.deliveryEstimate}
           </p>

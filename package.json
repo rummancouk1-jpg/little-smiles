@@ -13,10 +13,16 @@
     "lint": "eslint",
     "generate:favicon": "node scripts/generate-favicon.mjs",
     "images:audit": "node scripts/audit-product-images.mjs",
-    "images:optimize": "node scripts/optimize-product-images.mjs"
+    "images:optimize": "node scripts/optimize-product-images.mjs",
+    "smoke:order-intent": "npx tsx scripts/smoke-hardening.ts order-intent-write",
+    "smoke:create-order-from-intent": "npx tsx scripts/smoke-hardening.ts create-order-from-intent",
+    "smoke:order-status-update": "npx tsx scripts/smoke-hardening.ts order-status-update",
+    "smoke:communication-retry": "npx tsx scripts/smoke-hardening.ts communication-retry-processor",
+    "smoke:track-order": "npx tsx scripts/smoke-hardening.ts track-order-lookup"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@sentry/nextjs": "^10.52.0",
     "@supabase/supabase-js": "^2.105.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

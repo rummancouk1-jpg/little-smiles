@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/best-sellers",
     "/reviews",
     "/contact",
+    "/track-order",
     "/shipping-policy",
     "/return-refund-policy",
     "/privacy-policy",
@@ -26,22 +27,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/best-sellers": 0.88,
     "/reviews": 0.78,
     "/contact": 0.75,
+    "/track-order": 0.52,
     "/shipping-policy": 0.35,
     "/return-refund-policy": 0.35,
     "/privacy-policy": 0.35,
     "/terms": 0.35,
   };
 
+  const buildDate = new Date(process.env.VERCEL_GIT_COMMIT_DATE ?? Date.now());
   const staticEntries = staticRoutes.map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date(),
+    lastModified: buildDate,
     changeFrequency: "weekly" as const,
     priority: staticPriorities[route] ?? 0.65,
   }));
 
   const productEntries = products.map((product) => ({
     url: `${baseUrl}/shop/${product.slug}`,
-    lastModified: new Date(),
+    lastModified: buildDate,
     changeFrequency: "weekly" as const,
     priority: 0.82,
   }));

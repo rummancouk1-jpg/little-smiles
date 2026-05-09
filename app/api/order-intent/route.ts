@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { captureServerError } from "@/lib/error-observability";
 import { getProductBySlug } from "@/lib/products";
+import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 import { getSupabaseAdminClient, getSupabaseRuntimeChecks } from "@/lib/supabase-admin";
 
 const orderIntentSchema = z.object({
@@ -33,6 +35,16 @@ function successResponse(
 }
 
 export async function POST(request: Request) {
+  const rate = checkRequestRateLimit({
+    request,
+    routeKey: "order_intent",
+    limit: 90,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return successResponse(false, { reason: "rate_limited" });
+  }
+
   let json: unknown;
   try {
     json = await request.json();
@@ -101,6 +113,7 @@ export async function POST(request: Request) {
 
     return successResponse(true);
   } catch (error) {
+    captureServerError("api_order_intent_post_failed", error);
     console.warn("[order-intent] unexpected error", {
       message: error instanceof Error ? error.message : "unknown",
     });

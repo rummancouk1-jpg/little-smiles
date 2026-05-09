@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
 
+import { captureServerError } from "@/lib/error-observability";
+import { checkRequestRateLimit } from "@/lib/request-rate-limit";
+
 const contactSchema = z
   .object({
     name: z.string().trim().min(2).max(120),
@@ -78,6 +81,19 @@ async function sendResendEmail(input: {
 }
 
 export async function POST(request: Request) {
+  const rate = checkRequestRateLimit({
+    request,
+    routeKey: "contact",
+    limit: 8,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { ok: false, error: "Too many submissions. Please try again shortly." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+    );
+  }
+
   try {
     const body = await request.json();
     const parsed = contactSchema.safeParse(body);
@@ -156,7 +172,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ok: true, delivered });
-  } catch {
+  } catch (error) {
+    captureServerError("api_contact_post_failed", error);
     return NextResponse.json(
       { ok: false, error: "Could not process request." },
       { status: 500 },
