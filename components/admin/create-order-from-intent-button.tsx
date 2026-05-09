@@ -32,19 +32,30 @@ export function CreateOrderFromIntentButton({
     setMessage("");
 
     try {
+      if (!productSlug || productSlug === "unknown" || productSlug === "diagnostic-test") {
+        setStatus("error");
+        setMessage("This intent cannot be converted to an order.");
+        return;
+      }
+
+      const parsedIntentTime = new Date(latestIntentTimestamp);
+      const payload: Record<string, unknown> = {
+        productSlug,
+        productName,
+        category,
+        sourcePage,
+        pricePkr,
+        quantity: 1,
+        notes: "Created from order intent review.",
+      };
+      if (!Number.isNaN(parsedIntentTime.getTime())) {
+        payload.intentTimestamp = parsedIntentTime.toISOString();
+      }
+
       const res = await fetch("/api/admin/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productSlug,
-          productName,
-          category,
-          pricePkr,
-          quantity: 1,
-          sourcePage,
-          intentTimestamp: latestIntentTimestamp,
-          notes: "Created from order intent review.",
-        }),
+        body: JSON.stringify(payload),
       });
       const json = (await res.json().catch(() => null)) as
         | { ok?: boolean; orderId?: string; error?: string; warning?: string }

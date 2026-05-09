@@ -27,7 +27,10 @@ const createOrderSchema = z.object({
   paymentMethod: z.enum(paymentMethodValues).optional(),
   paidStatus: z.enum(paidStatusValues).optional(),
   sourcePage: z.string().min(1).max(240).optional(),
-  intentTimestamp: z.string().datetime().optional(),
+  intentTimestamp: z
+    .string()
+    .refine((value) => !Number.isNaN(new Date(value).getTime()), "Invalid datetime value")
+    .optional(),
   notes: z.string().max(2000).optional(),
 });
 
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
   }
 
   const payload = parsed.data;
+  const normalizedIntentTimestamp = payload.intentTimestamp ? new Date(payload.intentTimestamp).toISOString() : null;
   const now = new Date().toISOString();
   const deliveryFee = payload.deliveryFeePkr ?? 0;
   const totalPkr = payload.pricePkr * payload.quantity + deliveryFee;
@@ -149,7 +153,7 @@ export async function POST(request: Request) {
         paid_status: payload.paidStatus ?? "unpaid",
         details_completed_at: null,
         source_page: payload.sourcePage ?? null,
-        intent_timestamp: payload.intentTimestamp ?? null,
+        intent_timestamp: normalizedIntentTimestamp,
         notes: payload.notes ?? null,
         created_at: now,
         updated_at: now,
