@@ -1,64 +1,103 @@
 import Link from "next/link";
+import { MessageCircle } from "lucide-react";
+
+import { whatsappBaseUrl } from "@/lib/products";
+
+type FooterLink = { label: string; href: string };
+type FooterColumn = { eyebrow: string; links: FooterLink[] };
+
+const footerColumns: FooterColumn[] = [
+  {
+    eyebrow: "Shop",
+    links: [
+      { label: "Shop all", href: "/shop" },
+      { label: "Best Sellers", href: "/best-sellers" },
+      { label: "Reviews", href: "/reviews" },
+      { label: "Blog", href: "/blog" },
+    ],
+  },
+  {
+    eyebrow: "Help",
+    links: [
+      { label: "Contact", href: "/contact" },
+      { label: "Track order", href: "/track-order" },
+    ],
+  },
+  {
+    eyebrow: "Policies",
+    links: [
+      { label: "Shipping", href: "/shipping-policy" },
+      { label: "Return & Refund", href: "/return-refund-policy" },
+      { label: "Privacy", href: "/privacy-policy" },
+      { label: "Terms", href: "/terms" },
+    ],
+  },
+];
+
+const infoChips = [
+  "Dispatch: 24-48 hours",
+  "Delivery: 2-5 business days",
+  "Return support: within 48 hours",
+  "WhatsApp replies: 10am-10pm PKT",
+] as const;
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-[#3B2F2F]/8 bg-[#FCF6F1]/90 backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pt-8 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pt-12 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-14 lg:px-8 lg:gap-12 lg:pt-16">
         <div className="flex flex-wrap gap-2.5 text-xs text-[#3B2F2F]/70 sm:gap-2">
-          <span className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3 py-1">
-            Dispatch: 24-48 hours
-          </span>
-          <span className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3 py-1">
-            Delivery: 2-5 business days
-          </span>
-          <span className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3 py-1">
-            Return support: within 48 hours
-          </span>
-          <span className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3 py-1">
-            WhatsApp replies: 10am-10pm PKT
-          </span>
+          {infoChips.map((chip) => (
+            <span
+              key={chip}
+              className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3 py-1"
+            >
+              {chip}
+            </span>
+          ))}
         </div>
-        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-          <div>
+
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-14">
+          <div className="lg:w-[18rem] lg:shrink-0">
             <p className="text-base font-semibold text-[#241B1B]">Little Smiles</p>
-            <p className="mt-1 text-sm text-[#3B2F2F]/65">
+            <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/72">
               Premium baby essentials for families in Pakistan.
             </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 text-sm text-[#3B2F2F]/72 sm:justify-end">
-            <Link href="/shop" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Shop
-            </Link>
-            <Link href="/best-sellers" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Best Sellers
-            </Link>
-            <Link href="/blog" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Blog
-            </Link>
-            <Link href="/reviews" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Reviews
-            </Link>
-            <Link href="/contact" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Contact
-            </Link>
-            <Link href="/track-order" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Track Order
-            </Link>
-            <Link href="/shipping-policy" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Shipping Policy
-            </Link>
-            <Link href="/return-refund-policy" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Return & Refund
-            </Link>
-            <Link href="/privacy-policy" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="inline-flex min-h-10 items-center rounded-md px-1 hover:text-[#2E2323]">
-              Terms
+            <Link
+              href={whatsappBaseUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#3B2F2F]/16 bg-white/70 px-4 py-2 text-sm font-medium text-[#2E2323] transition-[background-color,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
+            >
+              <MessageCircle className="size-4" strokeWidth={2} aria-hidden />
+              Message on WhatsApp
             </Link>
           </div>
+
+          <nav
+            aria-label="Footer"
+            className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:flex-1 lg:gap-10"
+          >
+            {footerColumns.map((column) => (
+              <div key={column.eyebrow}>
+                <p className="eyebrow">{column.eyebrow}</p>
+                <ul className="mt-4 flex flex-col gap-1 text-sm text-[#3B2F2F]/74">
+                  {column.links.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="inline-flex min-h-9 items-center transition-colors hover:text-[#2E2323]"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
-        <p className="text-xs text-[#3B2F2F]/55">
+
+        <p className="border-t border-[#3B2F2F]/8 pt-6 text-xs text-[#3B2F2F]/55">
           © {new Date().getFullYear()} Little Smiles. All rights reserved.
         </p>
       </div>
