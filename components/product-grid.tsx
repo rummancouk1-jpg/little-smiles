@@ -14,7 +14,6 @@ import {
   getWhatsappOrderLink,
 } from "@/lib/products";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -51,8 +50,8 @@ export function ProductGrid({ products }: ProductGridProps) {
           <Card
             className={cn(
               "flex h-full overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 py-0",
-              "shadow-[0_24px_52px_-34px_rgba(59,47,47,0.36)] transition-shadow duration-300",
-              "hover:shadow-[0_30px_58px_-34px_rgba(59,47,47,0.45)]"
+              "shadow-card-rest transition-shadow duration-300",
+              "hover:shadow-card-lift"
             )}
           >
             <CardContent className="p-0">
@@ -97,26 +96,15 @@ export function ProductGrid({ products }: ProductGridProps) {
               <p className="min-h-[2.8rem] pt-1 text-sm leading-relaxed text-[#3B2F2F]/67 sm:min-h-[3.1rem] lg:min-h-[3.6rem]">
                 {product.description}
               </p>
-              <ul className="mt-3 flex flex-wrap gap-2 text-xs text-[#3B2F2F]/70">
-                <li className="rounded-full border border-[#3B2F2F]/10 bg-white/58 px-2.5 py-1">
-                  Fabric: Skin-friendly
-                </li>
-                <li className="rounded-full border border-[#3B2F2F]/10 bg-white/58 px-2.5 py-1">
-                  Use: Daily essential
-                </li>
-                <li className="rounded-full border border-[#3B2F2F]/10 bg-white/58 px-2.5 py-1">
-                  Delivery: Pakistan-wide
-                </li>
-              </ul>
             </CardHeader>
-            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-4 py-4 sm:flex-row sm:items-end sm:px-5 lg:min-h-[5.35rem]">
+            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-4 py-4 sm:flex-row sm:items-end sm:px-5">
               <div className="space-y-0.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-base font-semibold text-[#2E2323]">
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-lg font-semibold tabular-nums text-ink-strong sm:text-xl">
                     {formatPkr(product.pricePkr)}
                   </span>
                   {getDiscountBadgeLabel(product) ? (
-                    <span className="text-xs text-[#3B2F2F]/56 line-through">
+                    <span className="text-sm tabular-nums text-[#3B2F2F]/52 line-through">
                       {formatPkr(product.compareAtPricePkr)}
                     </span>
                   ) : null}
@@ -125,31 +113,32 @@ export function ProductGrid({ products }: ProductGridProps) {
                   {getAvailabilityLabel(product)}
                 </p>
               </div>
-              <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[11.5rem]">
+              <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:min-w-[11.5rem]">
                 <AddToCartButton product={product} className="w-full" />
-                <Button
-                  asChild
-                  variant="outline"
-                  className="h-10 w-full rounded-full border-[#2E2323]/14 bg-white/72 text-xs font-medium text-[#2E2323]"
+                <Link
+                  href={getWhatsappOrderLink(product)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) =>
+                    void trackAndOpenWhatsapp(event, {
+                      whatsappUrl: getWhatsappOrderLink(product),
+                      sourcePage: "product_grid",
+                      productSlug: product.slug,
+                      productName: product.name,
+                      category: product.category,
+                      pricePkr: product.pricePkr,
+                    })
+                  }
+                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-medium text-ink-muted underline decoration-[#3B2F2F]/22 underline-offset-[5px] transition-[color,text-decoration-color] duration-200 hover:text-ink-strong hover:decoration-[#1F1918]/45"
                 >
-                  <Link
-                    href={getWhatsappOrderLink(product)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(event) =>
-                      void trackAndOpenWhatsapp(event, {
-                        whatsappUrl: getWhatsappOrderLink(product),
-                        sourcePage: "product_grid",
-                        productSlug: product.slug,
-                        productName: product.name,
-                        category: product.category,
-                        pricePkr: product.pricePkr,
-                      })
-                    }
+                  Order on WhatsApp
+                  <span
+                    aria-hidden
+                    className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
                   >
-                    WhatsApp instead
-                  </Link>
-                </Button>
+                    →
+                  </span>
+                </Link>
               </div>
             </CardFooter>
           </Card>
