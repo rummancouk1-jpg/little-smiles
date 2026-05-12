@@ -13,9 +13,9 @@ import { getImageCandidates } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 const trustItems = [
-  { label: "Soft Fabrics", icon: Feather },
-  { label: "Parent Approved", icon: BadgeCheck },
-  { label: "Everyday Comfort", icon: Sun },
+  { label: "Soft to wear", icon: Feather },
+  { label: "Made to last", icon: BadgeCheck },
+  { label: "For daily use", icon: Sun },
 ] as const;
 
 const collageCards = [
@@ -178,8 +178,8 @@ export function HeroSection() {
               }}
               className="mt-4 max-w-[38ch] text-pretty text-base leading-relaxed text-[#372F2D]/70 sm:mt-6 sm:text-xl"
             >
-              Soft, practical, and adorable baby products carefully picked for
-              everyday comfort.
+              Considered fabrics. Calm prints. Made for the routines that grow
+              with your baby.
             </motion.p>
 
             <motion.div
