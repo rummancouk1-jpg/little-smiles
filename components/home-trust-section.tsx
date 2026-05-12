@@ -27,17 +27,17 @@ type HomeTrustSectionProps = {
 const trustPillars = [
   {
     title: "Comfort-led quality",
-    body: "Soft, skin-friendly fabrics and thoughtful finishes parents notice after the first wash—not disposable fast-fashion knockoffs.",
+    body: "Soft fabrics and thoughtful finishes — the kind parents notice after the first wash.",
     icon: Heart,
   },
   {
     title: "Honest policies",
-    body: "Clear shipping timelines, return windows for genuine issues, and no surprises when something needs fixing.",
+    body: "Clear shipping timelines, fair return windows, and no surprises when something needs fixing.",
     icon: ShieldCheck,
   },
   {
     title: "WhatsApp-first care",
-    body: "Order and support on the channel Pakistani families already trust—with prefilled product messages so checkout is one tap.",
+    body: "Order and support on WhatsApp — prefilled messages so checkout is one tap.",
     icon: MessageCircle,
   },
 ] as const;
@@ -65,11 +65,10 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
             id="trust-heading"
             className="mt-4 text-balance text-4xl font-semibold tracking-tight text-[#1F1918] sm:text-5xl"
           >
-            Built for trust—not hype
+            Care continues after the order
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-[#3B2F2F]/68 sm:text-lg">
-            Shipping, returns, WhatsApp support, and real parent feedback—so you
-            know what to expect before you order.
+            Here&apos;s what to expect once you place an order.
           </p>
         </div>
 
@@ -159,11 +158,11 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               <Star className="size-5" strokeWidth={2} aria-hidden />
             </span>
             <p className="mt-4 text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
-              Social proof
+              From parents
             </p>
             <p className="mt-2 text-lg font-semibold text-[#1F1918]">Parent reviews</p>
             <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/72">
-              Photos and notes from families across Pakistan—not anonymous stars only.
+              Photos and notes from families across Pakistan.
             </p>
             <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-[text-decoration-color] group-hover:decoration-[#2E2323]/45">
               Read reviews
@@ -179,10 +178,10 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
 
         <div className="mt-14 rounded-3xl border border-[#3B2F2F]/9 bg-[#FBF7F3]/90 p-6 shadow-[0_26px_52px_-36px_rgba(59,47,47,0.36)] sm:p-8 lg:mt-16">
           <h3 className="text-center text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
-            Why parents love us
+            What we focus on
           </h3>
           <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#3B2F2F]/68 sm:text-base">
-            Editorial-quality essentials with the practicality everyday parenting demands.
+            The three things that matter most behind every order.
           </p>
           <ul className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-6">
             {trustPillars.map(({ title, body, icon: Icon }) => (
