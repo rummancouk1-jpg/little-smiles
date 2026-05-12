@@ -34,9 +34,9 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">From the Blog</p>
+            <p className="eyebrow">Notes</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">
-              Latest Parenting Guides
+              Reading for new parents
             </h2>
           </div>
           <Link

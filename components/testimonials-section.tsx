@@ -27,13 +27,12 @@ export function TestimonialsSection() {
           transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
           className="mx-auto max-w-2xl text-center"
         >
-          <p className="eyebrow">Parent Stories</p>
+          <p className="eyebrow">Letters</p>
           <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-[#1F1918] sm:text-5xl">
-            Trusted by Families Across Pakistan
+            From families across Pakistan
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-[#3B2F2F]/68 sm:text-lg">
-            Real moments from parents who chose Little Smiles for comfort,
-            quality, and everyday elegance.
+            Photos and a few words sent in from across the country.
           </p>
         </motion.div>
 

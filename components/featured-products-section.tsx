@@ -26,10 +26,10 @@ export function FeaturedProductsSection() {
           className="mx-auto max-w-2xl text-center"
         >
           <h2 className="text-balance text-4xl font-semibold leading-[1] tracking-tight text-[#1F1918] sm:text-5xl">
-            Parent-Loved Baby Essentials
+            Starting points for the first months
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-[#3B2F2F]/68 sm:text-lg">
-            Carefully picked pieces for comfort, gifting, and everyday use.
+            Quiet basics for the early days. Easy gifts for new parents.
           </p>
         </motion.div>
 
