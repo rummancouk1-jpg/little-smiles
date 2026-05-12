@@ -5,6 +5,8 @@ import { z } from "zod";
 import { captureServerError } from "@/lib/error-observability";
 import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 
+const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
+
 const contactSchema = z
   .object({
     name: z.string().trim().min(2).max(120),
@@ -90,7 +92,13 @@ export async function POST(request: Request) {
   if (!rate.allowed) {
     return NextResponse.json(
       { ok: false, error: "Too many submissions. Please try again shortly." },
-      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      {
+        status: 429,
+        headers: {
+          ...NO_STORE_HEADERS,
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
     );
   }
 
@@ -101,7 +109,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         { ok: false, error: "Invalid request body." },
-        { status: 400 },
+        { status: 400, headers: NO_STORE_HEADERS },
       );
     }
 
@@ -109,7 +117,7 @@ export async function POST(request: Request) {
     if (isSuspiciousSubmission({ name, email, phone, message })) {
       return NextResponse.json(
         { ok: false, error: "Please submit a valid message." },
-        { status: 400 },
+        { status: 400, headers: NO_STORE_HEADERS },
       );
     }
 
@@ -171,12 +179,12 @@ export async function POST(request: Request) {
       console.warn("[contact] Email delivery unavailable. Configure RESEND_API_KEY and contact emails.");
     }
 
-    return NextResponse.json({ ok: true, delivered });
+    return NextResponse.json({ ok: true, delivered }, { headers: NO_STORE_HEADERS });
   } catch (error) {
     captureServerError("api_contact_post_failed", error);
     return NextResponse.json(
       { ok: false, error: "Could not process request." },
-      { status: 500 },
+      { status: 500, headers: NO_STORE_HEADERS },
     );
   }
 }

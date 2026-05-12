@@ -5,6 +5,8 @@ import { captureServerError } from "@/lib/error-observability";
 import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
+const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
+
 const trackSchema = z.object({
   orderRef: z.string().min(6).max(36),
   phone: z.string().min(7).max(32),
@@ -18,6 +20,33 @@ function normalizeOrderRef(value: string): string {
   return value.trim().toLowerCase();
 }
 
+/**
+ * Per-phone budget on top of the per-IP limit — caps order-ID guessing for a
+ * specific phone number across all IPs. Same window as the per-IP limit.
+ * In-memory; resets per Lambda instance (matches the rest of the rate limiter).
+ */
+const PHONE_WINDOW_MS = 10 * 60 * 1000;
+const PHONE_MAX_ATTEMPTS = 8;
+const phoneBuckets = new Map<string, { count: number; windowStart: number }>();
+
+function consumePhoneAttempt(phone: string): {
+  allowed: boolean;
+  retryAfterSeconds: number;
+} {
+  const now = Date.now();
+  const current = phoneBuckets.get(phone);
+  if (!current || now - current.windowStart >= PHONE_WINDOW_MS) {
+    phoneBuckets.set(phone, { count: 1, windowStart: now });
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+  if (current.count >= PHONE_MAX_ATTEMPTS) {
+    const retryMs = current.windowStart + PHONE_WINDOW_MS - now;
+    return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(retryMs / 1000)) };
+  }
+  current.count += 1;
+  return { allowed: true, retryAfterSeconds: 0 };
+}
+
 export async function POST(request: Request) {
   const rate = checkRequestRateLimit({
     request,
@@ -28,7 +57,13 @@ export async function POST(request: Request) {
   if (!rate.allowed) {
     return NextResponse.json(
       { ok: false, error: "Too many lookup attempts. Please try again shortly." },
-      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      {
+        status: 429,
+        headers: {
+          ...NO_STORE_HEADERS,
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      },
     );
   }
 
@@ -36,21 +71,44 @@ export async function POST(request: Request) {
   try {
     json = await request.json();
   } catch {
-    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid JSON" },
+      { status: 400, headers: NO_STORE_HEADERS },
+    );
   }
 
   const parsed = trackSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
-  }
-
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) {
-    return NextResponse.json({ ok: false, error: "Service unavailable" }, { status: 503 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid request body" },
+      { status: 400, headers: NO_STORE_HEADERS },
+    );
   }
 
   const phone = normalizePhone(parsed.data.phone);
   const orderRef = normalizeOrderRef(parsed.data.orderRef);
+
+  const phoneRate = consumePhoneAttempt(phone);
+  if (!phoneRate.allowed) {
+    return NextResponse.json(
+      { ok: false, error: "Too many lookup attempts for this phone. Please try again shortly." },
+      {
+        status: 429,
+        headers: {
+          ...NO_STORE_HEADERS,
+          "Retry-After": String(phoneRate.retryAfterSeconds),
+        },
+      },
+    );
+  }
+
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    return NextResponse.json(
+      { ok: false, error: "Service unavailable" },
+      { status: 503, headers: NO_STORE_HEADERS },
+    );
+  }
 
   const { data, error } = await supabase
     .from("orders")
@@ -61,25 +119,34 @@ export async function POST(request: Request) {
 
   if (error) {
     captureServerError("api_track_order_query_failed", new Error(error.message ?? "Could not lookup order"));
-    return NextResponse.json({ ok: false, error: "Could not lookup order" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Could not lookup order" },
+      { status: 500, headers: NO_STORE_HEADERS },
+    );
   }
 
   const matched = (data ?? []).find((row) => row.id.toLowerCase().startsWith(orderRef));
   if (!matched) {
-    return NextResponse.json({ ok: false, error: "No matching order found" }, { status: 404 });
+    return NextResponse.json(
+      { ok: false, error: "No matching order found" },
+      { status: 404, headers: NO_STORE_HEADERS },
+    );
   }
 
-  return NextResponse.json({
-    ok: true,
-    order: {
-      id: matched.id,
-      shortId: matched.id.slice(0, 8),
-      productName: matched.product_name,
-      status: matched.status,
-      updatedAt: matched.updated_at,
-      courier: matched.courier,
-      trackingId: matched.tracking_id,
-      totalPkr: matched.total_pkr,
+  return NextResponse.json(
+    {
+      ok: true,
+      order: {
+        id: matched.id,
+        shortId: matched.id.slice(0, 8),
+        productName: matched.product_name,
+        status: matched.status,
+        updatedAt: matched.updated_at,
+        courier: matched.courier,
+        trackingId: matched.tracking_id,
+        totalPkr: matched.total_pkr,
+      },
     },
-  });
+    { headers: NO_STORE_HEADERS },
+  );
 }

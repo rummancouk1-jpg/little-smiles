@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image, { type ImageProps } from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -16,13 +16,24 @@ export function ProductImage({ sources, alt, ...props }: ProductImageProps) {
   );
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const src = normalizedSources[Math.min(index, normalizedSources.length - 1)];
   const { className, onLoad, onError, priority, ...rest } = props;
 
+  // If the image was served from cache, `onLoad` may have fired before this
+  // effect attached. Reconcile by checking the element's `complete` flag.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth > 0) {
+      setLoaded(true);
+    }
+  }, [src]);
+
   return (
     <Image
       key={src}
+      ref={imgRef}
       src={src}
       alt={alt}
       priority={priority}

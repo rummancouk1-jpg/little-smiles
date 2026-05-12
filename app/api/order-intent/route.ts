@@ -16,22 +16,21 @@ const orderIntentSchema = z.object({
   userAgent: z.string().min(1).max(1000).optional(),
 });
 
-const isProduction =
-  process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
 
+/**
+ * Debug context is logged server-side only — never returned in the HTTP body,
+ * so Supabase host, env-check booleans, and Postgres error codes do not leak
+ * via preview deployments or to anyone hitting the endpoint.
+ */
 function successResponse(
   tracked: boolean,
   debug?: { reason?: string; details?: Record<string, unknown> },
 ) {
-  if (isProduction || !debug) {
-    return NextResponse.json({ ok: true, tracked });
+  if (debug && !tracked) {
+    console.warn("[order-intent] not tracked", debug);
   }
-
-  return NextResponse.json({
-    ok: true,
-    tracked,
-    debug,
-  });
+  return NextResponse.json({ ok: true, tracked }, { headers: NO_STORE_HEADERS });
 }
 
 export async function POST(request: Request) {

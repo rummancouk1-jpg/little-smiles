@@ -97,9 +97,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } catch {
         /* ignore */
       }
+      const dropped = parsed.length - next.length;
+      showToast(
+        dropped === 1
+          ? "1 item is no longer available and was removed from your cart"
+          : `${dropped} items are no longer available and were removed from your cart`,
+      );
     }
     setHydrated(true);
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -114,11 +120,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated) return;
     const onVisibility = () => {
       if (document.visibilityState !== "visible") return;
-      setItems((prev) => mergeAndSanitizeLines(prev));
+      setItems((prev) => {
+        const next = mergeAndSanitizeLines(prev);
+        const dropped = prev.length - next.length;
+        if (dropped > 0) {
+          showToast(
+            dropped === 1
+              ? "1 item is no longer available and was removed from your cart"
+              : `${dropped} items are no longer available and were removed from your cart`,
+          );
+        }
+        return next;
+      });
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [hydrated]);
+  }, [hydrated, showToast]);
 
   useEffect(
     () => () => {

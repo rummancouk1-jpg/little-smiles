@@ -49,11 +49,6 @@ export function productUrl(product: Pick<Product, "slug">): string {
   return `${siteUrl}/shop/${product.slug}`;
 }
 
-/** Listing cards: color/style often matters for conversion. */
-export function productShowsVariantField(product: Product): boolean {
-  return true;
-}
-
 /** Bodysuits typically need a size — other categories use variant only. */
 export function productShowsSizeField(product: Product): boolean {
   return product.category === "Bodysuits";
@@ -108,14 +103,12 @@ export function buildWhatsappOrderMessage(
     `• ${product.category}`,
   ];
 
-  if (productShowsVariantField(product)) {
-    const v = fields.variantNote?.trim();
-    lines.push(
-      v
-        ? `• Variant: ${v}`
-        : `• Variant: As on listing — please confirm before packing`,
-    );
-  }
+  const v = fields.variantNote?.trim();
+  lines.push(
+    v
+      ? `• Variant: ${v}`
+      : `• Variant: As on listing — please confirm before packing`,
+  );
 
   if (productShowsSizeField(product)) {
     const s = fields.sizeNote?.trim();

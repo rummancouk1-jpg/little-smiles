@@ -16,7 +16,6 @@ import {
   getDiscountBadgeLabel,
   getWhatsappOrderLink,
   productShowsSizeField,
-  productShowsVariantField,
 } from "@/lib/products";
 
 type ProductWhatsappOrderProps = {
@@ -136,24 +135,22 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             </select>
           </div>
 
-          {productShowsVariantField(product) ? (
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-variant">
-                Variant / preference
-              </label>
-              <Input
-                id="order-variant"
-                placeholder={variantPlaceholder}
-                value={variantNote}
-                disabled={disabled}
-                onChange={(event) => setVariantNote(event.target.value)}
-                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
-              />
-              <p className="text-xs text-[#3B2F2F]/58">
-                Optional — we confirm the exact piece before packing.
-              </p>
-            </div>
-          ) : null}
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-variant">
+              Variant / preference
+            </label>
+            <Input
+              id="order-variant"
+              placeholder={variantPlaceholder}
+              value={variantNote}
+              disabled={disabled}
+              onChange={(event) => setVariantNote(event.target.value)}
+              className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
+            />
+            <p className="text-xs text-[#3B2F2F]/58">
+              Optional — we confirm the exact piece before packing.
+            </p>
+          </div>
 
           {productShowsSizeField(product) ? (
             <div className="grid gap-2">

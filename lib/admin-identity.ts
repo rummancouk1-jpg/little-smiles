@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { createClient } from "@supabase/supabase-js";
 
 type SupabaseAuthUser = {
@@ -7,6 +9,14 @@ type SupabaseAuthUser = {
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/** Constant-time compare to prevent timing oracles on the admin password. */
+function safeEqualStrings(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a, "utf8");
+  const bBuf = Buffer.from(b, "utf8");
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
 }
 
 function allowedEmails(): Set<string> {
@@ -40,7 +50,9 @@ export async function verifyAdminCredentials(payload: {
   if (authMode() === "secret") {
     const adminSecret = process.env.ADMIN_SECRET?.trim();
     if (!adminSecret) return { ok: false, error: "ADMIN_SECRET missing" };
-    if (payload.password !== adminSecret) return { ok: false, error: "Invalid credentials" };
+    if (!safeEqualStrings(payload.password, adminSecret)) {
+      return { ok: false, error: "Invalid credentials" };
+    }
     const adminLabel = process.env.ADMIN_DEFAULT_LABEL?.trim() || "primary_admin";
     return { ok: true, actorLabel: adminLabel };
   }
