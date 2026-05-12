@@ -4,7 +4,10 @@ import { TrackOrderForm } from "@/components/track-order-form";
 import { staticPageMetadata } from "@/lib/seo-metadata";
 
 export const metadata: Metadata = staticPageMetadata({
-  title: "Track Order | Little Smiles Pakistan",
+  // Page-segment title only; the root layout template wraps it with
+  // "| Little Smiles" — keeping a brand suffix here causes the final
+  // <title> to be "Track Order | Little Smiles Pakistan | Little Smiles".
+  title: "Track Order",
   description:
     "Track your Little Smiles order status using your order ID and phone number used during confirmation.",
   path: "/track-order",
