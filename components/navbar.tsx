@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, ShoppingBag } from "lucide-react";
+import { Menu, MessageCircle, ShoppingBag } from "lucide-react";
 
 import { useCart } from "@/components/cart-provider";
 
@@ -96,8 +96,7 @@ export function Navbar() {
           </Link>
           <Button
             asChild
-            variant="outline"
-            className="h-11 rounded-full border-[#2E2323]/18 bg-white/70 px-5 text-sm font-medium text-[#2E2323] shadow-[0_10px_26px_-22px_rgba(59,47,47,0.4)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5"
+            className="h-11 rounded-full border-transparent bg-[#2F2624] px-5 text-sm font-medium text-[#F6F1EC] shadow-[0_12px_30px_-20px_rgba(47,38,36,0.5)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_36px_-22px_rgba(47,38,36,0.6)]"
           >
             <Link
               href={whatsappBaseUrl}
@@ -109,13 +108,30 @@ export function Navbar() {
                   sourcePage: "desktop_navbar",
                 })
               }
+              className="inline-flex items-center gap-2"
             >
-              WhatsApp Order
+              <MessageCircle className="size-4" strokeWidth={2} aria-hidden />
+              Order on WhatsApp
             </Link>
           </Button>
         </div>
 
-        <div className="lg:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            href={whatsappBaseUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(event) =>
+              void trackAndOpenWhatsapp(event, {
+                whatsappUrl: whatsappBaseUrl,
+                sourcePage: "mobile_navbar",
+              })
+            }
+            aria-label="Order on WhatsApp"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-transparent bg-[#2F2624] text-[#F6F1EC] shadow-[0_10px_24px_-16px_rgba(47,38,36,0.55)] transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_14px_28px_-18px_rgba(47,38,36,0.65)]"
+          >
+            <MessageCircle className="size-[1.15rem]" strokeWidth={2} aria-hidden />
+          </Link>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
