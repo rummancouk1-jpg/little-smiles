@@ -155,7 +155,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="text-xs font-medium uppercase tracking-[0.24em] text-[#372F2D]/52"
+              className="eyebrow"
             >
               Little Smiles
             </motion.p>
@@ -165,9 +165,10 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-3 text-balance text-[2.45rem] font-semibold leading-[0.98] tracking-tight text-[#1F1918] sm:mt-4 sm:text-6xl lg:text-[4.15rem]"
+              className="mt-3 text-balance text-[2.5rem] font-semibold leading-[1] tracking-tight text-ink-strong sm:mt-4 sm:text-[4rem] lg:text-[5rem]"
             >
-              Tiny Essentials for Your Little Smiles
+              Tiny Essentials for Your Little{" "}
+              <span className="italic">Smiles</span>
             </motion.h1>
 
             <motion.p
@@ -186,7 +187,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+              className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6"
             >
               <Button
                 asChild
@@ -195,14 +196,18 @@ export function HeroSection() {
               >
                 <Link href="/shop">Shop Collection</Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 w-full rounded-full border-[#2E2323]/40 bg-white px-9 text-base font-semibold text-[#1F1918] shadow-[0_12px_30px_-20px_rgba(59,47,47,0.38)] backdrop-blur-sm transition-[transform,box-shadow,color] duration-300 hover:-translate-y-0.5 hover:bg-[#F8F4F0] hover:text-[#1F1918] hover:shadow-[0_18px_36px_-22px_rgba(59,47,47,0.48)] dark:text-[#1F1918] dark:hover:text-[#1F1918] sm:w-auto"
+              <Link
+                href="/best-sellers"
+                className="group inline-flex items-center gap-2 self-center text-base font-medium text-ink-strong/85 underline decoration-[#3B2F2F]/22 underline-offset-[8px] transition-[color,text-decoration-color] duration-300 hover:text-ink-strong hover:decoration-[#1F1918]/50 sm:self-auto"
               >
-                <Link href="/best-sellers">View Best Sellers</Link>
-              </Button>
+                View best sellers
+                <span
+                  aria-hidden
+                  className="text-[0.9em] leading-none transition-transform duration-300 group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
+              </Link>
             </motion.div>
 
             <motion.ul
