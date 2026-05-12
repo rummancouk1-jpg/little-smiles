@@ -53,12 +53,14 @@ export async function POST(request: Request, { params }: RouteProps) {
   }
 
   const now = new Date().toISOString();
+  // The status-change note belongs only in order_status_history (inserted
+  // below). Writing it to orders.notes here would overwrite the order's
+  // standing notes captured via PATCH /api/admin/orders/[orderId].
   const { error: updateError } = await supabase
     .from("orders")
     .update({
       status: parsed.data.status,
       updated_at: now,
-      notes: parsed.data.note ?? null,
     })
     .eq("id", orderId);
 

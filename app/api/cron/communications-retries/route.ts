@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { NextResponse } from "next/server";
 
 import { captureServerError } from "@/lib/error-observability";
@@ -7,7 +9,14 @@ function isAuthorizedCronRequest(request: Request): boolean {
   const cronSecret = process.env.CRON_SECRET?.trim();
   if (!cronSecret) return false;
   const authHeader = request.headers.get("authorization")?.trim();
-  return authHeader === `Bearer ${cronSecret}`;
+  if (!authHeader) return false;
+  // Constant-time compare. Length guard prevents the underlying
+  // timingSafeEqual from throwing on mismatched buffer lengths.
+  const expected = `Bearer ${cronSecret}`;
+  const a = Buffer.from(authHeader, "utf8");
+  const b = Buffer.from(expected, "utf8");
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 export async function GET(request: Request) {
