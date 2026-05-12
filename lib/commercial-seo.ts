@@ -26,16 +26,16 @@ const indexable: Metadata["robots"] = {
 };
 
 /**
- * Primary intent: premium baby essentials + Pakistan (brand homepage).
+ * Primary intent: boutique baby essentials + Pakistan (brand homepage).
  */
 export const homePageMetadata: Metadata = {
-  title: "Premium Baby Essentials Pakistan",
+  title: "Boutique Baby Essentials, Pakistan",
   description:
     "Shop premium baby essentials in Pakistan: swaddles, bodysuits, insulated food bags, bottle cases, and gifts. Trusted quality with Pakistan-wide delivery—order on WhatsApp.",
   alternates: { canonical: siteUrl },
   robots: indexable,
   openGraph: {
-    title: "Premium Baby Essentials Pakistan | Little Smiles",
+    title: "Boutique Baby Essentials, Pakistan | Little Smiles",
     description:
       "Swaddles, bodysuits, feeding gear, and newborn gifts—curated for comfort and everyday use across Pakistan.",
     url: siteUrl,
@@ -45,7 +45,7 @@ export const homePageMetadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Premium Baby Essentials Pakistan | Little Smiles",
+    title: "Boutique Baby Essentials, Pakistan | Little Smiles",
     description:
       "Swaddles, bodysuits, feeding gear, and newborn gifts—curated for comfort and everyday use across Pakistan.",
   },
@@ -115,7 +115,7 @@ export const bestSellersPageMetadata: Metadata = {
   openGraph: {
     title: "Best-Selling Baby Products in Pakistan | Little Smiles",
     description:
-      "Parent favorites: premium swaddles, bodysuits, and feeding essentials—ready to order.",
+      "The Little Smiles essentials parents reach for first — swaddles, bodysuits, and feeding gear.",
     url: `${siteUrl}/best-sellers`,
     type: "website",
     locale: "en_PK",
@@ -125,7 +125,7 @@ export const bestSellersPageMetadata: Metadata = {
     card: "summary_large_image",
     title: "Best-Selling Baby Products in Pakistan | Little Smiles",
     description:
-      "Parent favorites: premium swaddles, bodysuits, and feeding essentials—ready to order.",
+      "The Little Smiles essentials parents reach for first — swaddles, bodysuits, and feeding gear.",
   },
 };
 
@@ -147,14 +147,14 @@ const categoryPrimaryPhrase: Record<Product["category"], string> = {
 /** Titles & descriptions tuned to one primary keyword phrase per URL (top commercial URLs). */
 const productSeoBySlug: Partial<Record<TopCommercialSlug, ProductSeoFields>> = {
   "fly-high-swaddle": {
-    title: "Fly High Baby Swaddle — Premium Newborn Wrap (Pakistan)",
+    title: "Fly High Baby Swaddle — Soft Newborn Wrap (Pakistan)",
     description:
-      "Buy the Fly High baby swaddle in Pakistan: ultra-soft wrap for calmer sleep and easy swaddling. Premium cotton feel—order on WhatsApp with Pakistan-wide delivery.",
+      "Buy the Fly High baby swaddle in Pakistan: ultra-soft wrap for calmer sleep and easy swaddling. Order on WhatsApp with Pakistan-wide delivery.",
   },
   "dino-deer-bodysuits": {
-    title: "Dino Deer Baby Bodysuits — Premium Daily Wear (Pakistan)",
+    title: "Dino Deer Baby Bodysuits — Soft Daily Wear (Pakistan)",
     description:
-      "Shop Dino Deer baby bodysuits online in Pakistan: soft premium knits for daily wear and easy changes. Limited stock—order on WhatsApp.",
+      "Shop Dino Deer baby bodysuits online in Pakistan: soft knits for daily wear and easy changes. Limited stock—order on WhatsApp.",
   },
   "blue-and-white-food-bag": {
     title: "Blue & White Insulated Baby Food Bag (Pakistan)",
@@ -164,12 +164,12 @@ const productSeoBySlug: Partial<Record<TopCommercialSlug, ProductSeoFields>> = {
   "space-rocket-bottle-case": {
     title: "Space Rocket Insulated Baby Bottle Case (Pakistan)",
     description:
-      "Insulated baby bottle case for safer travel in Pakistan—Space Rocket print with a clean, premium finish. Order on WhatsApp for quick purchase.",
+      "Insulated baby bottle case for safer travel in Pakistan—Space Rocket print with a clean, considered finish. Order on WhatsApp for quick purchase.",
   },
   "natures-cuddle-swaddle": {
     title: "Nature's Cuddle Baby Swaddle — Breathable Cotton (Pakistan)",
     description:
-      "Nature's Cuddle baby swaddle: breathable premium wrap for secure swaddling and cozy sleep in Pakistan. Order on WhatsApp with nationwide delivery.",
+      "Nature's Cuddle baby swaddle: breathable wrap for secure swaddling and cozy sleep in Pakistan. Order on WhatsApp with nationwide delivery.",
   },
   "unicorn-swaddle": {
     title: "Unicorn Baby Swaddle — Soft Cotton Newborn Wrap (Pakistan)",
@@ -179,12 +179,12 @@ const productSeoBySlug: Partial<Record<TopCommercialSlug, ProductSeoFields>> = {
   "tiny-quote-print-bodysuits": {
     title: "Tiny Quote Baby Bodysuits — Soft Everyday Essentials (Pakistan)",
     description:
-      "Tiny Quote baby bodysuits in Pakistan: breathable essentials for gentle skin and quick diaper changes. Premium comfort—order on WhatsApp.",
+      "Tiny Quote baby bodysuits in Pakistan: breathable essentials for gentle skin and quick diaper changes. Order on WhatsApp.",
   },
   "tiny-quote-goggles-bodysuits": {
     title: "Tiny Quote Goggles Baby Bodysuits (Pakistan)",
     description:
-      "Playful premium baby bodysuits with a soft hand-feel for daily wear in Pakistan. Order on WhatsApp for fast ordering and delivery options.",
+      "Playful baby bodysuits with a soft hand-feel for daily wear in Pakistan. Order on WhatsApp for fast ordering and delivery options.",
   },
   "blue-feeding-cushion": {
     title: "Blue Baby Feeding Cushion — Nursing Support (Pakistan)",
@@ -192,9 +192,9 @@ const productSeoBySlug: Partial<Record<TopCommercialSlug, ProductSeoFields>> = {
       "Supportive blue baby feeding cushion for calmer nursing and bottle feeds in Pakistan. Ergonomic comfort—order on WhatsApp while stock lasts.",
   },
   "floral-bow-flower-bow-set": {
-    title: "Floral Baby Bow Set — Premium Hair Accessories (Pakistan)",
+    title: "Floral Baby Bow Set — Soft Hair Accessories (Pakistan)",
     description:
-      "Floral baby bow set for polished, occasion-ready looks in Pakistan. Premium finish and gentle wear—order on WhatsApp.",
+      "Floral baby bow set for polished, occasion-ready looks in Pakistan. Considered finish and gentle wear—order on WhatsApp.",
   },
 };
 

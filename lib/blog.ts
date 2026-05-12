@@ -160,3 +160,21 @@ export const blogPosts: BlogPost[] = [
 export function getBlogPostBySlug(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
 }
+
+/**
+ * Reverse of the post -> product relationship: given a product category,
+ * return the most recent blog post whose relatedProductCategory matches.
+ * Used on PDPs to surface the most relevant article — closes the
+ * content <-> commerce loop in both directions.
+ */
+export function getBlogPostForProductCategory(
+  category: BlogPost["relatedProductCategory"],
+): BlogPost | null {
+  const matches = blogPosts.filter(
+    (post) => post.relatedProductCategory === category,
+  );
+  if (matches.length === 0) return null;
+  return [...matches].sort((a, b) =>
+    b.publishedAt.localeCompare(a.publishedAt),
+  )[0];
+}

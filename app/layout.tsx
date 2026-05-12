@@ -35,18 +35,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Little Smiles | Premium Baby Boutique Pakistan",
+    default: "Little Smiles | Boutique Baby Brand, Pakistan",
     template: "%s | Little Smiles",
   },
   description:
-    "Shop premium baby essentials in Pakistan, including swaddles, bodysuits, food bags, and bottle cases.",
+    "Boutique baby essentials for families in Pakistan: swaddles, bodysuits, food bags, and bottle cases.",
   robots: {
     index: true,
     follow: true,
     googleBot: { index: true, follow: true },
   },
   openGraph: {
-    title: "Little Smiles | Premium Baby Boutique Pakistan",
+    title: "Little Smiles | Boutique Baby Brand, Pakistan",
     description:
       "Parent-loved baby essentials for comfort, gifting, and everyday use.",
     type: "website",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Little Smiles | Premium Baby Boutique Pakistan",
+    title: "Little Smiles | Boutique Baby Brand, Pakistan",
     description:
       "Parent-loved baby essentials for comfort, gifting, and everyday use.",
   },

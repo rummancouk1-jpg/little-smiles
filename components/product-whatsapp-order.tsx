@@ -7,6 +7,7 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getBlogPostForProductCategory } from "@/lib/blog";
 import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
   type Product,
@@ -57,6 +58,11 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         : "Color, print, or style";
 
   const disabled = !product.inStock;
+
+  // Reverse of the blog rail's product-anchor: surfaces the most relevant
+  // article on this product's category so the PDP links into editorial
+  // content (closes the content <-> commerce loop, helps internal SEO).
+  const relatedPost = getBlogPostForProductCategory(product.category);
 
   return (
     <>
@@ -206,7 +212,18 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           <p className="mt-2">
             <span className="font-semibold text-[#241B1B]">Returns:</span> Message us within 48 hours of delivery for damaged or wrong items, with photos.
           </p>
-          <p className="mt-3 text-xs text-[#3B2F2F]/68">
+          {relatedPost ? (
+            <p className="mt-3 text-xs text-[#3B2F2F]/68">
+              Reading:{" "}
+              <Link
+                href={`/blog/${relatedPost.slug}`}
+                className="font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#241B1B]"
+              >
+                {relatedPost.title}
+              </Link>
+            </p>
+          ) : null}
+          <p className="mt-2 text-xs text-[#3B2F2F]/68">
             Already placed an order?{" "}
             <Link href="/track-order" className="font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#241B1B]">
               Track your order
