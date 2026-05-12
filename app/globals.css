@@ -82,6 +82,19 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* === Boutique design tokens (warm-brown ink + soft shadow language) === */
+  /* Canonical ink colors. Use against the cream page background.
+     For panels with explicit non-cream backgrounds, prefer the existing
+     inline opacities so contrast stays correct. */
+  --ink-strong: #1f1918;
+  --ink-body: rgba(59, 47, 47, 0.78);
+  --ink-muted: rgba(59, 47, 47, 0.62);
+  --ink-subtle: rgba(59, 47, 47, 0.5);
+
+  /* Two-tier card depth: near-flat at rest, lifted on hover. */
+  --shadow-card-rest: 0 10px 28px -22px rgba(59, 47, 47, 0.18);
+  --shadow-card-lift: 0 22px 48px -26px rgba(59, 47, 47, 0.3);
 }
 
 .dark {
@@ -146,6 +159,52 @@
 }
 
 @layer utilities {
+  /* Canonical ink colors — pair with `text-ink-*` for new code. */
+  .text-ink-strong {
+    color: var(--ink-strong);
+  }
+  .text-ink-body {
+    color: var(--ink-body);
+  }
+  .text-ink-muted {
+    color: var(--ink-muted);
+  }
+  .text-ink-subtle {
+    color: var(--ink-subtle);
+  }
+
+  /* Small caps label used across section headers and metadata rows. */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--ink-subtle);
+  }
+
+  /* Shared card depth. Components should default to rest and lift on hover. */
+  .shadow-card-rest {
+    box-shadow: var(--shadow-card-rest);
+  }
+  .shadow-card-lift {
+    box-shadow: var(--shadow-card-lift);
+  }
+
+  /* Consistent vertical rhythm for landing sections. */
+  .section-rhythm {
+    padding-block: 4rem;
+  }
+  @media (min-width: 640px) {
+    .section-rhythm {
+      padding-block: 5.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .section-rhythm {
+      padding-block: 7rem;
+    }
+  }
+
   .contact-input,
   .contact-textarea {
     color: #2e2323;
