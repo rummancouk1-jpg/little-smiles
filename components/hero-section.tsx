@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { BadgeCheck, Feather, Sun } from "lucide-react";
 
@@ -110,23 +110,44 @@ function ProductCard({
 export function HeroSection() {
   const reduce = useReducedMotion();
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const rafIdRef = useRef<number | null>(null);
+  const pendingRef = useRef<{ x: number; y: number } | null>(null);
   const baseTransition = {
     duration: reduce ? 0 : motionDuration.slow,
     ease: premiumEase,
   };
   const stagger = reduce ? 0 : motionStagger;
 
+  useEffect(
+    () => () => {
+      if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current);
+    },
+    [],
+  );
+
+  const scheduleParallax = (next: { x: number; y: number }) => {
+    pendingRef.current = next;
+    if (rafIdRef.current !== null) return;
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = null;
+      if (pendingRef.current) {
+        setParallax(pendingRef.current);
+        pendingRef.current = null;
+      }
+    });
+  };
+
   const handleCollagePointerMove = (event: MouseEvent<HTMLDivElement>) => {
     if (reduce) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
     const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-    setParallax({ x, y });
+    scheduleParallax({ x, y });
   };
 
   const handleCollagePointerLeave = () => {
     if (reduce) return;
-    setParallax({ x: 0, y: 0 });
+    scheduleParallax({ x: 0, y: 0 });
   };
 
   return (
@@ -218,7 +239,7 @@ export function HeroSection() {
                   className="inline-flex items-center gap-2.5 rounded-2xl border border-[#3B2F2F]/8 bg-white/68 px-4 py-2.5 text-sm font-medium text-[#3B2F2F]/80 shadow-[0_8px_30px_-18px_rgba(59,47,47,0.2)] backdrop-blur-sm"
                 >
                   <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/70 ring-1 ring-[#3B2F2F]/7">
-                    <Icon className="size-4" strokeWidth={1.75} aria-hidden />
+                    <Icon className="size-4" strokeWidth={2} aria-hidden />
                   </span>
                   {label}
                 </li>

@@ -145,7 +145,7 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
             {trustPillars.map(({ title, body, icon: Icon }) => (
               <li key={title} className="text-center sm:text-left">
                 <span className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/75 ring-1 ring-[#3B2F2F]/8 sm:mx-0">
-                  <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+                  <Icon className="size-5" strokeWidth={2} aria-hidden />
                 </span>
                 <p className="mt-4 font-semibold text-[#241B1B]">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/74">{body}</p>

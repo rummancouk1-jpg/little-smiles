@@ -274,11 +274,11 @@ export function CartPageClient() {
               View all
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mobile-rail flex snap-x gap-4 overflow-x-auto pb-1 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
             {upsellProducts.map((item) => (
               <article
                 key={item.slug}
-                className="flex flex-col rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-3.5 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.3)]"
+                className="flex w-[78%] shrink-0 snap-start flex-col rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-3.5 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.3)] sm:w-auto sm:shrink"
               >
                 <Link href={`/shop/${item.slug}`} className="group block">
                   <div className="relative h-36 rounded-xl bg-[#F5EEE7] p-3">
