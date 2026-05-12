@@ -70,6 +70,7 @@ export async function POST(request: Request) {
     metadata: { actorLabel: verified.actorLabel, mode: currentAdminAuthMode() },
   });
   const response = NextResponse.json({ ok: true, mode: currentAdminAuthMode() });
+  response.headers.set("Cache-Control", "no-store");
   response.cookies.set(adminCookieName(), token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
