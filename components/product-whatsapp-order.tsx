@@ -51,10 +51,10 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
 
   const variantPlaceholder =
     product.category === "Bodysuits"
-      ? "Print / color preference (as shown)"
+      ? "Which print, or color"
       : product.category === "Food Container"
-        ? "Which design / option (reference listing)"
-        : "Color, print, or style preference";
+        ? "Which design"
+        : "Color, print, or style";
 
   const disabled = !product.inStock;
 
@@ -104,15 +104,9 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         </div>
 
         <div className="mt-8 space-y-4 rounded-2xl border border-[#3B2F2F]/10 bg-white/55 p-4 sm:p-5">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
-              Quantity &amp; preferences
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#3B2F2F]/58">
-              Quantity is used when you add to cart. Preferences below are included in your WhatsApp
-              message if you check out there directly.
-            </p>
-          </div>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            Add your details
+          </p>
 
           <div className="grid gap-2">
             <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-qty">
@@ -139,7 +133,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {productShowsVariantField(product) ? (
             <div className="grid gap-2">
               <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-variant">
-                Variant / preference
+                Color or style
               </label>
               <Input
                 id="order-variant"
@@ -150,7 +144,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
               />
               <p className="text-xs text-[#3B2F2F]/58">
-                Optional — we confirm the exact piece before packing.
+                Optional. We confirm before packing.
               </p>
             </div>
           ) : null}
@@ -162,7 +156,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               </label>
               <Input
                 id="order-size"
-                placeholder="e.g. newborn, 0–3 months (please confirm)"
+                placeholder="Newborn, 0–3 months — we'll confirm"
                 value={sizeNote}
                 disabled={disabled}
                 onChange={(event) => setSizeNote(event.target.value)}
@@ -173,11 +167,11 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
 
           <div className="grid gap-2">
             <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-note">
-              Customer note
+              Note (optional)
             </label>
             <textarea
               id="order-note"
-              placeholder="Optional: gift note, preferred delivery timing, or other instructions"
+              placeholder="Gift note, delivery timing, or anything else"
               value={customerNote}
               disabled={disabled}
               onChange={(event) => setCustomerNote(event.target.value)}
@@ -195,24 +189,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           </div>
         </div>
 
-        <ul className="mt-6 flex flex-wrap gap-2.5 text-sm text-[#3B2F2F]/76">
-          <li className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3.5 py-1.5">
-            Care: Daily-use ready
-          </li>
-          <li className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3.5 py-1.5">
-            Dispatch: 24-48 hours
-          </li>
-          <li className="rounded-full border border-[#3B2F2F]/12 bg-white/55 px-3.5 py-1.5">
-            Delivery: 2-5 business days
-          </li>
-        </ul>
-        <div className="mt-5 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/88 p-4 text-sm leading-relaxed text-[#3B2F2F]/76">
+        <div className="mt-7 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/88 p-4 text-sm leading-relaxed text-[#3B2F2F]/76">
           <p>
-            <span className="font-semibold text-[#241B1B]">Payment:</span> Cash on Delivery available across
-            Pakistan for most orders.
+            <span className="font-semibold text-[#241B1B]">Payment:</span> Cash on delivery, available across Pakistan.
           </p>
           <p>
-            <span className="font-semibold text-[#241B1B]">Delivery:</span> {product.dispatchTimeline}{" "}
+            <span className="font-semibold text-[#241B1B]">Shipping:</span> {product.dispatchTimeline}{" "}
             {product.deliveryEstimate}
           </p>
           <p className="mt-2">
@@ -222,8 +204,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             <span className="font-semibold text-[#241B1B]">Gifting:</span> {product.giftingNote}
           </p>
           <p className="mt-2">
-            <span className="font-semibold text-[#241B1B]">Returns support:</span> For damaged or
-            incorrect items, message us within 48 hours of delivery with photos.
+            <span className="font-semibold text-[#241B1B]">Returns:</span> Message us within 48 hours of delivery for damaged or wrong items, with photos.
           </p>
           <p className="mt-3 text-xs text-[#3B2F2F]/68">
             Already placed an order?{" "}
@@ -271,13 +252,18 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               </Button>
             </>
           )}
-          <Button
-            asChild
-            variant="ghost"
-            className="h-11 w-full rounded-full px-7 text-sm font-medium text-[#2E2323] sm:w-auto"
+          <Link
+            href="/shop"
+            className="group inline-flex h-11 items-center gap-1.5 self-center text-sm font-medium text-[#3B2F2F]/72 underline decoration-[#3B2F2F]/20 underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-[#1F1918] hover:decoration-[#1F1918]/45 sm:self-auto"
           >
-            <Link href="/shop">Back to Shop</Link>
-          </Button>
+            <span
+              aria-hidden
+              className="text-[0.95em] leading-none transition-transform duration-200 group-hover:-translate-x-0.5"
+            >
+              ←
+            </span>
+            Back to shop
+          </Link>
         </div>
       </div>
 
