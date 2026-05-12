@@ -1,10 +1,30 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import type { BlogPost } from "@/lib/blog";
+import { type Product, products } from "@/lib/products";
 
 type LatestBlogSectionProps = {
   posts: BlogPost[];
 };
+
+/**
+ * Each blog post already declares its `relatedProductCategory` in the schema,
+ * so the article's visual anchor is a semantically-matching product photo
+ * (swaddle article → swaddle, feeding article → food bag, etc.). Same files
+ * Next/Image is already caching for the home grid — no new image weight.
+ */
+function getAnchorProduct(post: BlogPost): Product | null {
+  const inCategory = products.filter(
+    (product) => product.category === post.relatedProductCategory,
+  );
+  return (
+    inCategory.find((product) => product.featured && product.inStock) ??
+    inCategory.find((product) => product.inStock) ??
+    inCategory[0] ??
+    null
+  );
+}
 
 export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
   if (posts.length === 0) return null;
@@ -14,43 +34,71 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B2F2F]/50">
-              From the Blog
-            </p>
+            <p className="eyebrow">From the Blog</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">
               Latest Parenting Guides
             </h2>
           </div>
           <Link
             href="/blog"
-            className="inline-flex rounded-full border border-[#2E2323]/14 bg-white/68 px-4 py-2 text-sm font-medium text-[#2E2323] transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
+            className="group inline-flex items-center gap-1.5 text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/22 underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-[#1F1918] hover:decoration-[#1F1918]/45"
           >
-            View All Articles
+            View all articles
+            <span
+              aria-hidden
+              className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
+            >
+              →
+            </span>
           </Link>
         </div>
 
-        <div className="mobile-rail mt-8 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-10 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-3">
-          {posts.map((post) => (
-            <article
-              key={post.slug}
-              className="min-w-[84%] snap-start rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 p-5 shadow-[0_24px_52px_-34px_rgba(59,47,47,0.36)] sm:flex sm:min-h-[16rem] sm:min-w-0 sm:flex-col"
-            >
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/56">
-                {post.category}
-              </p>
-              <h3 className="mt-3 text-2xl font-semibold leading-tight text-[#1F1918]">
-                <Link href={`/blog/${post.slug}`} className="hover:underline">
-                  {post.title}
+        <div className="mobile-rail mt-8 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-10 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-3">
+          {posts.map((post) => {
+            const anchor = getAnchorProduct(post);
+            return (
+              <article
+                key={post.slug}
+                className="group flex min-w-[84%] snap-start flex-col overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 shadow-card-rest transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-card-lift sm:min-w-0"
+              >
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="relative block aspect-[5/3] overflow-hidden bg-[#F5EEE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/24"
+                  aria-hidden
+                  tabIndex={-1}
+                >
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_15%,rgba(255,255,255,0.55),transparent_62%)]" />
+                  {anchor ? (
+                    <Image
+                      src={anchor.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 30vw"
+                      className="object-contain object-center p-6 transition-transform duration-500 group-hover:scale-[1.02]"
+                    />
+                  ) : null}
                 </Link>
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-[#3B2F2F]/70">
-                {post.description}
-              </p>
-              <p className="mt-auto pt-4 text-xs text-[#3B2F2F]/58">
-                {post.publishedAt} - {post.readTime}
-              </p>
-            </article>
-          ))}
+
+                <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
+                  <p className="eyebrow">{post.category}</p>
+                  <h3 className="text-[1.5rem] leading-[1.15] text-[#1F1918] sm:text-[1.65rem]">
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="rounded-md hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/24"
+                    >
+                      {post.title}
+                    </Link>
+                  </h3>
+                  <p className="text-sm leading-relaxed text-[#3B2F2F]/72">
+                    {post.description}
+                  </p>
+                  <p className="mt-auto pt-2 text-xs text-[#3B2F2F]/58">
+                    {post.publishedAt} · {post.readTime}
+                  </p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
