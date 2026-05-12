@@ -1,30 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { BlogPost } from "@/lib/blog";
-import { type Product, products } from "@/lib/products";
+import { getBlogAnchorProduct, type BlogPost } from "@/lib/blog";
 
 type LatestBlogSectionProps = {
   posts: BlogPost[];
 };
-
-/**
- * Each blog post already declares its `relatedProductCategory` in the schema,
- * so the article's visual anchor is a semantically-matching product photo
- * (swaddle article → swaddle, feeding article → food bag, etc.). Same files
- * Next/Image is already caching for the home grid — no new image weight.
- */
-function getAnchorProduct(post: BlogPost): Product | null {
-  const inCategory = products.filter(
-    (product) => product.category === post.relatedProductCategory,
-  );
-  return (
-    inCategory.find((product) => product.featured && product.inStock) ??
-    inCategory.find((product) => product.inStock) ??
-    inCategory[0] ??
-    null
-  );
-}
 
 export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
   if (posts.length === 0) return null;
@@ -55,7 +36,7 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
 
         <div className="mobile-rail mt-8 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-10 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-3">
           {posts.map((post) => {
-            const anchor = getAnchorProduct(post);
+            const anchor = getBlogAnchorProduct(post);
             return (
               <article
                 key={post.slug}
@@ -71,7 +52,11 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
                   {anchor ? (
                     <Image
                       src={anchor.image}
-                      alt=""
+                      // The wrapping <Link> is aria-hidden + tabIndex=-1, so
+                      // assistive tech ignores this image. The alt is for
+                      // image-search bots (Google Images indexes the file
+                      // and associates it with this article's URL).
+                      alt={anchor.name}
                       fill
                       sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 30vw"
                       className="object-contain object-center p-6 transition-transform duration-500 group-hover:scale-[1.02]"

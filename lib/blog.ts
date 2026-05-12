@@ -1,3 +1,5 @@
+import { products, type Product } from "@/lib/products";
+
 export type BlogSection = {
   heading: string;
   content: string[];
@@ -159,4 +161,22 @@ export const blogPosts: BlogPost[] = [
 
 export function getBlogPostBySlug(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
+}
+
+/**
+ * The product to use as the article's visual anchor — same image the
+ * blog rail card shows, and the same image we surface in BlogPosting
+ * structured data. Prefers featured + in-stock; falls back to any
+ * in-category product, then null when the category has nothing.
+ */
+export function getBlogAnchorProduct(post: BlogPost): Product | null {
+  const inCategory = products.filter(
+    (product) => product.category === post.relatedProductCategory,
+  );
+  return (
+    inCategory.find((product) => product.featured && product.inStock) ??
+    inCategory.find((product) => product.inStock) ??
+    inCategory[0] ??
+    null
+  );
 }
