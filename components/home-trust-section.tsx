@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, MessageCircle, ShieldCheck } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  RefreshCw,
+  ShieldCheck,
+  Star,
+  Truck,
+} from "lucide-react";
 
 import {
   Accordion,
@@ -69,33 +76,51 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           <Link
             href="/shipping-policy"
-            className="touch-feedback group rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-[0_22px_48px_-34px_rgba(59,47,47,0.38)] transition-colors hover:border-[#3B2F2F]/16"
+            className="touch-feedback group block rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[#3B2F2F]/16 hover:shadow-card-lift"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/72 ring-1 ring-[#3B2F2F]/8">
+              <Truck className="size-5" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="mt-4 text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
               Delivery
             </p>
-            <p className="mt-3 text-lg font-semibold text-[#1F1918]">Pakistan-wide shipping</p>
+            <p className="mt-2 text-lg font-semibold text-[#1F1918]">Pakistan-wide shipping</p>
             <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/72">
               Dispatch in 24–48 hours · most cities 2–5 business days
             </p>
-            <span className="mt-4 inline-flex text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 group-hover:decoration-[#2E2323]/45">
+            <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-[text-decoration-color] group-hover:decoration-[#2E2323]/45">
               Shipping policy
+              <span
+                aria-hidden
+                className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
             </span>
           </Link>
 
           <Link
             href="/return-refund-policy"
-            className="touch-feedback group rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-[0_22px_48px_-34px_rgba(59,47,47,0.38)] transition-colors hover:border-[#3B2F2F]/16"
+            className="touch-feedback group block rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[#3B2F2F]/16 hover:shadow-card-lift"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/72 ring-1 ring-[#3B2F2F]/8">
+              <RefreshCw className="size-5" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="mt-4 text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
               Peace of mind
             </p>
-            <p className="mt-3 text-lg font-semibold text-[#1F1918]">Fair returns</p>
+            <p className="mt-2 text-lg font-semibold text-[#1F1918]">Fair returns</p>
             <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/72">
               Report damage or wrong items within 48 hours on WhatsApp with photos.
             </p>
-            <span className="mt-4 inline-flex text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 group-hover:decoration-[#2E2323]/45">
+            <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-[text-decoration-color] group-hover:decoration-[#2E2323]/45">
               Return policy
+              <span
+                aria-hidden
+                className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
             </span>
           </Link>
 
@@ -103,33 +128,51 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
             href={whatsappBaseUrl}
             target="_blank"
             rel="noreferrer"
-            className="touch-feedback group rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-[0_22px_48px_-34px_rgba(59,47,47,0.38)] transition-colors hover:border-[#3B2F2F]/16"
+            className="touch-feedback group block rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[#3B2F2F]/16 hover:shadow-card-lift"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/72 ring-1 ring-[#3B2F2F]/8">
+              <MessageCircle className="size-5" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="mt-4 text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
               Orders & support
             </p>
-            <p className="mt-3 text-lg font-semibold text-[#1F1918]">WhatsApp-first</p>
+            <p className="mt-2 text-lg font-semibold text-[#1F1918]">WhatsApp-first</p>
             <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/72">
               10am–10pm PKT · quick replies during support hours
             </p>
-            <span className="mt-4 inline-flex text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 group-hover:decoration-[#2E2323]/45">
+            <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-[text-decoration-color] group-hover:decoration-[#2E2323]/45">
               Chat on WhatsApp
+              <span
+                aria-hidden
+                className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
             </span>
           </a>
 
           <Link
             href="/reviews"
-            className="touch-feedback group rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-[0_22px_48px_-34px_rgba(59,47,47,0.38)] transition-colors hover:border-[#3B2F2F]/16"
+            className="touch-feedback group block rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[#3B2F2F]/16 hover:shadow-card-lift"
           >
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/72 ring-1 ring-[#3B2F2F]/8">
+              <Star className="size-5" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="mt-4 text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
               Social proof
             </p>
-            <p className="mt-3 text-lg font-semibold text-[#1F1918]">Parent reviews</p>
+            <p className="mt-2 text-lg font-semibold text-[#1F1918]">Parent reviews</p>
             <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/72">
               Photos and notes from families across Pakistan—not anonymous stars only.
             </p>
-            <span className="mt-4 inline-flex text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 group-hover:decoration-[#2E2323]/45">
+            <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-[text-decoration-color] group-hover:decoration-[#2E2323]/45">
               Read reviews
+              <span
+                aria-hidden
+                className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
             </span>
           </Link>
         </div>
@@ -145,7 +188,7 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
             {trustPillars.map(({ title, body, icon: Icon }) => (
               <li key={title} className="text-center sm:text-left">
                 <span className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/75 ring-1 ring-[#3B2F2F]/8 sm:mx-0">
-                  <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+                  <Icon className="size-5" strokeWidth={2} aria-hidden />
                 </span>
                 <p className="mt-4 font-semibold text-[#241B1B]">{title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/74">{body}</p>
