@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getProductBySlug } from "@/lib/products";
+import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 
 const bodySchema = z.object({
   source: z.string().min(1).max(80),
@@ -16,6 +17,19 @@ const bodySchema = z.object({
  * Set `WHATSAPP_CLICK_WEBHOOK_URL` or reuse `CONTACT_NOTIFY_WEBHOOK_URL` (same payload shape).
  */
 export async function POST(request: Request) {
+  const rate = checkRequestRateLimit({
+    request,
+    routeKey: "events_whatsapp_order",
+    limit: 90,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { ok: false, error: "Too many events." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+    );
+  }
+
   let json: unknown;
   try {
     json = await request.json();
