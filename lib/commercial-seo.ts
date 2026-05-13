@@ -31,7 +31,7 @@ const indexable: Metadata["robots"] = {
 export const homePageMetadata: Metadata = {
   title: "Premium Baby Essentials Pakistan",
   description:
-    "Shop premium baby essentials in Pakistan: swaddles, bodysuits, insulated food bags, bottle cases, and gifts. Trusted quality with Pakistan-wide delivery—order on WhatsApp.",
+    "Considered baby essentials for families in Pakistan. Swaddles, bodysuits, feeding gear, and small gifts — order on WhatsApp.",
   alternates: { canonical: siteUrl },
   robots: indexable,
   openGraph: {
@@ -57,7 +57,7 @@ export const homePageMetadata: Metadata = {
 export const shopPageMetadata: Metadata = {
   title: "Shop Baby Essentials Online (Pakistan)",
   description:
-    "Browse every Little Smiles category: baby swaddles, bodysuits, food bags, bottle cases, feeding cushions, and accessories. Pakistan-wide delivery—dispatch usually 24–48 hours, most orders in 2–5 business days. WhatsApp ordering with prefilled product details; contact within 48 hours of delivery for damaged or incorrect items.",
+    "The full Little Smiles catalog — swaddles, bodysuits, food bags, bottle cases, feeding cushions, and bow sets. Order on WhatsApp, shipped across Pakistan.",
   alternates: { canonical: `${siteUrl}/shop` },
   robots: indexable,
   openGraph: {
@@ -83,7 +83,7 @@ export const shopPageMetadata: Metadata = {
 export const contactPageMetadata: Metadata = {
   title: "Contact & WhatsApp Support",
   description:
-    "Contact Little Smiles in Pakistan for orders and product questions. WhatsApp 10am–10pm PKT (we reply quickly during hours). Nationwide delivery: dispatch often 24–48 hours, delivery commonly 2–5 business days. Message within 48 hours of delivery for damaged or wrong items—see our shipping and return policies.",
+    "Get in touch with Little Smiles on WhatsApp, 10am–10pm PKT. For damaged or wrong items, message us within 48 hours of delivery.",
   alternates: { canonical: `${siteUrl}/contact` },
   robots: indexable,
   openGraph: {
@@ -109,7 +109,7 @@ export const contactPageMetadata: Metadata = {
 export const bestSellersPageMetadata: Metadata = {
   title: "Best-Selling Baby Products in Pakistan",
   description:
-    "See the most-loved Little Smiles best sellers: top baby swaddles, bodysuits, and on-the-go feeding gear. Limited stock—order on WhatsApp for Pakistan-wide delivery.",
+    "Little Smiles best sellers — swaddles, bodysuits, and feeding gear parents reach for first. Order on WhatsApp for nationwide delivery.",
   alternates: { canonical: `${siteUrl}/best-sellers` },
   robots: indexable,
   openGraph: {
