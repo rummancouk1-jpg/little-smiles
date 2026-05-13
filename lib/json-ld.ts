@@ -1,6 +1,14 @@
-import type { BlogPost } from "@/lib/blog";
+import { getBlogAnchorProduct, type BlogPost } from "@/lib/blog";
 import type { Product } from "@/lib/products";
 import { absoluteUrl, defaultOgImagePath, siteUrl } from "@/lib/site";
+
+/** YYYY-MM-DD 60 days from now — for Product offers.priceValidUntil.
+ *  Computed at render time; refreshes naturally on each deploy. */
+function priceValidUntilDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 60);
+  return date.toISOString().slice(0, 10);
+}
 
 /** Sitewide Organization + WebSite graph (non-product pages). */
 export function organizationAndWebsiteJsonLd() {
@@ -34,6 +42,12 @@ export function organizationAndWebsiteJsonLd() {
 export function blogPostingJsonLd(post: BlogPost) {
   const pageUrl = absoluteUrl(`/blog/${post.slug}`);
   const isoPublished = `${post.publishedAt}T12:00:00+05:00`;
+  // Reuse the same anchor product image the blog rail card already
+  // shows for this post — keeps the Discover thumbnail consistent
+  // with what the user sees on-site, and gives each post a unique
+  // image instead of falling back to the brand logo.
+  const anchor = getBlogAnchorProduct(post);
+  const imagePath = anchor ? anchor.image : defaultOgImagePath;
 
   return {
     "@context": "https://schema.org",
@@ -51,7 +65,7 @@ export function blogPostingJsonLd(post: BlogPost) {
     },
     image: {
       "@type": "ImageObject",
-      url: absoluteUrl(defaultOgImagePath),
+      url: absoluteUrl(imagePath),
     },
     keywords: post.keywords.join(", "),
     articleSection: post.category,
@@ -120,6 +134,7 @@ export function productJsonLd(product: Product) {
       url: pageUrl,
       priceCurrency: "PKR",
       price: product.pricePkr,
+      priceValidUntil: priceValidUntilDate(),
       availability: productAvailabilitySchema(product),
       itemCondition: "https://schema.org/NewCondition",
       seller: {
