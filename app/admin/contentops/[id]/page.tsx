@@ -75,6 +75,7 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           approveHref={`/api/admin/contentops/drafts/${draft.id}/approve`}
           rejectHref={`/api/admin/contentops/drafts/${draft.id}/reject`}
           backHref="/admin/contentops"
+          articleHref={`/blog/${draft.content.slug}`}
         />
       </section>
     </main>

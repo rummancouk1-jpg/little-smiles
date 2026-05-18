@@ -15,9 +15,22 @@ type DraftActionsProps = {
   approveHref: string;
   rejectHref: string;
   backHref: string;
+  /**
+   * Public URL where the article lives once published, e.g. /blog/<slug>.
+   * Rendered as a "View live article" link in the published terminal
+   * state. Optional so legacy callers without slug context still compile.
+   */
+  articleHref?: string;
 };
 
-export function DraftActions({ draftId, status, approveHref, rejectHref, backHref }: DraftActionsProps) {
+export function DraftActions({
+  draftId,
+  status,
+  approveHref,
+  rejectHref,
+  backHref,
+  articleHref,
+}: DraftActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -127,7 +140,7 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
           ) : null}
         </div>
       ) : (
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-[#3B2F2F]/85">
             {status === "approved"
               ? "Approved. Sent to the publishing queue. You're done."
@@ -137,12 +150,24 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
                   ? "Declined. No further action needed."
                   : `Status: ${getStatusLabel(status)}.`}
           </p>
-          <a
-            href={backHref}
-            className="shrink-0 text-xs text-[#3B2F2F]/72 underline underline-offset-2"
-          >
-            Back to queue
-          </a>
+          <div className="flex shrink-0 flex-wrap items-center gap-4">
+            {status === "published" && articleHref ? (
+              <a
+                href={articleHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-[#1E5A37] underline underline-offset-2 hover:text-[#175030]"
+              >
+                View live article →
+              </a>
+            ) : null}
+            <a
+              href={backHref}
+              className="text-xs text-[#3B2F2F]/72 underline underline-offset-2"
+            >
+              Back to queue
+            </a>
+          </div>
         </div>
       )}
 

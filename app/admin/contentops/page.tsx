@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { DraftQueue } from "@/components/contentops/draft-queue";
+import { EditorialWelcome } from "@/components/contentops/editorial-welcome";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { isDraftStatus, listDrafts, type DraftStatus } from "@/lib/contentops/drafts-store";
@@ -98,6 +99,8 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
             <p className="mt-1 text-xs">{listError}</p>
           </article>
         ) : null}
+
+        <EditorialWelcome />
 
         <DraftQueue
           drafts={drafts}

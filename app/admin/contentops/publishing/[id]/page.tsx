@@ -78,12 +78,24 @@ export default async function PublishArticlePage({ params }: PageProps) {
               {headline}
             </h1>
             <p className="mt-3 text-sm text-[#3B2F2F]/72">{explanation}</p>
-            <Link
-              href="/admin/contentops/publishing"
-              className="mt-4 inline-block rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-2 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
-            >
-              Back to publishing queue
-            </Link>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Link
+                href="/admin/contentops/publishing"
+                className="inline-block rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-2 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+              >
+                Back to publishing queue
+              </Link>
+              {isPublished ? (
+                <a
+                  href={`/blog/${draft.content.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-[#1E5A37] underline underline-offset-2 hover:text-[#175030]"
+                >
+                  View live article →
+                </a>
+              ) : null}
+            </div>
           </article>
         </section>
       </main>
