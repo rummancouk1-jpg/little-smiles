@@ -1,9 +1,11 @@
 import { products, type Product } from "@/lib/products";
 import {
+  blogPostSchema,
   blogPostsSchema,
   type BlogPost,
   type BlogSection,
 } from "@/lib/contentops/blog-schema";
+import { listDrafts } from "@/lib/contentops/drafts-store";
 
 export type { BlogPost, BlogSection };
 
@@ -138,8 +140,20 @@ const rawBlogPosts: BlogPost[] = [
   },
 ];
 
+/**
+ * Static seed of blog posts. Authored in code, validated at module load.
+ * Remains canonical for every post that exists here — Supabase-sourced
+ * posts are purely additive (see getAllBlogPosts below).
+ */
 export const blogPosts: BlogPost[] = blogPostsSchema.parse(rawBlogPosts);
 
+/**
+ * Synchronous lookup against the static seed only. Used by:
+ *   - lib/blog-publish-adapter.ts: operator pre-flight duplicate check
+ *     against the static archive
+ *   - lib/json-ld.ts: structured-data helpers that don't need DB
+ * Public render surfaces should use getBlogPostBySlugAsync instead.
+ */
 export function getBlogPostBySlug(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
 }
@@ -160,4 +174,70 @@ export function getBlogAnchorProduct(post: BlogPost): Product | null {
     inCategory[0] ??
     null
   );
+}
+
+// ---------------------------------------------------------------------------
+// Hybrid additive read path (Commit K)
+//
+// All public render surfaces (home, blog list, blog detail, sitemap) read
+// through these async helpers. They return the static seed merged with
+// Supabase drafts in status='published'. Static slugs win on conflict.
+//
+// Failure-safe by design:
+//   - Supabase outage / network failure -> return only the static seed.
+//   - Per-row schema mismatch -> skip that row, do not throw.
+//   - No Supabase env vars configured -> listDrafts throws inside
+//     requireClient; we catch and degrade.
+//
+// The static seed is therefore the safety floor. The blog never breaks
+// because of a dynamic-layer failure.
+// ---------------------------------------------------------------------------
+
+function mergeStaticAndPublished(publishedDrafts: { slug: string; content: unknown }[]): BlogPost[] {
+  const staticSlugs = new Set(blogPosts.map((post) => post.slug));
+  const additive: BlogPost[] = [];
+  for (const draft of publishedDrafts) {
+    if (staticSlugs.has(draft.slug)) continue;
+    const parsed = blogPostSchema.safeParse(draft.content);
+    if (parsed.success) additive.push(parsed.data);
+    // Silent skip on parse failure. listDrafts pre-validates by type
+    // assertion; this is defense in depth for legacy / hand-inserted rows.
+  }
+  return [...blogPosts, ...additive];
+}
+
+/**
+ * All publishable blog posts: static seed + Supabase published drafts.
+ * Used by every public render surface.
+ */
+export async function getAllBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const published = await listDrafts("published");
+    return mergeStaticAndPublished(published);
+  } catch {
+    return blogPosts;
+  }
+}
+
+/**
+ * Slug lookup that consults the static seed first (cheap, no DB call),
+ * then falls back to Supabase published drafts.
+ */
+export async function getBlogPostBySlugAsync(
+  slug: string,
+): Promise<BlogPost | undefined> {
+  const staticHit = blogPosts.find((post) => post.slug === slug);
+  if (staticHit) return staticHit;
+  try {
+    const published = await listDrafts("published");
+    for (const draft of published) {
+      if (draft.slug !== slug) continue;
+      const parsed = blogPostSchema.safeParse(draft.content);
+      return parsed.success ? parsed.data : undefined;
+    }
+  } catch {
+    // Degrade silently to "not found" so the route renders notFound()
+    // rather than 500ing on a dynamic-layer failure.
+  }
+  return undefined;
 }

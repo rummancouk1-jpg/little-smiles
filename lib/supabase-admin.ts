@@ -94,12 +94,13 @@ type OrderCommunicationsTable = {
 type ContentopsDraftsTable = {
   id: string;
   slug: string;
-  status: "pending_review" | "approved" | "rejected" | "published";
+  status: "pending_review" | "approved" | "rejected" | "published" | "scheduled";
   content: BlogPost;
   rejection_note: string | null;
   publish_notes: string | null;
   approved_at: string | null;
   published_at: string | null;
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 };

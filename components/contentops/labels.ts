@@ -12,6 +12,7 @@ import type { DraftStatus } from "@/lib/contentops/drafts-store";
 export const STATUS_LABELS: Record<DraftStatus, string> = {
   pending_review: "Awaiting your review",
   approved: "Approved · awaiting publish",
+  scheduled: "Scheduled for publish",
   rejected: "Declined",
   published: "Live on site",
 };
@@ -19,6 +20,7 @@ export const STATUS_LABELS: Record<DraftStatus, string> = {
 export const STATUS_FILTER_LABELS: Record<DraftStatus, string> = {
   pending_review: "Awaiting review",
   approved: "Approved",
+  scheduled: "Scheduled",
   rejected: "Declined",
   published: "Live",
 };
@@ -29,8 +31,9 @@ type StatusTone = {
   pill: string;
 };
 
-// Calm boutique palette — sage for approved, deep green for live, muted clay
-// for declined, neutral cream for awaiting review.
+// Calm boutique palette — sage for approved, deep green for live, muted
+// blue for scheduled, muted clay for declined, neutral cream for awaiting
+// review.
 export const STATUS_TONES: Record<DraftStatus, StatusTone> = {
   pending_review: {
     container: "border-[#3B2F2F]/12 bg-[#FBF7F3]",
@@ -41,6 +44,11 @@ export const STATUS_TONES: Record<DraftStatus, StatusTone> = {
     container: "border-[#2E6A41]/20 bg-[#EAF5EE]",
     text: "text-[#1E5A37]",
     pill: "bg-[#D7ECDD] text-[#1E5A37]",
+  },
+  scheduled: {
+    container: "border-[#2F4F6A]/20 bg-[#EAF1F7]",
+    text: "text-[#1E3F5A]",
+    pill: "bg-[#D7E4EE] text-[#1E3F5A]",
   },
   rejected: {
     container: "border-[#6A3E31]/20 bg-[#F0EAE5]",

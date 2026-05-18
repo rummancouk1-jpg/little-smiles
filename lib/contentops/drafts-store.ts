@@ -5,7 +5,12 @@
 import { type BlogPost } from "@/lib/contentops/blog-schema";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
-export type DraftStatus = "pending_review" | "approved" | "rejected" | "published";
+export type DraftStatus =
+  | "pending_review"
+  | "approved"
+  | "rejected"
+  | "published"
+  | "scheduled";
 
 export type Draft = {
   id: string;
@@ -16,12 +21,19 @@ export type Draft = {
   publish_notes: string | null;
   approved_at: string | null;
   published_at: string | null;
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 };
 
 const PUBLISH_NOTES_MAX_LENGTH = 2000;
 
+/**
+ * Statuses currently surfaced in reviewer queue filter pills. The
+ * "scheduled" status exists in the engine union (Commit K added DB
+ * + type support) but does not yet appear as a filter — Commit M
+ * wires the scheduling UX and will expand this list.
+ */
 export const DRAFT_STATUSES: DraftStatus[] = [
   "pending_review",
   "approved",
@@ -29,8 +41,18 @@ export const DRAFT_STATUSES: DraftStatus[] = [
   "published",
 ];
 
+/**
+ * Exhaustive status list used for URL-param type guards. Includes
+ * statuses not yet shown in pills so query strings (e.g. ?status=scheduled)
+ * still type-check correctly while features are being wired in.
+ */
+export const ALL_DRAFT_STATUSES: DraftStatus[] = [
+  ...DRAFT_STATUSES,
+  "scheduled",
+];
+
 export function isDraftStatus(value: string): value is DraftStatus {
-  return (DRAFT_STATUSES as string[]).includes(value);
+  return (ALL_DRAFT_STATUSES as string[]).includes(value);
 }
 
 function requireClient() {

@@ -1,10 +1,15 @@
 import type { MetadataRoute } from "next";
 
-import { blogPosts } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog";
 import { products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Five-minute ISR. Newly published drafts surface in /sitemap.xml within
+// the revalidate window. Commit L will pair this with revalidatePath()
+// for instant search-engine visibility on publish.
+export const revalidate = 300;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteUrl;
   const staticRoutes = [
     "",
@@ -49,7 +54,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.82,
   }));
 
-  const blogEntries = blogPosts.map((post) => ({
+  const allBlogPosts = await getAllBlogPosts();
+  const blogEntries = allBlogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: new Date(post.publishedAt),
     changeFrequency: "monthly" as const,

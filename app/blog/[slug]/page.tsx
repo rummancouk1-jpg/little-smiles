@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
+import {
+  blogPosts,
+  getAllBlogPosts,
+  getBlogPostBySlugAsync,
+} from "@/lib/blog";
 import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
@@ -11,7 +15,21 @@ type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+// Five-minute ISR. Known static slugs are pre-rendered via
+// generateStaticParams; Supabase-only slugs render on-demand and get
+// cached per the revalidate window. Commit L will pair this with
+// revalidatePath() on publish for instant visibility.
+export const revalidate = 300;
+
+// Allow on-demand rendering for slugs not in the static seed (i.e. those
+// born in Supabase after build). Default behaviour, declared explicitly
+// so the contract is visible at the file head.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
+  // Pre-render the static seed only. Including Supabase drafts here
+  // would couple builds to DB availability without meaningful upside:
+  // ISR handles dynamic slugs at first request and caches the result.
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
 
@@ -19,7 +37,7 @@ export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlugAsync(slug);
 
   if (!post) {
     return {
@@ -63,10 +81,14 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlugAsync(slug);
 
   if (!post) notFound();
-  const relatedPosts = blogPosts
+
+  // Related posts pull from the same hybrid view so Supabase-born posts
+  // surface in the related rail of nearby articles.
+  const allPosts = await getAllBlogPosts();
+  const relatedPosts = allPosts
     .filter((entry) => entry.slug !== post.slug)
     .slice(0, 2);
   const relatedProducts = products

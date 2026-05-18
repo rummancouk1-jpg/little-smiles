@@ -80,7 +80,7 @@ async function checkSlugAvailable(
     .from("contentops_drafts")
     .select("id, status")
     .eq("slug", slug)
-    .in("status", ["pending_review", "approved"])
+    .in("status", ["pending_review", "approved", "scheduled"])
     .limit(1);
   if (error) {
     fail(`Slug-availability check failed: ${error.message}`);
@@ -177,6 +177,7 @@ async function insertDraft(
       publish_notes: null,
       approved_at: null,
       published_at: null,
+      scheduled_at: null,
     })
     .select("id, slug")
     .single();

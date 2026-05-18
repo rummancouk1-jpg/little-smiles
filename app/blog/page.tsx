@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { blogPosts } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { staticPageMetadata } from "@/lib/seo-metadata";
 
@@ -11,13 +11,19 @@ export const metadata = staticPageMetadata({
   path: "/blog",
 });
 
+// Five-minute ISR. New published drafts surface in the list within
+// ~revalidate seconds without rebuild. Commit L will add on-demand
+// revalidatePath() on publish for instant freshness.
+export const revalidate = 300;
+
 const blogIndexBreadcrumbLd = breadcrumbJsonLdDocument([
   { name: "Home", path: "/" },
   { name: "Journal", path: "/blog" },
 ]);
 
-export default function BlogPage() {
-  const sortedPosts = [...blogPosts].sort((a, b) =>
+export default async function BlogPage() {
+  const allPosts = await getAllBlogPosts();
+  const sortedPosts = [...allPosts].sort((a, b) =>
     b.publishedAt.localeCompare(a.publishedAt)
   );
 
