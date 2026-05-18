@@ -13,11 +13,14 @@ export type Draft = {
   status: DraftStatus;
   content: BlogPost;
   rejection_note: string | null;
+  publish_notes: string | null;
   approved_at: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;
 };
+
+const PUBLISH_NOTES_MAX_LENGTH = 2000;
 
 export const DRAFT_STATUSES: DraftStatus[] = [
   "pending_review",
@@ -103,6 +106,38 @@ export async function rejectDraft(id: string, note?: string): Promise<Draft> {
     .single();
   if (error || !data) {
     throw new Error(`Failed to reject draft: ${error?.message ?? "draft not found"}`);
+  }
+  return data as Draft;
+}
+
+// Closes the publish loop: a human has pasted the diff into lib/blog.ts and
+// shipped it. Source-state guard is enforced at the SQL layer so concurrent
+// clicks cannot double-publish, and so re-publishing a rejected or
+// already-published draft is impossible. Full transition centralization
+// lands in Commit F; this guard exists in D because publish is the new path.
+export async function markDraftPublished(id: string, notes?: string): Promise<Draft> {
+  const supabase = requireClient();
+  const now = new Date().toISOString();
+  const trimmed = notes?.trim();
+  const normalizedNotes =
+    trimmed && trimmed.length > 0 ? trimmed.slice(0, PUBLISH_NOTES_MAX_LENGTH) : null;
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      status: "published",
+      published_at: now,
+      publish_notes: normalizedNotes,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .eq("status", "approved")
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(
+      `Failed to mark draft published: ${error?.message ?? "draft not in approved state"}`,
+    );
   }
   return data as Draft;
 }

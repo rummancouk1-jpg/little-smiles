@@ -174,6 +174,7 @@ async function insertDraft(
       status: "pending_review",
       content: draft,
       rejection_note: null,
+      publish_notes: null,
       approved_at: null,
       published_at: null,
     })

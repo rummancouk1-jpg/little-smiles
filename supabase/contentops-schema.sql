@@ -9,11 +9,16 @@ create table if not exists public.contentops_drafts (
   ),
   content jsonb not null,
   rejection_note text null,
+  publish_notes text null,
   approved_at timestamptz null,
   published_at timestamptz null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Idempotent column add for databases provisioned before publish_notes existed.
+alter table public.contentops_drafts
+  add column if not exists publish_notes text null;
 
 create index if not exists idx_contentops_drafts_status_created
   on public.contentops_drafts(status, created_at desc);

@@ -92,7 +92,7 @@ export function DraftDetail({ draft }: DraftDetailProps) {
       </section>
 
       <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-5 text-xs text-[#3B2F2F]/72 sm:p-6">
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-4">
           <div>
             <dt className="font-semibold uppercase tracking-[0.12em]">Draft id</dt>
             <dd className="mt-1 font-mono text-[#1F1918]">{draft.id}</dd>
@@ -105,11 +105,21 @@ export function DraftDetail({ draft }: DraftDetailProps) {
             <dt className="font-semibold uppercase tracking-[0.12em]">Approved at</dt>
             <dd className="mt-1">{formatDateTime(draft.approved_at)}</dd>
           </div>
+          <div>
+            <dt className="font-semibold uppercase tracking-[0.12em]">Published at</dt>
+            <dd className="mt-1">{formatDateTime(draft.published_at)}</dd>
+          </div>
         </dl>
         {draft.rejection_note ? (
           <div className="mt-4 rounded-2xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-4 text-[#5E1C29]">
             <p className="text-xs font-medium uppercase tracking-[0.12em]">Rejection note</p>
             <p className="mt-1 text-sm">{draft.rejection_note}</p>
+          </div>
+        ) : null}
+        {draft.publish_notes ? (
+          <div className="mt-4 rounded-2xl border border-[#2E6A41]/20 bg-[#EAF5EE] p-4 text-[#1E5A37]">
+            <p className="text-xs font-medium uppercase tracking-[0.12em]">Publish notes</p>
+            <p className="mt-1 text-sm">{draft.publish_notes}</p>
           </div>
         ) : null}
       </section>

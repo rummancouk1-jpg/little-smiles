@@ -145,6 +145,21 @@ npm run contentops:draft -- "<topic>"
 
 **Exit codes:** `0` on successful insert. `1` on any failure (env, network, validation, duplicate, insert error). Failure modes print the validated or raw draft to stderr where useful for recovery.
 
+## ContentOps Publish Loop
+
+The reviewer approves a draft in the admin, then prepares its publish bundle, then ships it. The system never auto-publishes — a human pastes the diff into `lib/blog.ts`, commits, and deploys via Vercel before marking the draft `published`.
+
+**Workflow:**
+1. Reviewer opens `/admin/contentops/<id>` and clicks **Approve** (or **Reject** with optional note).
+2. After approval, reviewer clicks **Prepare publish** to open the diff/conflict report.
+3. After fixing any `error` conflicts (warnings are advisory), the reviewer clicks **Copy to clipboard**.
+4. Operator pastes the diff before the closing `]` of `rawBlogPosts` in `lib/blog.ts`, commits, pushes, and waits for the Vercel deploy.
+5. With the deploy live, operator returns to the prepare-publish page and clicks **Mark as published** (Step 2). An optional `publish_notes` field can record the deploy SHA or PR link.
+
+**Audit:** approve, reject, and publish each write an `admin_audit_logs` row tagged `contentops_draft_<action>` with the draft's slug.
+
+**Schema requirement:** `contentops_drafts` must have the `publish_notes text null` column. The migration in `supabase/contentops-schema.sql` is idempotent; re-running it on an older database adds the column safely.
+
 ## Rollback Steps
 
 1. Revert deployment to last stable build in Vercel.

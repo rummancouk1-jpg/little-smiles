@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { PublishAction } from "@/components/contentops/publish-action";
 import { PublishReport } from "@/components/contentops/publish-report";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
@@ -47,20 +48,28 @@ export default async function PreparePublishPage({ params }: PageProps) {
   }
 
   if (draft.status !== "approved") {
+    const isPublished = draft.status === "published";
+    const bannerPalette = isPublished
+      ? "border-[#2E6A41]/20 bg-[#EAF5EE]"
+      : "border-[#8A6A2F]/20 bg-[#FBF5EA]";
+    const bannerLabelClass = isPublished ? "text-[#1E5A37]" : "text-[#5E4A1C]";
+    const headline = isPublished
+      ? "Draft already published"
+      : `Draft is ${draft.status.replace("_", " ")}`;
+    const explanation = isPublished
+      ? "This draft has been marked published. The queue's Published filter shows it; no further publish action is possible."
+      : "Publish preparation is only available for drafts in approved status. Approve the draft first or return to its detail view.";
     return (
       <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <section className="mx-auto max-w-4xl space-y-6">
-          <article className="rounded-3xl border border-[#8A6A2F]/20 bg-[#FBF5EA] p-7 sm:p-9">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#5E4A1C]">
-              Cannot prepare for publish
+          <article className={`rounded-3xl border p-7 sm:p-9 ${bannerPalette}`}>
+            <p className={`text-xs font-medium uppercase tracking-[0.16em] ${bannerLabelClass}`}>
+              {isPublished ? "Already shipped" : "Cannot prepare for publish"}
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
-              Draft is {draft.status.replace("_", " ")}
+              {headline}
             </h1>
-            <p className="mt-3 text-sm text-[#3B2F2F]/72">
-              Publish preparation is only available for drafts in approved status. Approve the
-              draft first or return to its detail view.
-            </p>
+            <p className="mt-3 text-sm text-[#3B2F2F]/72">{explanation}</p>
             <Link
               href={`/admin/contentops/${id}`}
               className="mt-4 inline-block rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-2 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
@@ -113,7 +122,15 @@ export default async function PreparePublishPage({ params }: PageProps) {
             <p className="mt-1 text-xs">{prepError}</p>
           </article>
         ) : preparation ? (
-          <PublishReport preparation={preparation} />
+          <>
+            <PublishReport preparation={preparation} />
+            {preparation.ready ? (
+              <PublishAction
+                draftId={draft.id}
+                publishHref={`/api/admin/contentops/drafts/${draft.id}/publish`}
+              />
+            ) : null}
+          </>
         ) : null}
       </section>
     </main>

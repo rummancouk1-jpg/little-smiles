@@ -97,6 +97,7 @@ type ContentopsDraftsTable = {
   status: "pending_review" | "approved" | "rejected" | "published";
   content: BlogPost;
   rejection_note: string | null;
+  publish_notes: string | null;
   approved_at: string | null;
   published_at: string | null;
   created_at: string;
