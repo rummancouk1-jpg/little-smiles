@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -44,6 +45,25 @@ export async function POST(request: Request, { params }: RouteProps) {
         hasNotes: Boolean(draft.publish_notes),
       },
     });
+    // Best-effort on-demand revalidation so the article surfaces on the
+    // public site within seconds rather than waiting for the ISR window.
+    // Failure here is non-fatal — the engine already considers the draft
+    // published, and ISR (revalidate=300, set in Commit K) is the safety
+    // net. We log but don't propagate so the operator's publish action
+    // doesn't appear to fail just because the cache layer hiccuped.
+    try {
+      revalidatePath("/blog");
+      revalidatePath(`/blog/${draft.slug}`);
+      revalidatePath("/");
+    } catch (revalidateErr) {
+      captureServerError(
+        "api_admin_contentops_publish_revalidate_failed",
+        revalidateErr instanceof Error
+          ? revalidateErr
+          : new Error(String(revalidateErr)),
+        { draftId: id, slug: draft.slug },
+      );
+    }
     return NextResponse.json({ ok: true, draft });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to mark draft published";

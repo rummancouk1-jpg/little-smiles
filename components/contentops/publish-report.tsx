@@ -114,13 +114,14 @@ export function PublishReport({ preparation }: PublishReportProps) {
 
       <details className="group rounded-2xl border border-[#3B2F2F]/8 bg-white/60 px-5 py-4 text-sm shadow-none">
         <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
-          Engineer details
+          Engineer details · emergency fallback
         </summary>
 
         <p className="mt-3 text-xs text-[#3B2F2F]/60">
-          Technical artifacts kept for debugging and the manual publishing fallback. Only
-          open this if you need to inspect the structured article data or hand-patch
-          <span className="font-mono"> lib/blog.ts</span>.
+          The primary publish path is the <span className="font-medium">Publish now</span>{" "}
+          button in the bar below. These artifacts exist only for debugging or the
+          emergency manual flow — if Publish now is unavailable you can paste the patch
+          into <span className="font-mono">lib/blog.ts</span> and deploy directly.
         </p>
 
         {preparation.validation.schemaErrors.length > 0 ? (
@@ -150,7 +151,7 @@ export function PublishReport({ preparation }: PublishReportProps) {
         <div className="mt-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
-              Manual code patch
+              Manual fallback patch
             </p>
             <button
               type="button"
@@ -160,6 +161,10 @@ export function PublishReport({ preparation }: PublishReportProps) {
               {copied ? "Copied" : "Copy patch"}
             </button>
           </div>
+          <p className="mt-2 text-[11px] text-[#3B2F2F]/55">
+            Use only when Publish now is unavailable or you need the article committed
+            directly to <span className="font-mono">lib/blog.ts</span> in source.
+          </p>
           <pre className="mt-2 max-h-[360px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
             {preparation.diffText}
           </pre>
