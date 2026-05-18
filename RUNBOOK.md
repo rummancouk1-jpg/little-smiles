@@ -33,22 +33,28 @@
 - `SENTRY_DSN` and/or `NEXT_PUBLIC_SENTRY_DSN`
 - `SENTRY_ORG` + `SENTRY_PROJECT` (for source map upload in CI/build)
 
+### ContentOps Draft CLI (local-only)
+- `ANTHROPIC_API_KEY` — required only when running `npm run contentops:draft`. Not used by the deployed server; do not set in Vercel production.
+
 ## Supabase Migration Order
 
 1. Run `supabase/orders-schema.sql`
 2. Run `supabase/admin-audit-schema.sql`
-3. Confirm new/altered tables exist:
+3. Run `supabase/contentops-schema.sql`
+4. Confirm new/altered tables exist:
    - `order_intents`
    - `orders`
    - `order_status_history`
    - `customers`
    - `order_communications`
    - `admin_audit_logs`
-4. Verify indexes are present for:
+   - `contentops_drafts`
+5. Verify indexes are present for:
    - order intent recency and product grouping
    - order status filters
    - communication retry scheduling
    - audit log timeline/action filtering
+   - contentops draft status/created ordering and slug-active uniqueness
 
 ## Resend Setup
 
@@ -114,6 +120,30 @@ Run:
 - `npm run smoke:order-status-update`
 - `npm run smoke:communication-retry`
 - `npm run smoke:track-order`
+
+## ContentOps Draft CLI
+
+Generates one AI blog draft locally and persists it to `contentops_drafts` for human review. Local-only — never runs on Vercel.
+
+**Prerequisites:**
+1. `supabase/contentops-schema.sql` has been applied to the target Supabase database.
+2. `ANTHROPIC_API_KEY` is set in the local environment.
+3. `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` point to the same database that received the migration.
+
+**Run:**
+
+```
+npm run contentops:draft -- "<topic>"
+```
+
+**Behavior:**
+- Validates env vars and pings Supabase before any Anthropic call (fails fast on misconfiguration).
+- Generates one `BlogPost` via Sonnet using tool-use forcing.
+- Validates the model's output against the Zod `blogPostSchema`; never inserts invalid data.
+- Checks for an active duplicate slug (`pending_review` or `approved`) before inserting.
+- Inserts with `status='pending_review'`. Never auto-publishes.
+
+**Exit codes:** `0` on successful insert. `1` on any failure (env, network, validation, duplicate, insert error). Failure modes print the validated or raw draft to stderr where useful for recovery.
 
 ## Rollback Steps
 

@@ -1,34 +1,13 @@
 import { products, type Product } from "@/lib/products";
+import {
+  blogPostsSchema,
+  type BlogPost,
+  type BlogSection,
+} from "@/lib/contentops/blog-schema";
 
-export type BlogSection = {
-  heading: string;
-  content: string[];
-};
+export type { BlogPost, BlogSection };
 
-export type BlogPost = {
-  slug: string;
-  title: string;
-  description: string;
-  category: "Newborn Care" | "Buying Guide" | "Feeding";
-  relatedProductCategory:
-    | "Swaddle"
-    | "Bodysuits"
-    | "Food Bag"
-    | "Bottle Case"
-    | "Feeding Cushion"
-    | "Bow Set"
-    | "Food Container";
-  publishedAt: string;
-  readTime: string;
-  keywords: string[];
-  sections: BlogSection[];
-  cta: {
-    label: string;
-    href: string;
-  };
-};
-
-export const blogPosts: BlogPost[] = [
+const rawBlogPosts: BlogPost[] = [
   {
     slug: "newborn-essentials-checklist-pakistan-2026",
     title: "Newborn Essentials Checklist in Pakistan (2026): What You Actually Need",
@@ -158,6 +137,8 @@ export const blogPosts: BlogPost[] = [
     },
   },
 ];
+
+export const blogPosts: BlogPost[] = blogPostsSchema.parse(rawBlogPosts);
 
 export function getBlogPostBySlug(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
