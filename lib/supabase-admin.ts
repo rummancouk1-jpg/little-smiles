@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import type { BlogPost } from "@/lib/contentops/blog-schema";
+
 type OrderIntentsTable = {
   id: string;
   product_slug: string | null;
@@ -89,6 +91,18 @@ type OrderCommunicationsTable = {
   created_at: string;
 };
 
+type ContentopsDraftsTable = {
+  id: string;
+  slug: string;
+  status: "pending_review" | "approved" | "rejected" | "published";
+  content: BlogPost;
+  rejection_note: string | null;
+  approved_at: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type SupabaseSchema = {
   public: {
     Tables: {
@@ -140,6 +154,15 @@ type SupabaseSchema = {
           created_at?: string;
         };
         Update: Partial<OrderCommunicationsTable>;
+        Relationships: [];
+      };
+      contentops_drafts: {
+        Row: ContentopsDraftsTable;
+        Insert: Omit<ContentopsDraftsTable, "id" | "created_at" | "updated_at"> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ContentopsDraftsTable>;
         Relationships: [];
       };
     };

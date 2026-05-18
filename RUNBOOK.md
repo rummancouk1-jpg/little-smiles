@@ -37,18 +37,21 @@
 
 1. Run `supabase/orders-schema.sql`
 2. Run `supabase/admin-audit-schema.sql`
-3. Confirm new/altered tables exist:
+3. Run `supabase/contentops-schema.sql`
+4. Confirm new/altered tables exist:
    - `order_intents`
    - `orders`
    - `order_status_history`
    - `customers`
    - `order_communications`
    - `admin_audit_logs`
-4. Verify indexes are present for:
+   - `contentops_drafts`
+5. Verify indexes are present for:
    - order intent recency and product grouping
    - order status filters
    - communication retry scheduling
    - audit log timeline/action filtering
+   - contentops draft status/created ordering and slug-active uniqueness
 
 ## Resend Setup
 
