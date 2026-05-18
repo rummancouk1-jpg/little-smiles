@@ -57,6 +57,14 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
                 Draft review
               </h1>
             </div>
+            {draft.status === "approved" ? (
+              <Link
+                href={`/admin/contentops/${draft.id}/prepare-publish`}
+                className="rounded-full bg-[#2F2624] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC] hover:opacity-90"
+              >
+                Prepare publish
+              </Link>
+            ) : null}
             <Link
               href="/admin/contentops"
               className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
