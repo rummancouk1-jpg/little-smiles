@@ -173,6 +173,12 @@
 
 ---
 
+## Subsystem documentation
+
+For the AI-assisted content operations subsystem (SEO blog automation, editorial review workflow, image orchestration), see **`docs/contentops-ai/`** — that folder owns its own architecture and roadmap. This file remains the storefront-wide context; don't restate subsystem facts here.
+
+---
+
 ## Current priorities (engineering)
 
 1. Keep **build green** (`npm run build` + `validate:catalog`).
