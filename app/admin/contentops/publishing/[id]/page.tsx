@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { ArticlePreview } from "@/components/contentops/article-preview";
 import { getStatusLabel } from "@/components/contentops/labels";
 import { PublishAction } from "@/components/contentops/publish-action";
 import { PublishReport } from "@/components/contentops/publish-report";
@@ -98,7 +99,7 @@ export default async function PublishArticlePage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+    <main className="min-h-screen bg-[#FDF8F4] px-4 pb-32 pt-8 sm:px-6 sm:pt-10 lg:px-8">
       <section className="mx-auto max-w-4xl space-y-6">
         <header className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-5 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -131,12 +132,12 @@ export default async function PublishArticlePage({ params }: PageProps) {
         ) : preparation ? (
           <>
             <PublishReport preparation={preparation} />
-            {preparation.ready ? (
-              <PublishAction
-                draftId={draft.id}
-                publishHref={`/api/admin/contentops/drafts/${draft.id}/publish`}
-              />
-            ) : null}
+            <ArticlePreview article={preparation.insertionPreview} />
+            <PublishAction
+              draftId={draft.id}
+              publishHref={`/api/admin/contentops/drafts/${draft.id}/publish`}
+              ready={preparation.ready}
+            />
           </>
         ) : null}
       </section>

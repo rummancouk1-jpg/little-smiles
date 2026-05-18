@@ -2,10 +2,11 @@
 // facing surface. Receives a fully-computed PublishPreparation from the
 // wiring layer.
 //
-// Reviewer never sees this page (see commit G demotion in
-// app/admin/contentops/[id]/page.tsx). Engineering artifacts — JSON
-// preview and code patch — are collapsed inside disclosures so the page
-// reads as an editorial check-list first.
+// Layout intent (Commit I): status banner + publishing checks are the
+// default emphasis. Engineering artifacts (JSON preview, code patch, schema
+// errors) live behind one consolidated, visually-light disclosure. The
+// rendered article preview itself is composed alongside this report by
+// the wiring page, not inside it.
 
 "use client";
 
@@ -95,7 +96,7 @@ export function PublishReport({ preparation }: PublishReportProps) {
 
       <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-          Checks ({preparation.conflicts.length})
+          Publishing checks ({preparation.conflicts.length})
         </p>
         {preparation.conflicts.length === 0 ? (
           <p className="mt-2 text-sm text-[#1E5A37]">All checks passed. Nothing to flag.</p>
@@ -111,12 +112,19 @@ export function PublishReport({ preparation }: PublishReportProps) {
         )}
       </section>
 
-      <details className="group rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
-        <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
-          Engineer details — article preview (JSON)
+      <details className="group rounded-2xl border border-[#3B2F2F]/8 bg-white/60 px-5 py-4 text-sm shadow-none">
+        <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
+          Engineer details
         </summary>
+
+        <p className="mt-3 text-xs text-[#3B2F2F]/60">
+          Technical artifacts kept for debugging and the manual publishing fallback. Only
+          open this if you need to inspect the structured article data or hand-patch
+          <span className="font-mono"> lib/blog.ts</span>.
+        </p>
+
         {preparation.validation.schemaErrors.length > 0 ? (
-          <div className="mt-3 rounded-2xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-4">
+          <div className="mt-4 rounded-2xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-4">
             <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#5E1C29]">
               Schema errors
             </p>
@@ -129,32 +137,33 @@ export function PublishReport({ preparation }: PublishReportProps) {
             </ul>
           </div>
         ) : null}
-        <pre className="mt-3 max-h-[480px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
-          {JSON.stringify(preparation.insertionPreview, null, 2)}
-        </pre>
-      </details>
 
-      <details className="group rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
-        <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
-          Engineer details — code patch
-        </summary>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-[#3B2F2F]/65">
-            Paste before <span className="font-mono">]</span> in{" "}
-            <span className="font-mono">lib/blog.ts</span>. Manual step until the hybrid
-            publishing path lands.
+        <div className="mt-4">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            Structured article data (JSON)
           </p>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="rounded-full bg-[#2F2624] px-4 py-2 text-xs font-medium text-[#F6F1EC] transition-opacity hover:opacity-90"
-          >
-            {copied ? "Copied" : "Copy patch"}
-          </button>
+          <pre className="mt-2 max-h-[360px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
+            {JSON.stringify(preparation.insertionPreview, null, 2)}
+          </pre>
         </div>
-        <pre className="mt-3 max-h-[480px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
-          {preparation.diffText}
-        </pre>
+
+        <div className="mt-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+              Manual code patch
+            </p>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-[11px] font-medium text-[#2E2323] transition-colors hover:bg-[#F2EAE4]"
+            >
+              {copied ? "Copied" : "Copy patch"}
+            </button>
+          </div>
+          <pre className="mt-2 max-h-[360px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
+            {preparation.diffText}
+          </pre>
+        </div>
       </details>
     </article>
   );
