@@ -47,11 +47,12 @@ export function PublishAction({ draftId, publishHref }: PublishActionProps) {
       data-draft-id={draftId}
     >
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-        Step 2 — after deploy
+        Confirm it&rsquo;s live
       </p>
       <p className="mt-2 text-sm text-[#1F1918]">
-        Once the diff is pasted into <span className="font-mono">lib/blog.ts</span>, committed,
-        and the Vercel deploy is live, mark the draft published here to retire it from the queue.
+        Once the article is live on the site, confirm here to retire the draft from the
+        queue. Optionally record a publish note (deploy SHA, PR link, anything useful for
+        the audit trail).
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -67,7 +68,7 @@ export function PublishAction({ draftId, publishHref }: PublishActionProps) {
           disabled={isPending}
           className="rounded-full bg-[#2F2624] px-5 py-2 text-sm font-medium text-[#F6F1EC] transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {isPending ? "Saving…" : showForm ? "Confirm publish" : "Mark as published"}
+          {isPending ? "Saving…" : showForm ? "Confirm" : "Confirm it's live"}
         </button>
         {showForm ? (
           <button
@@ -91,7 +92,7 @@ export function PublishAction({ draftId, publishHref }: PublishActionProps) {
             htmlFor="publish-notes"
             className="text-xs uppercase tracking-[0.12em] text-[#3B2F2F]/55"
           >
-            Publish notes (optional — e.g. deploy SHA, link to PR)
+            Publish note (optional — e.g. deploy SHA, link to PR)
           </label>
           <textarea
             id="publish-notes"

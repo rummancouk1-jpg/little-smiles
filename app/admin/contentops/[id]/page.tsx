@@ -54,17 +54,9 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
               </p>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">Signed in as {adminSession.actorLabel}</p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
-                Draft review
+                Article review
               </h1>
             </div>
-            {draft.status === "approved" ? (
-              <Link
-                href={`/admin/contentops/${draft.id}/prepare-publish`}
-                className="rounded-full bg-[#2F2624] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC] hover:opacity-90"
-              >
-                Prepare publish
-              </Link>
-            ) : null}
             <Link
               href="/admin/contentops"
               className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
@@ -84,6 +76,27 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           rejectHref={`/api/admin/contentops/drafts/${draft.id}/reject`}
           backHref="/admin/contentops"
         />
+
+        {/*
+          The prepare-publish surface is operator-only and exposes engineering
+          artifacts (JSON preview, code patch, manual-paste instructions). It
+          must not be the most prominent next action for a reviewer.
+
+          Commit H replaces this with a dedicated operator queue at
+          /admin/contentops/publish-queue. Until then, this small disclosure
+          link keeps the workflow reachable without trapping a reviewer in
+          the engineering view by accident.
+        */}
+        {draft.status === "approved" ? (
+          <p className="text-right text-xs text-[#3B2F2F]/55">
+            <Link
+              href={`/admin/contentops/${draft.id}/prepare-publish`}
+              className="underline underline-offset-2 hover:text-[#3B2F2F]"
+            >
+              Operator view (publish details) →
+            </Link>
+          </p>
+        ) : null}
       </section>
     </main>
   );

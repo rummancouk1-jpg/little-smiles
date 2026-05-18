@@ -1,31 +1,31 @@
-// Engine component — presentational publish-preparation report.
-// Receives a fully-computed PublishPreparation from the wiring layer and
-// renders status, validation, conflicts, insertion preview, and the
-// paste-ready diff text with a clipboard-copy button.
+// Engine component — presentational publish-preparation report. Operator-
+// facing surface. Receives a fully-computed PublishPreparation from the
+// wiring layer.
+//
+// Reviewer never sees this page (see commit G demotion in
+// app/admin/contentops/[id]/page.tsx). Engineering artifacts — JSON
+// preview and code patch — are collapsed inside disclosures so the page
+// reads as an editorial check-list first.
 
 "use client";
 
 import { useState } from "react";
 
+import { getConflictLabel } from "@/components/contentops/labels";
+import { formatAbsolute } from "@/components/contentops/relative-time";
 import type { Conflict, PublishPreparation } from "@/lib/contentops/publish-types";
 
 type PublishReportProps = {
   preparation: PublishPreparation;
 };
 
-function formatDateTime(value: string): string {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleString("en-PK", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function ConflictItem({ conflict, severityTone }: { conflict: Conflict; severityTone: "error" | "warning" }) {
+function ConflictItem({
+  conflict,
+  severityTone,
+}: {
+  conflict: Conflict;
+  severityTone: "error" | "warning";
+}) {
   const palette =
     severityTone === "error"
       ? {
@@ -40,10 +40,15 @@ function ConflictItem({ conflict, severityTone }: { conflict: Conflict; severity
         };
   return (
     <li className={`rounded-2xl border p-4 ${palette.container}`}>
-      <p className={`text-xs font-medium uppercase tracking-[0.12em] ${palette.label}`}>
-        {severityTone === "error" ? "Error" : "Warning"} · {conflict.code}
+      <p
+        className={`flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] ${palette.label}`}
+      >
+        <span>{severityTone === "error" ? "Must fix" : "Heads up"}</span>
+        <span className="rounded-full border border-current/40 px-2 py-0.5 font-mono text-[10px] tracking-normal opacity-70">
+          {conflict.code}
+        </span>
       </p>
-      <p className="mt-1 text-sm text-[#1F1918]">{conflict.message}</p>
+      <p className="mt-2 text-sm text-[#1F1918]">{getConflictLabel(conflict.code)}</p>
       {conflict.hint ? (
         <p className={`mt-1 text-xs ${palette.hint}`}>{conflict.hint}</p>
       ) : null}
@@ -78,43 +83,22 @@ export function PublishReport({ preparation }: PublishReportProps) {
         className={`rounded-3xl border p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9 ${bannerClasses}`}
       >
         <p className={`text-xs font-medium uppercase tracking-[0.18em] ${bannerLabelClasses}`}>
-          {preparation.ready ? "Ready to publish" : "Not ready"}
+          {preparation.ready ? "Cleared for publish" : "Needs attention"}
         </p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
           {preparation.draft.content.title}
         </h2>
         <p className="mt-2 text-xs text-[#3B2F2F]/65">
-          Prepared at {formatDateTime(preparation.preparedAt)} · slug{" "}
-          <span className="font-mono text-[#1F1918]">{preparation.draft.slug}</span>
+          Last checked {formatAbsolute(preparation.preparedAt)}
         </p>
       </section>
 
       <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-          Schema validation
-        </p>
-        <p className="mt-2 text-sm text-[#1F1918]">
-          {preparation.validation.schemaValid
-            ? "Draft content matches the BlogPost schema."
-            : "Draft content does NOT match the BlogPost schema."}
-        </p>
-        {preparation.validation.schemaErrors.length > 0 ? (
-          <ul className="mt-3 space-y-1 text-xs text-[#5E1C29]">
-            {preparation.validation.schemaErrors.map((err, idx) => (
-              <li key={idx} className="font-mono">
-                {err}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
-
-      <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-          Conflicts ({preparation.conflicts.length})
+          Checks ({preparation.conflicts.length})
         </p>
         {preparation.conflicts.length === 0 ? (
-          <p className="mt-2 text-sm text-[#3B2F2F]/72">No conflicts detected.</p>
+          <p className="mt-2 text-sm text-[#1E5A37]">All checks passed. Nothing to flag.</p>
         ) : (
           <ul className="mt-4 space-y-3">
             {errorConflicts.map((conflict, idx) => (
@@ -127,33 +111,51 @@ export function PublishReport({ preparation }: PublishReportProps) {
         )}
       </section>
 
-      <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-          Insertion preview (JSON)
-        </p>
+      <details className="group rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
+        <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
+          Engineer details — article preview (JSON)
+        </summary>
+        {preparation.validation.schemaErrors.length > 0 ? (
+          <div className="mt-3 rounded-2xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-4">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#5E1C29]">
+              Schema errors
+            </p>
+            <ul className="mt-2 space-y-1 text-xs text-[#5E1C29]">
+              {preparation.validation.schemaErrors.map((err, idx) => (
+                <li key={idx} className="font-mono">
+                  {err}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <pre className="mt-3 max-h-[480px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
           {JSON.stringify(preparation.insertionPreview, null, 2)}
         </pre>
-      </section>
+      </details>
 
-      <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-            Diff text — paste before <span className="font-mono">]</span> in{" "}
-            <span className="font-mono">lib/blog.ts</span>
+      <details className="group rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
+        <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
+          Engineer details — code patch
+        </summary>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-[#3B2F2F]/65">
+            Paste before <span className="font-mono">]</span> in{" "}
+            <span className="font-mono">lib/blog.ts</span>. Manual step until the hybrid
+            publishing path lands.
           </p>
           <button
             type="button"
             onClick={handleCopy}
             className="rounded-full bg-[#2F2624] px-4 py-2 text-xs font-medium text-[#F6F1EC] transition-opacity hover:opacity-90"
           >
-            {copied ? "Copied" : "Copy to clipboard"}
+            {copied ? "Copied" : "Copy patch"}
           </button>
         </div>
         <pre className="mt-3 max-h-[480px] overflow-auto rounded-2xl bg-[#FBF7F3] p-4 text-xs font-mono leading-relaxed text-[#1F1918]">
           {preparation.diffText}
         </pre>
-      </section>
+      </details>
     </article>
   );
 }

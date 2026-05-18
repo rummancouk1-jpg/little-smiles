@@ -19,8 +19,15 @@ export const dynamic = "force-dynamic";
 export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const rawStatus = asSingle(params.status);
-  const status: DraftStatus | undefined =
-    rawStatus && isDraftStatus(rawStatus) ? rawStatus : undefined;
+  // Default landing view is the reviewer's most-actionable filter
+  // (pending_review). The explicit "?status=all" path opts into the
+  // unfiltered list for browsing history.
+  const showAll = rawStatus === "all";
+  const status: DraftStatus | undefined = showAll
+    ? undefined
+    : rawStatus && isDraftStatus(rawStatus)
+      ? rawStatus
+      : "pending_review";
 
   if (!isAdminAuthConfigured()) {
     return (
@@ -35,7 +42,12 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
 
   const adminSession = await getAdminSessionFromPage();
   if (!adminSession) {
-    const next = status ? `/admin/contentops?status=${status}` : "/admin/contentops";
+    const nextQuery = showAll
+      ? "?status=all"
+      : rawStatus && isDraftStatus(rawStatus)
+        ? `?status=${rawStatus}`
+        : "";
+    const next = `/admin/contentops${nextQuery}`;
     redirect(`/admin/login?next=${encodeURIComponent(next)}`);
   }
 
@@ -46,6 +58,8 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
   } catch (err) {
     listError = err instanceof Error ? err.message : "Failed to load drafts.";
   }
+
+  const activeFilter: DraftStatus | "all" = showAll ? "all" : (status as DraftStatus);
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -58,8 +72,11 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
               </p>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">Signed in as {adminSession.actorLabel}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">
-                ContentOps drafts
+                Editorial queue
               </h1>
+              <p className="mt-2 text-sm text-[#3B2F2F]/65">
+                Articles drafted by AI, awaiting your review.
+              </p>
             </div>
             <AdminLogoutButton />
           </div>
@@ -74,7 +91,7 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
 
         <DraftQueue
           drafts={drafts}
-          activeStatus={status ?? "all"}
+          activeStatus={activeFilter}
           baseHref="/admin/contentops"
           detailHref={(id) => `/admin/contentops/${id}`}
         />
