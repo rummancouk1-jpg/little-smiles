@@ -127,17 +127,20 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
           ) : null}
         </div>
       ) : (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-[#3B2F2F]/72">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-[#3B2F2F]/85">
             {status === "approved"
-              ? "Approved. Waiting to be published."
+              ? "Approved. Sent to the publishing queue. You're done."
               : status === "published"
-                ? "This article is live on the site."
+                ? "Live on site."
                 : status === "rejected"
                   ? "Declined. No further action needed."
                   : `Status: ${getStatusLabel(status)}.`}
           </p>
-          <a href={backHref} className="text-xs text-[#3B2F2F]/72 underline underline-offset-2">
+          <a
+            href={backHref}
+            className="shrink-0 text-xs text-[#3B2F2F]/72 underline underline-offset-2"
+          >
             Back to queue
           </a>
         </div>

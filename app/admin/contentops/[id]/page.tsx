@@ -76,27 +76,6 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           rejectHref={`/api/admin/contentops/drafts/${draft.id}/reject`}
           backHref="/admin/contentops"
         />
-
-        {/*
-          The prepare-publish surface is operator-only and exposes engineering
-          artifacts (JSON preview, code patch, manual-paste instructions). It
-          must not be the most prominent next action for a reviewer.
-
-          Commit H replaces this with a dedicated operator queue at
-          /admin/contentops/publish-queue. Until then, this small disclosure
-          link keeps the workflow reachable without trapping a reviewer in
-          the engineering view by accident.
-        */}
-        {draft.status === "approved" ? (
-          <p className="text-right text-xs text-[#3B2F2F]/55">
-            <Link
-              href={`/admin/contentops/${draft.id}/prepare-publish`}
-              className="underline underline-offset-2 hover:text-[#3B2F2F]"
-            >
-              Operator view (publish details) →
-            </Link>
-          </p>
-        ) : null}
       </section>
     </main>
   );
