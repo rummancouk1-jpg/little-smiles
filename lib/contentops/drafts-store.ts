@@ -2,7 +2,11 @@
 // helpers — no auth, no UI, no project-specific knowledge. Reusable across
 // any project that adopts the contentops_drafts schema.
 
-import { type BlogPost } from "@/lib/contentops/blog-schema";
+import {
+  type BlogImage,
+  type BlogImageSlot,
+  type BlogPost,
+} from "@/lib/contentops/blog-schema";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export type DraftStatus =
@@ -229,6 +233,93 @@ export async function markDraftUnscheduled(id: string): Promise<Draft> {
     );
   }
   return data as Draft;
+}
+
+// Attach a BlogImage to a slot on the draft's content. Reads the current
+// content, writes the slot, and persists atomically. Published drafts are
+// frozen — attempting to modify them throws so the operator can't
+// accidentally edit a live article through the admin API.
+//
+// Commit N supports hero + thumbnail. The schema is ready for per-section
+// images; routing them through here would require a richer slot type.
+export async function attachDraftImage(
+  draftId: string,
+  slot: BlogImageSlot,
+  image: BlogImage,
+): Promise<Draft> {
+  const supabase = requireClient();
+  const { data: current, error: readErr } = await supabase
+    .from("contentops_drafts")
+    .select("content, status")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (readErr) {
+    throw new Error(`Failed to read draft: ${readErr.message}`);
+  }
+  if (!current) {
+    throw new Error("Draft not found");
+  }
+  if (current.status === "published") {
+    throw new Error("Cannot modify images on a published draft");
+  }
+
+  const existing = current.content as BlogPost;
+  const updatedContent: BlogPost = { ...existing, [slot]: image };
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({ content: updatedContent, updated_at: now })
+    .eq("id", draftId)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to attach image: ${error?.message ?? "no row updated"}`);
+  }
+  return data as Draft;
+}
+
+// Detach an image from a slot. Returns the removed image so the API
+// route can delete its blob from storage. Detaching a slot that has no
+// image is a no-op — returns the current draft and null.
+export async function detachDraftImage(
+  draftId: string,
+  slot: BlogImageSlot,
+): Promise<{ draft: Draft; removedImage: BlogImage | null }> {
+  const supabase = requireClient();
+  const { data: current, error: readErr } = await supabase
+    .from("contentops_drafts")
+    .select("content, status")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (readErr) {
+    throw new Error(`Failed to read draft: ${readErr.message}`);
+  }
+  if (!current) {
+    throw new Error("Draft not found");
+  }
+  if (current.status === "published") {
+    throw new Error("Cannot modify images on a published draft");
+  }
+
+  const existing = current.content as BlogPost;
+  const removedImage = (existing[slot] as BlogImage | undefined) ?? null;
+
+  // Use object-rest pattern to omit the slot key cleanly.
+  const updatedContent: BlogPost = { ...existing };
+  delete (updatedContent as Record<string, unknown>)[slot];
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({ content: updatedContent, updated_at: now })
+    .eq("id", draftId)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to detach image: ${error?.message ?? "no row updated"}`);
+  }
+  return { draft: data as Draft, removedImage };
 }
 
 // Cron-facing list helper. Returns drafts whose scheduled_at has passed,

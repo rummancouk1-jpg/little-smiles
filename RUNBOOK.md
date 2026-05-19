@@ -186,6 +186,65 @@ Approved articles can be queued to go live at a future date/time. The operator p
 
 **Failure isolation:** the sweep processes drafts row-by-row inside a try/catch. One bad row never blocks the rest. Revalidation failures inside the sweep are logged via `captureServerError` but don't fail the publish — ISR (`revalidate=300`) is the safety net.
 
+## ContentOps Media (Image Foundation)
+
+Commit N adds image infrastructure to the ContentOps pipeline. Images travel with the draft's content JSONB as structured metadata; the binary blobs live in Supabase Storage. Static-seed posts (`lib/blog.ts`) have no images today and remain valid because every image field is optional.
+
+### One-time Supabase Storage setup
+
+The bucket must exist before image upload works. In the Supabase dashboard (Storage → Create bucket) or via SQL:
+
+```sql
+insert into storage.buckets (id, name, public)
+values ('contentops-images', 'contentops-images', true)
+on conflict (id) do update set public = excluded.public;
+
+-- Public read policy so the rendered URLs resolve without auth.
+-- Service role bypasses RLS, so no policy is needed for writes.
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'contentops-images public read'
+  ) then
+    create policy "contentops-images public read"
+      on storage.objects for select
+      to public
+      using (bucket_id = 'contentops-images');
+  end if;
+end $$;
+```
+
+Confirm:
+- Bucket `contentops-images` exists and is **public**.
+- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set in the runtime env.
+
+If the bucket is missing, the upload API returns 500 with "Storage upload failed. Is the bucket configured?" — fix by running the SQL above.
+
+### Image workflow
+
+1. **Upload:** operator POSTs `multipart/form-data` to `/api/admin/contentops/drafts/<id>/images/upload` with fields `file` (image/jpeg, image/png, or image/webp; ≤ 8 MB; 200×200 to 4000×4000) and `altText` (1–500 chars, required for accessibility). Response includes a `BlogImage` object with the public URL, dimensions, and an internal `storageKey`.
+2. **Attach:** operator POSTs `{ image: <BlogImage> }` to `/api/admin/contentops/drafts/<id>/images/hero` or `.../thumbnail`. The image is written into the draft's `content` JSONB at the chosen slot.
+3. **Remove:** operator DELETEs `.../images/<slot>`. The slot is cleared in the content; if the image carries a `storageKey`, its blob is also deleted from the bucket.
+
+Slot support in Commit N: `hero` and `thumbnail`. Per-section images are schema-ready (the `section.image` field exists in `BlogPost`) but the API rejects `section:N` slots until a later commit wires the editorial workflow.
+
+**Frozen drafts:** uploads and attaches are rejected for `status='published'` drafts. Live articles cannot have their images swapped through the admin API — a new draft must be created for any image change to a live post.
+
+**Audit:** three new actions appear in `admin_audit_logs`:
+- `contentops_image_uploaded` — blob arrived in the bucket.
+- `contentops_image_attached` — slot association written into content.
+- `contentops_image_removed` — slot cleared (and blob deleted if managed).
+
+### Image format guidance
+
+- **Hero:** ~1600×900 (16:9). WebP preferred for size; JPEG fallback acceptable.
+- **Thumbnail:** ~800×600 or smaller. WebP preferred.
+- **Aspect ratio:** the schema does not enforce a ratio, but heroes outside 16:9 / 4:3 may render awkwardly once the public layout adds hero rendering (Commit P).
+- **Alt text:** required at upload time. Treat as the description a screen-reader user will hear; not a caption.
+
 ## Rollback Steps
 
 1. Revert deployment to last stable build in Vercel.
