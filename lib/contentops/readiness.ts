@@ -249,6 +249,17 @@ function buildImagesFacet(post: BlogPost): FacetState {
 // --- SEO facet -----------------------------------------------------------
 
 function buildSeoFacet(post: BlogPost, conflicts: Conflict[]): FacetState {
+  // Heading structure check: editorial guidance, not a strict rule.
+  // 3-5 sections give readers and search engines a clearer journey;
+  // very short articles (1 section) flag a warning.
+  const sectionCount = post.sections.length;
+  const headingStructureHint =
+    sectionCount === 0
+      ? undefined
+      : sectionCount < 3
+        ? `Currently ${sectionCount} ${sectionCount === 1 ? "section" : "sections"}. 3–5 sections read better and earn richer search snippets.`
+        : undefined;
+
   const checks: ReadinessCheck[] = [
     deriveFromConflict(
       "title_length",
@@ -268,6 +279,12 @@ function buildSeoFacet(post: BlogPost, conflicts: Conflict[]): FacetState {
         post.keywords.length > 0
           ? undefined
           : "No keywords listed — these add search signals.",
+    },
+    {
+      id: "heading_structure",
+      label: "Structure gives readers a clear journey",
+      state: sectionCount >= 3 ? "ready" : "warnings",
+      hint: headingStructureHint,
     },
   ];
 

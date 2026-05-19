@@ -9,17 +9,21 @@ import { notFound, redirect } from "next/navigation";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { ArticlePreview } from "@/components/contentops/article-preview";
+import { EditorialConnections } from "@/components/contentops/editorial-connections";
 import { EditorialSummary } from "@/components/contentops/editorial-summary";
 import { getStatusLabel } from "@/components/contentops/labels";
 import { MediaConfidence } from "@/components/contentops/media-confidence";
 import { PublishAction } from "@/components/contentops/publish-action";
 import { PublishingDestination } from "@/components/contentops/publishing-destination";
 import { ReadinessPanel } from "@/components/contentops/readiness-panel";
+import { getAllBlogPosts } from "@/lib/blog";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getDraftById } from "@/lib/contentops/drafts-store";
+import { computeLinkingSuggestions } from "@/lib/contentops/intelligence/relationships";
 import { preparePublish } from "@/lib/contentops/publish-prep";
+import { products } from "@/lib/products";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -114,6 +118,26 @@ export default async function PublishArticlePage({ params }: PageProps) {
     prepError = err instanceof Error ? err.message : "Failed to prepare publish.";
   }
 
+  // Editorial linking suggestions — pulled in parallel-friendly order
+  // after preparation since they depend on the prepared content. Falls
+  // back to an empty result if the catalog read fails; the section
+  // hides itself when there are no candidates.
+  let linkingSuggestions:
+    | ReturnType<typeof computeLinkingSuggestions>
+    | null = null;
+  if (preparation) {
+    try {
+      const allArticles = await getAllBlogPosts();
+      linkingSuggestions = computeLinkingSuggestions({
+        article: preparation.insertionPreview,
+        candidates: allArticles,
+        products,
+      });
+    } catch {
+      linkingSuggestions = null;
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 pb-32 pt-8 sm:px-6 sm:pt-10 lg:px-8">
       <section className="mx-auto max-w-4xl space-y-6">
@@ -165,6 +189,9 @@ export default async function PublishArticlePage({ params }: PageProps) {
               thumbnail={preparation.insertionPreview.thumbnail ?? null}
               draftId={preparation.draft.id}
             />
+            {linkingSuggestions ? (
+              <EditorialConnections suggestions={linkingSuggestions} />
+            ) : null}
             <ArticlePreview article={preparation.insertionPreview} />
             <PublishAction
               draftId={draft.id}

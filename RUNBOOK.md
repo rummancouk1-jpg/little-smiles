@@ -299,6 +299,38 @@ Every successful edit sets both. The article-review page surfaces this as an **"
 
 **Migration safety:** the column additions in `supabase/contentops-schema.sql` use `IF NOT EXISTS` and `DEFAULT false`. Re-running the migration on an older database backfills the columns without disturbing existing rows.
 
+## ContentOps Editorial Relationship Intelligence (Commit Y)
+
+The relationship engine at `lib/contentops/intelligence/relationships.ts` provides calm internal-linking guidance for both operator surfaces and public blog rendering. No DB additions in this commit — relationships are computed from existing article + product data via pure heuristics.
+
+**Scoring (intentionally simple):**
+
+*Article ↔ Article:*
+- Shared `relatedProductCategory`: +3 (strongest editorial signal — same purchase journey)
+- Shared `category`: +2
+- Per shared keyword (capped at 3): +1 each
+
+*Article ↔ Product:*
+- Product `category` matches article `relatedProductCategory`: +5 (the anchor product)
+- Product name contains article keywords: +2 base + 1 per match
+
+*Strength bands:*
+- ≥ 5 → strong
+- 3–4 → medium
+- 1–2 → light
+- 0 → excluded
+
+**Where it surfaces:**
+- `/admin/contentops/publishing/<id>` — new "Editorial connections" card between Media confidence and the live preview. Up to four related articles and four related products, each with a single calm one-line reason. Operator uses these as cues during refinement; nothing is auto-inserted.
+- `/blog/<slug>` (public) — the "Related Articles" and "Related Products" sections at the bottom of every article now rank through the same engine instead of the naive "first 2 / category match" selectors.
+
+**Readiness extension:**
+- The SEO facet gains a `heading_structure` check. Articles with fewer than 3 sections surface a calm warning ("3–5 sections read better and earn richer search snippets"). Doesn't block publish.
+
+**No SEO chrome:** no score numbers, no traffic graphs, no progress bars, no GSC integration, no backlink analysis. The brief warned against SEO-tool aesthetics; the implementation honors that.
+
+**SaaS-readiness note:** the engine imports `Product` directly from `lib/products`. A future multi-tenant carve-out would move this behind a tenant-catalog adapter so other brands' product models slot in without touching the engine.
+
 ## ContentOps Scheduled Publishing
 
 Approved articles can be queued to go live at a future date/time. The operator picks a time from the publishing surface; a Vercel cron sweeps due rows and promotes them to `published` with on-demand revalidation.

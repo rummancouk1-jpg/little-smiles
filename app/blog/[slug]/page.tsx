@@ -8,6 +8,7 @@ import {
   getAllBlogPosts,
   getBlogPostBySlugAsync,
 } from "@/lib/blog";
+import { computeLinkingSuggestions } from "@/lib/contentops/intelligence/relationships";
 import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
@@ -86,15 +87,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   if (!post) notFound();
 
-  // Related posts pull from the same hybrid view so Supabase-born posts
-  // surface in the related rail of nearby articles.
+  // Related posts + products are now ranked by the editorial intelligence
+  // engine instead of the naive "first 2" / "category match" selectors.
+  // Same data sources — static seed + Supabase-published drafts — just
+  // ordered by topical resonance (shared anchor collection, shared
+  // category, keyword overlap).
   const allPosts = await getAllBlogPosts();
-  const relatedPosts = allPosts
-    .filter((entry) => entry.slug !== post.slug)
-    .slice(0, 2);
-  const relatedProducts = products
-    .filter((product) => product.category === post.relatedProductCategory)
-    .slice(0, 3);
+  const suggestions = computeLinkingSuggestions({
+    article: post,
+    candidates: allPosts,
+    products,
+  });
+  const relatedPosts = suggestions.relatedArticles.slice(0, 2).map((r) => r.article);
+  const relatedProducts = suggestions.relatedProducts
+    .slice(0, 3)
+    .map((r) => r.product);
 
   const structuredData = blogPostingJsonLd(post);
   const breadcrumbLd = breadcrumbJsonLdDocument([
