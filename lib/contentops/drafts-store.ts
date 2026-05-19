@@ -67,6 +67,66 @@ function requireClient() {
   return client;
 }
 
+// Active-status set used by slug conflict checks. Matches the partial
+// unique index defined in supabase/contentops-schema.sql.
+const ACTIVE_DRAFT_STATUSES: DraftStatus[] = [
+  "pending_review",
+  "approved",
+  "scheduled",
+];
+
+/**
+ * Inserts a brand-new draft at status='pending_review'. Used by both the
+ * CLI draft generator and the in-app draft creation API. Performs the
+ * active-slug uniqueness pre-check inline so the caller doesn't need to
+ * duplicate it.
+ *
+ * Throws a clear, single-string message on collision so the API can
+ * surface it directly to the operator without parsing internals.
+ */
+export async function insertPendingReviewDraft(
+  content: BlogPost,
+): Promise<{ id: string; slug: string }> {
+  const supabase = requireClient();
+
+  const { data: existing, error: checkErr } = await supabase
+    .from("contentops_drafts")
+    .select("id, status")
+    .eq("slug", content.slug)
+    .in("status", ACTIVE_DRAFT_STATUSES)
+    .limit(1);
+  if (checkErr) {
+    throw new Error(`Slug uniqueness check failed: ${checkErr.message}`);
+  }
+  const collision = existing?.[0];
+  if (collision) {
+    throw new Error(
+      `Slug "${content.slug}" already has an active draft ` +
+        `(id=${collision.id}, status=${collision.status}). ` +
+        "Reject or publish it before generating again.",
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .insert({
+      slug: content.slug,
+      status: "pending_review",
+      content,
+      rejection_note: null,
+      publish_notes: null,
+      approved_at: null,
+      published_at: null,
+      scheduled_at: null,
+    })
+    .select("id, slug")
+    .single();
+  if (error || !data) {
+    throw new Error(`Draft insert failed: ${error?.message ?? "no row returned"}`);
+  }
+  return { id: data.id, slug: data.slug };
+}
+
 export async function listDrafts(status?: DraftStatus): Promise<Draft[]> {
   const supabase = requireClient();
   let query = supabase

@@ -145,6 +145,18 @@ npm run contentops:draft -- "<topic>"
 
 **Exit codes:** `0` on successful insert. `1` on any failure (env, network, validation, duplicate, insert error). Failure modes print the validated or raw draft to stderr where useful for recovery.
 
+## ContentOps In-app Draft Generation
+
+The operator can also generate drafts directly from the admin UI at `/admin/contentops/new`. The form posts to `POST /api/admin/contentops/drafts/generate` which calls the same `generateDraftFromTopic` helper the CLI uses.
+
+**Runtime env requirement:** `ANTHROPIC_API_KEY` must be set in the Vercel project's runtime environment (Production + Preview, optionally Development). Without it, generation returns 500 with a clear "API key not configured" message; the rest of ContentOps continues to function.
+
+**Vercel function timeout:** the route declares `maxDuration = 60`. Sonnet typically writes a full article in 15–30 seconds. On Vercel Hobby the function-level cap may still be 10 seconds depending on plan settings — if generation times out, the draft may have been created server-side; refresh the editorial queue to confirm before retrying.
+
+**Audit:** every in-app generation writes a `contentops_draft_generated` row to `admin_audit_logs` with the topic, slug, and title metadata. CLI-driven generations do not write this audit row.
+
+**Cost:** each generation spends ~$0.05–$0.10 in Anthropic tokens. The form's pending state disables the button to prevent rapid-fire submissions. If abuse becomes a concern, add server-side rate limiting per session.
+
 ## ContentOps Publish Loop
 
 The reviewer approves a draft in the admin, then prepares its publish bundle, then ships it. The system never auto-publishes — a human pastes the diff into `lib/blog.ts`, commits, and deploys via Vercel before marking the draft `published`.

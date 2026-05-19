@@ -83,6 +83,12 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Link
+                href="/admin/contentops/new"
+                className="rounded-full bg-[#2F2624] px-4 py-2 text-sm font-medium text-[#F6F1EC] transition-opacity hover:opacity-90"
+              >
+                + Create draft
+              </Link>
+              <Link
                 href="/admin/contentops/publishing"
                 className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
               >
