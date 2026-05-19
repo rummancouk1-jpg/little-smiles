@@ -2,17 +2,22 @@
 // facing surface. Receives a fully-computed PublishPreparation from the
 // wiring layer.
 //
-// Layout intent (Commit I): status banner + publishing checks are the
-// default emphasis. Engineering artifacts (JSON preview, code patch, schema
-// errors) live behind one consolidated, visually-light disclosure. The
-// rendered article preview itself is composed alongside this report by
-// the wiring page, not inside it.
+// Layout (Commit O):
+//   1. Status banner (existing)
+//   2. Publishing readiness panel — the operator's primary view
+//   3. Admin & dev disclosure (collapsed by default) — single home for:
+//      raw publishing checks list, schema errors, structured JSON, and
+//      the manual fallback code patch.
+//
+// The article preview is composed alongside this report by the wiring
+// page; it is not rendered here.
 
 "use client";
 
 import { useState } from "react";
 
 import { getConflictLabel } from "@/components/contentops/labels";
+import { ReadinessPanel } from "@/components/contentops/readiness-panel";
 import { formatAbsolute } from "@/components/contentops/relative-time";
 import type { Conflict, PublishPreparation } from "@/lib/contentops/publish-types";
 
@@ -40,16 +45,16 @@ function ConflictItem({
           hint: "text-[#5E4A1C]/85",
         };
   return (
-    <li className={`rounded-2xl border p-4 ${palette.container}`}>
+    <li className={`rounded-2xl border p-3 ${palette.container}`}>
       <p
-        className={`flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] ${palette.label}`}
+        className={`flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.12em] ${palette.label}`}
       >
         <span>{severityTone === "error" ? "Must fix" : "Heads up"}</span>
         <span className="rounded-full border border-current/40 px-2 py-0.5 font-mono text-[10px] tracking-normal opacity-70">
           {conflict.code}
         </span>
       </p>
-      <p className="mt-2 text-sm text-[#1F1918]">{getConflictLabel(conflict.code)}</p>
+      <p className="mt-1.5 text-sm text-[#1F1918]">{getConflictLabel(conflict.code)}</p>
       {conflict.hint ? (
         <p className={`mt-1 text-xs ${palette.hint}`}>{conflict.hint}</p>
       ) : null}
@@ -113,35 +118,48 @@ export function PublishReport({ preparation }: PublishReportProps) {
         </p>
       </section>
 
-      <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-          Publishing checks ({preparation.conflicts.length})
-        </p>
-        {preparation.conflicts.length === 0 ? (
-          <p className="mt-2 text-sm text-[#1E5A37]">All checks passed. Nothing to flag.</p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {errorConflicts.map((conflict, idx) => (
-              <ConflictItem key={`err-${idx}`} conflict={conflict} severityTone="error" />
-            ))}
-            {warningConflicts.map((conflict, idx) => (
-              <ConflictItem key={`warn-${idx}`} conflict={conflict} severityTone="warning" />
-            ))}
-          </ul>
-        )}
-      </section>
+      <ReadinessPanel readiness={preparation.readiness} />
 
       <details className="group rounded-2xl border border-[#3B2F2F]/8 bg-white/60 px-5 py-4 text-sm shadow-none">
         <summary className="cursor-pointer text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55 group-open:text-[#1F1918]">
-          Engineer details · emergency fallback
+          Admin &amp; dev
         </summary>
 
         <p className="mt-3 text-xs text-[#3B2F2F]/60">
-          The primary publish path is the <span className="font-medium">Publish now</span>{" "}
-          button in the bar below. These artifacts exist only for debugging or the
-          emergency manual flow — if Publish now is unavailable you can paste the patch
-          into <span className="font-mono">lib/blog.ts</span> and deploy directly.
+          Engineering inspection surface. The primary publish path is{" "}
+          <span className="font-medium">Publish now</span> in the bar below; readiness
+          above is the operator-facing view. This disclosure carries the raw
+          publishing checks, the structured article data, and the manual fallback
+          patch — open only when you need to inspect or hand-patch.
         </p>
+
+        <div className="mt-4 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/60 p-4">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            Publishing checks ({preparation.conflicts.length})
+          </p>
+          {preparation.conflicts.length === 0 ? (
+            <p className="mt-2 text-sm text-[#1E5A37]">
+              All checks passed. Nothing to flag.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {errorConflicts.map((conflict, idx) => (
+                <ConflictItem
+                  key={`err-${idx}`}
+                  conflict={conflict}
+                  severityTone="error"
+                />
+              ))}
+              {warningConflicts.map((conflict, idx) => (
+                <ConflictItem
+                  key={`warn-${idx}`}
+                  conflict={conflict}
+                  severityTone="warning"
+                />
+              ))}
+            </ul>
+          )}
+        </div>
 
         {preparation.validation.schemaErrors.length > 0 ? (
           <div className="mt-4 rounded-2xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-4">
