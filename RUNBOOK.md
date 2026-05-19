@@ -186,6 +186,31 @@ The topic queue is the editorial planning layer. Each row represents a topic the
 
 **Concurrency:** the queued→drafted transition uses a SQL-level guard so two operators can't double-generate from the same topic. A second concurrent attempt fails with "Topic is drafted, not queued."
 
+### Editorial intelligence layer (Commit V)
+
+Topics carry additional optional fields populated by seeds and (in the future) by auto-discovery:
+
+- **content_angle** — calm editorial framing, italic on the card
+- **suggested_cta** — preview of likely CTA copy
+- **confidence_score** — 0..100 integer, range-checked at the DB
+- **snoozed_until** — date the topic resurfaces from "save for later"
+
+These are operator-visible but never operator-input via the create form. The topic card surfaces them when present and stays clean when absent.
+
+The topic state machine gains one value:
+
+- `snoozed` — paused via "Save for later". Returns to `queued` on "Bring back" or via explicit operator action.
+
+**New operator actions:**
+
+- **Save for later** (`POST /api/admin/contentops/topics/[id]/snooze`, body `{ days?: number }` defaulting to 30) — moves a queued topic to `snoozed` with `snoozed_until` set 30 days out.
+- **Bring back** (`POST /api/admin/contentops/topics/[id]/unsnooze`) — returns a snoozed topic to `queued` and clears `snoozed_until`.
+- **Mark seasonal priority** (`POST /api/admin/contentops/topics/[id]/seasonal-priority`) — composite action: sets priority to `high` and refreshes `suggested_window_start` / `suggested_window_end` to "now through 30 days from now". Doesn't change the topic's classified seasonality.
+
+**New audit actions:** `contentops_topic_snoozed`, `contentops_topic_unsnoozed`, `contentops_topic_seasonal_priority`.
+
+**Migration safety:** `supabase/contentops-topics-schema.sql` is fully idempotent. New columns are added with `IF NOT EXISTS`; the status `CHECK` constraint is dropped-and-recreated by name; seeded rows use `ON CONFLICT (title) DO UPDATE` to backfill the new intelligence fields without overwriting operator edits to other columns.
+
 ## ContentOps Publish Loop
 
 The reviewer approves a draft in the admin, then prepares its publish bundle, then ships it. The system never auto-publishes — a human pastes the diff into `lib/blog.ts`, commits, and deploys via Vercel before marking the draft `published`.

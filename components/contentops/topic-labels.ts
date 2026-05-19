@@ -4,6 +4,7 @@
 // classes used across the topics surface.
 
 import type {
+  Topic,
   TopicIntent,
   TopicPriority,
   TopicSeasonality,
@@ -12,6 +13,7 @@ import type {
 
 export const TOPIC_STATUS_LABELS: Record<TopicStatus, string> = {
   queued: "In queue",
+  snoozed: "Saved for later",
   drafted: "Drafted",
   published: "Live on site",
   archived: "Archived",
@@ -19,6 +21,7 @@ export const TOPIC_STATUS_LABELS: Record<TopicStatus, string> = {
 
 export const TOPIC_STATUS_FILTER_LABELS: Record<TopicStatus, string> = {
   queued: "Queued",
+  snoozed: "Saved for later",
   drafted: "Drafted",
   published: "Live",
   archived: "Archived",
@@ -30,6 +33,7 @@ type StatusTone = {
 
 export const TOPIC_STATUS_TONES: Record<TopicStatus, StatusTone> = {
   queued: { pill: "bg-[#EFE7DE] text-[#3B2F2F]" },
+  snoozed: { pill: "bg-[#EAE3F1] text-[#3F2F5A]" },
   drafted: { pill: "bg-[#D7E4EE] text-[#1E3F5A]" },
   published: { pill: "bg-[#C5DECD] text-[#175030]" },
   archived: { pill: "bg-[#E5DAD2] text-[#5B342B]" },
@@ -89,4 +93,59 @@ export function getTopicIntentLabel(intent: TopicIntent): string {
 
 export function getTopicSeasonalityLabel(seasonality: TopicSeasonality): string {
   return TOPIC_SEASONALITY_LABELS[seasonality];
+}
+
+// Pure heuristic that composes a calm one-line rationale from the topic's
+// existing fields. No SEO jargon, no scoring math — just the editorial
+// reasons the operator should know in plain English.
+//
+// Example outputs:
+//   "Strong summer relevance · commercial intent · anchors to Swaddle"
+//   "Year-round informational depth · low competition"
+//
+// Future intelligence layers can replace this with a learned rationale,
+// but the operator-facing copy stays in this single function.
+export function composeTopicRationale(topic: Topic): string {
+  const parts: string[] = [];
+
+  switch (topic.seasonality) {
+    case "summer":
+      parts.push("Strong summer relevance");
+      break;
+    case "winter":
+      parts.push("Winter timing");
+      break;
+    case "monsoon":
+      parts.push("Monsoon-season demand");
+      break;
+    case "eid":
+      parts.push("Eid gifting window");
+      break;
+    case "evergreen":
+    default:
+      parts.push("Year-round relevance");
+      break;
+  }
+
+  switch (topic.intent) {
+    case "commercial":
+      parts.push("commercial intent");
+      break;
+    case "transactional":
+      parts.push("purchase intent");
+      break;
+    case "informational":
+    default:
+      parts.push("informational depth");
+      break;
+  }
+
+  if (topic.competition === "low") parts.push("low competition");
+  else if (topic.competition === "high") parts.push("competitive space");
+
+  if (topic.related_category) {
+    parts.push(`anchors to ${topic.related_category}`);
+  }
+
+  return parts.join(" · ");
 }

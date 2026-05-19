@@ -88,13 +88,15 @@ export default async function TopicsQueuePage({ searchParams }: PageProps) {
   const emptyLabel =
     activeFilter === "queued"
       ? "Nothing queued. Add a topic to start the next article."
-      : activeFilter === "drafted"
-        ? "No topics waiting in draft."
-        : activeFilter === "published"
-          ? "No topics live yet."
-          : activeFilter === "archived"
-            ? "No archived topics."
-            : "No topics yet.";
+      : activeFilter === "snoozed"
+        ? "Nothing saved for later."
+        : activeFilter === "drafted"
+          ? "No topics waiting in draft."
+          : activeFilter === "published"
+            ? "No topics live yet."
+            : activeFilter === "archived"
+              ? "No archived topics."
+              : "No topics yet.";
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">

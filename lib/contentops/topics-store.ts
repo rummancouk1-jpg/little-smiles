@@ -12,7 +12,12 @@
 
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
-export type TopicStatus = "queued" | "drafted" | "published" | "archived";
+export type TopicStatus =
+  | "queued"
+  | "drafted"
+  | "published"
+  | "archived"
+  | "snoozed";
 export type TopicPriority = "high" | "medium" | "low";
 export type TopicIntent = "informational" | "commercial" | "transactional";
 export type TopicCompetition = "low" | "medium" | "high";
@@ -35,12 +40,20 @@ export type Topic = {
   draft_id: string | null;
   source: TopicSource;
   notes: string | null;
+  // Editorial intelligence layer (Commit V). Optional fields populated
+  // by seeds and future auto-discovery. The card UI surfaces them when
+  // present and stays calm when absent.
+  content_angle: string | null;
+  suggested_cta: string | null;
+  confidence_score: number | null;
+  snoozed_until: string | null;
   created_at: string;
   updated_at: string;
 };
 
 export const TOPIC_STATUSES: TopicStatus[] = [
   "queued",
+  "snoozed",
   "drafted",
   "published",
   "archived",
@@ -163,6 +176,12 @@ export async function createTopic(input: CreateTopicInput): Promise<Topic> {
       draft_id: null,
       source: "manual",
       notes: input.notes?.trim() ? input.notes.trim().slice(0, 2000) : null,
+      // Intelligence-layer fields default to null on manual creation.
+      // Seeded rows and future auto-discovery populate them.
+      content_angle: null,
+      suggested_cta: null,
+      confidence_score: null,
+      snoozed_until: null,
     })
     .select("*")
     .single();
@@ -185,12 +204,97 @@ export async function archiveTopic(id: string): Promise<Topic> {
     .from("contentops_topics")
     .update({ status: "archived", updated_at: now })
     .eq("id", id)
-    .in("status", ["queued", "drafted", "published"])
+    .in("status", ["queued", "snoozed", "drafted", "published"])
     .select("*")
     .single();
   if (error || !data) {
     throw new Error(
       `Failed to archive topic: ${error?.message ?? "topic not found or already archived"}`,
+    );
+  }
+  return data as Topic;
+}
+
+// Save-for-later. Moves a queued topic into 'snoozed' status with a
+// snoozed_until date so it can resurface naturally without being
+// archived. Default snooze window: 30 days from now. Operator can
+// bring it back at any time via unsnoozeTopic.
+export async function snoozeTopic(id: string, days = 30): Promise<Topic> {
+  const supabase = requireClient();
+  const now = new Date();
+  const untilDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  const untilIso = untilDate.toISOString().slice(0, 10); // DATE column: YYYY-MM-DD
+
+  const { data, error } = await supabase
+    .from("contentops_topics")
+    .update({
+      status: "snoozed",
+      snoozed_until: untilIso,
+      updated_at: now.toISOString(),
+    })
+    .eq("id", id)
+    .eq("status", "queued")
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(
+      `Failed to save topic for later: ${error?.message ?? "topic not in queued state"}`,
+    );
+  }
+  return data as Topic;
+}
+
+// Reverse of snooze. Returns a snoozed topic to active queue.
+export async function unsnoozeTopic(id: string): Promise<Topic> {
+  const supabase = requireClient();
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("contentops_topics")
+    .update({
+      status: "queued",
+      snoozed_until: null,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .eq("status", "snoozed")
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(
+      `Failed to bring topic back: ${error?.message ?? "topic not in snoozed state"}`,
+    );
+  }
+  return data as Topic;
+}
+
+// Composite action: promotes a queued topic into a seasonal priority
+// state. Sets priority to high and refreshes the suggested publish
+// window to "publish now through the next 30 days". Doesn't touch the
+// seasonality field — that's the topic's classification; this is
+// urgency framing.
+export async function markTopicSeasonalPriority(id: string): Promise<Topic> {
+  const supabase = requireClient();
+  const now = new Date();
+  const start = now.toISOString().slice(0, 10);
+  const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("contentops_topics")
+    .update({
+      priority: "high",
+      suggested_window_start: start,
+      suggested_window_end: end,
+      updated_at: now.toISOString(),
+    })
+    .eq("id", id)
+    .eq("status", "queued")
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(
+      `Failed to mark seasonal priority: ${error?.message ?? "topic not in queued state"}`,
     );
   }
   return data as Topic;

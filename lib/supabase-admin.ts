@@ -116,10 +116,14 @@ type ContentopsTopicsTable = {
   trend: "rising" | "steady" | "declining";
   suggested_window_start: string | null;
   suggested_window_end: string | null;
-  status: "queued" | "drafted" | "published" | "archived";
+  status: "queued" | "drafted" | "published" | "archived" | "snoozed";
   draft_id: string | null;
   source: "manual" | "seed";
   notes: string | null;
+  content_angle: string | null;
+  suggested_cta: string | null;
+  confidence_score: number | null;
+  snoozed_until: string | null;
   created_at: string;
   updated_at: string;
 };

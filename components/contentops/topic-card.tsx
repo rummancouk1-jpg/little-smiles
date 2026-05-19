@@ -1,17 +1,28 @@
-// Single topic card — editorial planning surface. Card layout (not a
-// table row) so the operator's eye reads each topic as a thought, not a
-// data point. Priority is rendered as eyebrow text colored by level;
-// intent + category + seasonality sit on a single secondary line; notes
-// (if present) read as small italic editorial commentary.
+// Single topic card — editorial planning + intelligence layer (Commit V).
 //
-// Actions live in the TopicActions client component below the metadata
-// so the card's content stays calm by default and the verbs cluster
-// together.
+// Surfaces the topic's editorial intelligence calmly:
+//   - Priority eyebrow (color-toned)
+//   - Status pill
+//   - Title
+//   - Content angle (italic editorial framing)
+//   - One-line rationale composed from seasonality + intent + competition
+//   - Compact meta line: intent · category · seasonality
+//   - Optional suggested CTA preview
+//   - Optional suggested publish window
+//   - Optional confidence score (subtle, only when present)
+//   - Optional notes (italic, smaller)
+//   - Snoozed-until line when paused
+//   - View-draft / view-article link when linked
+//   - Actions row (TopicActions)
+//
+// All fields below the title degrade gracefully: when an intelligence
+// field is absent the card simply omits that line, no placeholders.
 
 import Link from "next/link";
 
 import { TopicActions } from "@/components/contentops/topic-actions";
 import {
+  composeTopicRationale,
   getTopicIntentLabel,
   getTopicPriorityLabel,
   getTopicPriorityTone,
@@ -19,12 +30,19 @@ import {
   getTopicStatusFilterLabel,
   getTopicStatusTone,
 } from "@/components/contentops/topic-labels";
-import { formatRelativeTime } from "@/components/contentops/relative-time";
+import { formatAbsolute, formatRelativeTime } from "@/components/contentops/relative-time";
 import type { Topic } from "@/lib/contentops/topics-store";
 
 type TopicCardProps = {
   topic: Topic;
 };
+
+function formatDateOnly(value: string | null): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-PK", { month: "short", day: "2-digit" });
+}
 
 export function TopicCard({ topic }: TopicCardProps) {
   const tone = getTopicStatusTone(topic.status);
@@ -33,6 +51,27 @@ export function TopicCard({ topic }: TopicCardProps) {
   const metaParts: string[] = [getTopicIntentLabel(topic.intent)];
   if (topic.related_category) metaParts.push(topic.related_category);
   metaParts.push(getTopicSeasonalityLabel(topic.seasonality));
+
+  const rationale = composeTopicRationale(topic);
+
+  const windowStart = formatDateOnly(topic.suggested_window_start);
+  const windowEnd = formatDateOnly(topic.suggested_window_end);
+  const windowLabel =
+    windowStart && windowEnd
+      ? `${windowStart} – ${windowEnd}`
+      : windowStart
+        ? `From ${windowStart}`
+        : windowEnd
+          ? `Through ${windowEnd}`
+          : null;
+
+  const snoozedUntilLabel = topic.snoozed_until
+    ? formatAbsolute(topic.snoozed_until)
+    : null;
+
+  const showDraftLink =
+    (topic.status === "drafted" || topic.status === "published") &&
+    topic.draft_id;
 
   return (
     <article className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-5 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-7">
@@ -51,23 +90,56 @@ export function TopicCard({ topic }: TopicCardProps) {
         {topic.title}
       </h3>
 
-      <p className="mt-2 text-xs text-[#3B2F2F]/65">
-        {metaParts.join(" · ")}
+      {topic.content_angle ? (
+        <p className="mt-2 text-sm italic leading-relaxed text-[#3B2F2F]/75">
+          {topic.content_angle}
+        </p>
+      ) : null}
+
+      <p className="mt-3 text-xs leading-relaxed text-[#3B2F2F]/72">
+        {rationale}
       </p>
 
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[#3B2F2F]/65">
+        <p>{metaParts.join(" · ")}</p>
+        {typeof topic.confidence_score === "number" ? (
+          <p className="text-[#3B2F2F]/55">Confidence {topic.confidence_score}</p>
+        ) : null}
+      </div>
+
+      {topic.suggested_cta ? (
+        <p className="mt-2 text-xs text-[#3B2F2F]/65">
+          <span className="font-medium text-[#3B2F2F]/75">Suggested CTA:</span>{" "}
+          {topic.suggested_cta}
+        </p>
+      ) : null}
+
+      {windowLabel ? (
+        <p className="mt-2 text-xs text-[#3B2F2F]/65">
+          <span className="font-medium text-[#3B2F2F]/75">Publish window:</span>{" "}
+          {windowLabel}
+        </p>
+      ) : null}
+
+      {topic.status === "snoozed" && snoozedUntilLabel ? (
+        <p className="mt-2 text-xs text-[#3F2F5A]">
+          Saved for later · resurfaces {snoozedUntilLabel}
+        </p>
+      ) : null}
+
       {topic.notes ? (
-        <p className="mt-3 text-sm italic leading-relaxed text-[#3B2F2F]/72">
+        <p className="mt-3 text-xs italic leading-relaxed text-[#3B2F2F]/65">
           {topic.notes}
         </p>
       ) : null}
 
-      {topic.status === "drafted" && topic.draft_id ? (
+      {showDraftLink ? (
         <div className="mt-3">
           <Link
             href={`/admin/contentops/${topic.draft_id}`}
             className="text-xs font-medium text-[#1E3F5A] underline underline-offset-2 hover:text-[#163049]"
           >
-            View draft →
+            {topic.status === "published" ? "View article →" : "View draft →"}
           </Link>
         </div>
       ) : null}
