@@ -22,6 +22,7 @@ import {
   listScheduledDue,
   markDraftPublished,
 } from "@/lib/contentops/drafts-store";
+import { notifyDraftPublished } from "@/lib/contentops/topics-store";
 import { captureServerError } from "@/lib/error-observability";
 
 function isAuthorizedCronRequest(request: Request): boolean {
@@ -79,6 +80,20 @@ export async function GET(request: Request) {
           revalidateErr instanceof Error
             ? revalidateErr
             : new Error(String(revalidateErr)),
+          { draftId: draft.id, slug: published.slug },
+        );
+      }
+      // Best-effort topic sync so the editorial queue reflects what
+      // the cron just promoted. Same isolation as the publish route:
+      // failure is logged, the row stays "published" anyway.
+      try {
+        await notifyDraftPublished(published.id);
+      } catch (topicErr) {
+        captureServerError(
+          "api_cron_contentops_publish_due_topic_sync_failed",
+          topicErr instanceof Error
+            ? topicErr
+            : new Error(String(topicErr)),
           { draftId: draft.id, slug: published.slug },
         );
       }

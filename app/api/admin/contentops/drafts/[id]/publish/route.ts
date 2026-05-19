@@ -5,6 +5,7 @@ import { z } from "zod";
 import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
 import { logAdminAudit } from "@/lib/admin-audit";
 import { markDraftPublished } from "@/lib/contentops/drafts-store";
+import { notifyDraftPublished } from "@/lib/contentops/topics-store";
 import { captureServerError } from "@/lib/error-observability";
 
 const publishSchema = z.object({
@@ -61,6 +62,20 @@ export async function POST(request: Request, { params }: RouteProps) {
         revalidateErr instanceof Error
           ? revalidateErr
           : new Error(String(revalidateErr)),
+        { draftId: id, slug: draft.slug },
+      );
+    }
+    // Best-effort topic sync: when a published draft is linked back to
+    // a topic, promote the topic's status to 'published' so the
+    // editorial queue reflects what's actually live. No-op when no
+    // topic references this draft. Failure is logged but never blocks
+    // the operator's publish action.
+    try {
+      await notifyDraftPublished(draft.id);
+    } catch (topicErr) {
+      captureServerError(
+        "api_admin_contentops_publish_topic_sync_failed",
+        topicErr instanceof Error ? topicErr : new Error(String(topicErr)),
         { draftId: id, slug: draft.slug },
       );
     }

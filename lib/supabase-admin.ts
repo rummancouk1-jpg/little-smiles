@@ -105,6 +105,25 @@ type ContentopsDraftsTable = {
   updated_at: string;
 };
 
+type ContentopsTopicsTable = {
+  id: string;
+  title: string;
+  intent: "informational" | "commercial" | "transactional";
+  related_category: string | null;
+  priority: "high" | "medium" | "low";
+  competition: "low" | "medium" | "high";
+  seasonality: "evergreen" | "summer" | "winter" | "monsoon" | "eid";
+  trend: "rising" | "steady" | "declining";
+  suggested_window_start: string | null;
+  suggested_window_end: string | null;
+  status: "queued" | "drafted" | "published" | "archived";
+  draft_id: string | null;
+  source: "manual" | "seed";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type SupabaseSchema = {
   public: {
     Tables: {
@@ -165,6 +184,15 @@ type SupabaseSchema = {
           updated_at?: string;
         };
         Update: Partial<ContentopsDraftsTable>;
+        Relationships: [];
+      };
+      contentops_topics: {
+        Row: ContentopsTopicsTable;
+        Insert: Omit<ContentopsTopicsTable, "id" | "created_at" | "updated_at"> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ContentopsTopicsTable>;
         Relationships: [];
       };
     };

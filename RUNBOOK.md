@@ -41,7 +41,8 @@
 1. Run `supabase/orders-schema.sql`
 2. Run `supabase/admin-audit-schema.sql`
 3. Run `supabase/contentops-schema.sql`
-4. Confirm new/altered tables exist:
+4. Run `supabase/contentops-topics-schema.sql`
+5. Confirm new/altered tables exist:
    - `order_intents`
    - `orders`
    - `order_status_history`
@@ -49,12 +50,14 @@
    - `order_communications`
    - `admin_audit_logs`
    - `contentops_drafts`
-5. Verify indexes are present for:
+   - `contentops_topics`
+6. Verify indexes are present for:
    - order intent recency and product grouping
    - order status filters
    - communication retry scheduling
    - audit log timeline/action filtering
    - contentops draft status/created ordering and slug-active uniqueness
+   - contentops topic title uniqueness, status/priority filter, seasonality lookup, draft_id reverse-link
 
 ## Resend Setup
 
@@ -156,6 +159,32 @@ The operator can also generate drafts directly from the admin UI at `/admin/cont
 **Audit:** every in-app generation writes a `contentops_draft_generated` row to `admin_audit_logs` with the topic, slug, and title metadata. CLI-driven generations do not write this audit row.
 
 **Cost:** each generation spends ~$0.05–$0.10 in Anthropic tokens. The form's pending state disables the button to prevent rapid-fire submissions. If abuse becomes a concern, add server-side rate limiting per session.
+
+## ContentOps Topic Queue (Editorial Planning)
+
+The topic queue is the editorial planning layer. Each row represents a topic the operator wants to (eventually) publish about. Topics live at `/admin/contentops/topics` and feed directly into draft generation — clicking "Generate draft" on a topic card runs the same Anthropic pipeline as the freeform Create-draft surface, then links the resulting draft back to the topic so the queue reflects operational state.
+
+**State machine:**
+- `queued` → `drafted` (automatic when a draft is generated from the topic)
+- `drafted` → `published` (automatic when the linked draft is published, via the publish API and the cron sweep)
+- `queued` or `drafted` → `archived` (explicit operator action)
+
+**One-time setup:** apply `supabase/contentops-topics-schema.sql` (idempotent). The migration creates the `contentops_topics` table, indexes, and seeds seven starter topics covering swaddles, newborn care, baby sleep, summer clothing, feeding routines, diaper bags, and Eid gifting.
+
+**Operator paths:**
+- View queue: `/admin/contentops/topics` (default filter: queued)
+- Add a topic: `+ Add topic` button → `/admin/contentops/topics/new`
+- Generate draft from topic: card-level **Generate draft** action (15-30 second wait, redirects to the new draft's review page)
+- Lower priority: card-level link (only shown when not already low)
+- Archive: card-level link with inline confirmation
+
+**Audit:** every state-changing action writes a row to `admin_audit_logs`:
+- `contentops_topic_created`
+- `contentops_topic_archived`
+- `contentops_topic_priority_updated`
+- `contentops_topic_draft_generated`
+
+**Concurrency:** the queued→drafted transition uses a SQL-level guard so two operators can't double-generate from the same topic. A second concurrent attempt fails with "Topic is drafted, not queued."
 
 ## ContentOps Publish Loop
 

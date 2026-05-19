@@ -89,6 +89,12 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
                 + Create draft
               </Link>
               <Link
+                href="/admin/contentops/topics"
+                className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
+              >
+                Topic queue →
+              </Link>
+              <Link
                 href="/admin/contentops/publishing"
                 className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
               >
