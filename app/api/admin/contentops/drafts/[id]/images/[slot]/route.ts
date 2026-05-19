@@ -2,21 +2,19 @@
 //
 //   POST   .../images/<slot>   body: { image: BlogImage }
 //                              Attaches the image to the slot in the
-//                              draft's content. The image must have been
-//                              produced by .../images/upload (typically),
-//                              though arbitrary URL references are
-//                              accepted to support manual seed flows.
+//                              draft's content.
+//
+//   PATCH  .../images/<slot>   body: { altText?, caption? }
+//                              Metadata-only edit (Commit X). Updates
+//                              alt text and/or caption on the attached
+//                              image without re-uploading the blob.
 //
 //   DELETE .../images/<slot>   Detaches the image and, if it has a
-//                              storageKey (i.e. it was uploaded through
-//                              this system), deletes the blob from the
-//                              bucket. Static-seed images without a
-//                              storageKey are detached but their public
-//                              assets remain untouched.
+//                              storageKey, deletes the blob from the
+//                              bucket.
 //
-// Slot must be 'hero' or 'thumbnail' for Commit N. The schema is ready
-// for section-N slots; the API rejects them until a later commit wires
-// the editorial workflow for inline section images.
+// Slot must be 'hero' or 'thumbnail'. The schema is ready for section
+// slots; section attachment lands in a later commit.
 
 import { NextResponse } from "next/server";
 
@@ -29,6 +27,7 @@ import {
 import {
   attachDraftImage,
   detachDraftImage,
+  editDraftImageMetadata,
 } from "@/lib/contentops/drafts-store";
 import { deleteDraftImage } from "@/lib/contentops/storage";
 import { captureServerError } from "@/lib/error-observability";
@@ -37,6 +36,15 @@ import { z } from "zod";
 const attachBodySchema = z.object({
   image: blogImageSchema,
 });
+
+const metadataPatchSchema = z
+  .object({
+    altText: z.string().min(1).max(500).optional(),
+    caption: z.string().max(500).nullable().optional(),
+  })
+  .refine((data) => data.altText !== undefined || data.caption !== undefined, {
+    message: "Patch must include altText and/or caption.",
+  });
 
 type RouteProps = {
   params: Promise<{ id: string; slot: string }>;
@@ -159,5 +167,64 @@ export async function DELETE(request: Request, { params }: RouteProps) {
       { draftId: id, slot },
     );
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request, { params }: RouteProps) {
+  if (!isAuthorizedAdminRequest(request)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id, slot } = await params;
+  if (!isBlogImageSlot(slot)) {
+    return NextResponse.json(
+      { ok: false, error: `Unsupported image slot '${slot}'.` },
+      { status: 400 },
+    );
+  }
+
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "Invalid JSON body" },
+      { status: 400 },
+    );
+  }
+  const parsed = metadataPatchSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { ok: false, error: "Invalid metadata payload" },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const draft = await editDraftImageMetadata(id, slot, {
+      altText: parsed.data.altText,
+      caption: parsed.data.caption,
+    });
+    await logAdminAudit(request, {
+      action: "contentops_image_metadata_edited",
+      targetType: "contentops_draft",
+      targetId: id,
+      metadata: {
+        slot,
+        editedAlt: parsed.data.altText !== undefined,
+        editedCaption: parsed.data.caption !== undefined,
+      },
+    });
+    return NextResponse.json({ ok: true, draft });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update image metadata";
+    captureServerError(
+      "api_admin_contentops_image_metadata_edit_failed",
+      err instanceof Error ? err : new Error(message),
+      { draftId: id, slot },
+    );
+    const status =
+      message.includes("Cannot") || message.includes("No image") ? 400 : 500;
+    return NextResponse.json({ ok: false, error: message }, { status });
   }
 }

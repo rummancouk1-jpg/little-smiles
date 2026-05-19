@@ -272,6 +272,33 @@ The reviewer approves a draft in the admin, then prepares its publish bundle, th
 
 **Schema requirement:** `contentops_drafts` must have the `publish_notes text null` column. The migration in `supabase/contentops-schema.sql` is idempotent; re-running it on an older database adds the column safely.
 
+## ContentOps Edit-in-Place (Commit X)
+
+The operator can refine any non-published draft directly from the admin without regenerating the article. The edit page lives at `/admin/contentops/<id>/edit` and accepts any subset of: title, description, category, related category, publish date, read time, keywords, sections (add/remove/reorder), CTA label, CTA href. Slug is intentionally locked — changing it would break URL semantics.
+
+**Workflow:**
+1. From the article-review page, click **Edit article**.
+2. Refine fields. Sections accept blank-line-separated paragraphs.
+3. Click **Save changes**. The form PATCHes `/api/admin/contentops/drafts/<id>` and returns to the article-review page on success.
+
+**Schema integrity:** the engine merges the partial into the current `content` and re-validates the merged whole against `blogPostSchema` before persisting. Any field that would break the schema returns a 400 with the offending issue surfaced to the form.
+
+**Frozen state:** `status='published'` rejects all edits. To change a live article, generate a new draft.
+
+**Image metadata:** alt text and caption on `hero`/`thumbnail` are editable inline from the media management page via PATCH `/api/admin/contentops/drafts/<id>/images/<slot>`. Replacing the image (uploading new bytes) still goes through the existing flow.
+
+**Revision awareness:** two new columns on `contentops_drafts`:
+- `manually_edited boolean default false`
+- `last_edited_at timestamptz null`
+
+Every successful edit sets both. The article-review page surfaces this as an **"AI draft"** pill (unedited) or **"Edited · 2h ago"** pill (operator-touched).
+
+**Audit:** every save writes one of two rows to `admin_audit_logs`:
+- `contentops_draft_edited` — content edits, with `changedFields` array
+- `contentops_image_metadata_edited` — alt/caption edits
+
+**Migration safety:** the column additions in `supabase/contentops-schema.sql` use `IF NOT EXISTS` and `DEFAULT false`. Re-running the migration on an older database backfills the columns without disturbing existing rows.
+
 ## ContentOps Scheduled Publishing
 
 Approved articles can be queued to go live at a future date/time. The operator picks a time from the publishing surface; a Vercel cron sweeps due rows and promotes them to `published` with on-demand revalidation.

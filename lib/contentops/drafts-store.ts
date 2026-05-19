@@ -3,6 +3,7 @@
 // any project that adopts the contentops_drafts schema.
 
 import {
+  blogPostSchema,
   type BlogImage,
   type BlogImageSlot,
   type BlogPost,
@@ -26,6 +27,8 @@ export type Draft = {
   approved_at: string | null;
   published_at: string | null;
   scheduled_at: string | null;
+  manually_edited: boolean;
+  last_edited_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -118,6 +121,8 @@ export async function insertPendingReviewDraft(
       approved_at: null,
       published_at: null,
       scheduled_at: null,
+      manually_edited: false,
+      last_edited_at: null,
     })
     .select("id, slug")
     .single();
@@ -125,6 +130,188 @@ export async function insertPendingReviewDraft(
     throw new Error(`Draft insert failed: ${error?.message ?? "no row returned"}`);
   }
   return { id: data.id, slug: data.slug };
+}
+
+// --- Edit-in-place helpers (Commit X) -----------------------------------
+
+type EditableContentPatch = Partial<
+  Pick<
+    BlogPost,
+    | "title"
+    | "description"
+    | "category"
+    | "relatedProductCategory"
+    | "publishedAt"
+    | "readTime"
+    | "keywords"
+    | "sections"
+    | "cta"
+  >
+>;
+
+const EDITABLE_TOP_LEVEL_FIELDS: Array<keyof EditableContentPatch> = [
+  "title",
+  "description",
+  "category",
+  "relatedProductCategory",
+  "publishedAt",
+  "readTime",
+  "keywords",
+  "sections",
+  "cta",
+];
+
+/**
+ * Operator content edit. Merges a partial BlogPost into the draft's
+ * current content, validates the merged whole against the canonical
+ * schema, and persists with revision flags set. Slug is deliberately
+ * not editable through this path — changing it would break URL
+ * semantics and the active-slug invariant maintained by the unique
+ * index.
+ *
+ * Frozen on status='published'. Allowed on every other status so an
+ * operator can refine an approved or even a scheduled draft up to the
+ * moment it goes live.
+ */
+export async function editDraftContent(
+  id: string,
+  patch: EditableContentPatch,
+): Promise<Draft> {
+  const supabase = requireClient();
+
+  const { data: current, error: readErr } = await supabase
+    .from("contentops_drafts")
+    .select("content, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) {
+    throw new Error(`Failed to read draft: ${readErr.message}`);
+  }
+  if (!current) {
+    throw new Error("Draft not found");
+  }
+  if (current.status === "published") {
+    throw new Error("Cannot edit a published draft. Generate a new draft instead.");
+  }
+
+  const currentContent = current.content as BlogPost;
+  // Only allow whitelisted fields through. Anything else (slug, hero,
+  // thumbnail, etc.) is preserved from current.
+  const merged: BlogPost = { ...currentContent };
+  for (const key of EDITABLE_TOP_LEVEL_FIELDS) {
+    if (key in patch && patch[key] !== undefined) {
+      // Narrow assignment via typed-key copy.
+      (merged as Record<string, unknown>)[key] = (patch as Record<string, unknown>)[key];
+    }
+  }
+
+  // Defensive: re-validate the merged whole. If a partial field has the
+  // wrong shape, surface schema errors directly to the operator.
+  const parsed = blogPostSchema.safeParse(merged);
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .slice(0, 3)
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Edit would break the article schema: ${issues}`);
+  }
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      content: parsed.data,
+      manually_edited: true,
+      last_edited_at: now,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to save edit: ${error?.message ?? "no row returned"}`);
+  }
+  return data as Draft;
+}
+
+/**
+ * Image metadata edit — alt text and/or caption on hero or thumbnail.
+ * Lets the operator refine accessibility/editorial captions without
+ * re-uploading the blob.
+ *
+ * Frozen on status='published'. Returns the updated draft.
+ */
+export async function editDraftImageMetadata(
+  draftId: string,
+  slot: BlogImageSlot,
+  patch: { altText?: string; caption?: string | null },
+): Promise<Draft> {
+  const supabase = requireClient();
+
+  const { data: current, error: readErr } = await supabase
+    .from("contentops_drafts")
+    .select("content, status")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (readErr) {
+    throw new Error(`Failed to read draft: ${readErr.message}`);
+  }
+  if (!current) {
+    throw new Error("Draft not found");
+  }
+  if (current.status === "published") {
+    throw new Error("Cannot modify images on a published draft.");
+  }
+
+  const content = current.content as BlogPost;
+  const existing = content[slot] as BlogImage | undefined;
+  if (!existing) {
+    throw new Error(`No image attached at slot '${slot}'.`);
+  }
+
+  const nextAlt =
+    patch.altText !== undefined ? patch.altText.trim() : existing.altText;
+  if (!nextAlt || nextAlt.length === 0) {
+    throw new Error("Alt text cannot be empty.");
+  }
+  if (nextAlt.length > 500) {
+    throw new Error("Alt text too long (max 500 characters).");
+  }
+
+  let nextCaption: string | undefined = existing.caption;
+  if ("caption" in patch) {
+    const trimmed = patch.caption?.trim() ?? "";
+    nextCaption = trimmed.length > 0 ? trimmed.slice(0, 500) : undefined;
+  }
+
+  const updatedImage: BlogImage = {
+    ...existing,
+    altText: nextAlt,
+    ...(nextCaption !== undefined ? { caption: nextCaption } : {}),
+  };
+  // Explicitly remove caption when set to empty so it doesn't linger.
+  if (nextCaption === undefined) {
+    delete (updatedImage as { caption?: string }).caption;
+  }
+
+  const nextContent: BlogPost = { ...content, [slot]: updatedImage };
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      content: nextContent,
+      manually_edited: true,
+      last_edited_at: now,
+      updated_at: now,
+    })
+    .eq("id", draftId)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to save image metadata: ${error?.message ?? "no row returned"}`);
+  }
+  return data as Draft;
 }
 
 export async function listDrafts(status?: DraftStatus): Promise<Draft[]> {

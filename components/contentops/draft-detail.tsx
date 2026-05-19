@@ -18,9 +18,27 @@ export function DraftDetail({ draft }: DraftDetailProps) {
       <header
         className={`rounded-3xl border p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9 ${tone.container}`}
       >
-        <p className={`text-xs font-medium uppercase tracking-[0.18em] ${tone.text}`}>
-          {getStatusLabel(draft.status)}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className={`text-xs font-medium uppercase tracking-[0.18em] ${tone.text}`}>
+            {getStatusLabel(draft.status)}
+          </p>
+          <span
+            className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] ${
+              draft.manually_edited
+                ? "bg-[#EAE3F1] text-[#3F2F5A]"
+                : "bg-[#EFE7DE] text-[#3B2F2F]/72"
+            }`}
+            title={
+              draft.manually_edited && draft.last_edited_at
+                ? `Last edited ${formatRelativeTime(draft.last_edited_at)}`
+                : undefined
+            }
+          >
+            {draft.manually_edited
+              ? `Edited${draft.last_edited_at ? ` · ${formatRelativeTime(draft.last_edited_at)}` : ""}`
+              : "AI draft"}
+          </span>
+        </div>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">
           {post.title}
         </h1>

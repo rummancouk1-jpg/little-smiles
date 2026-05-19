@@ -57,6 +57,14 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
                 Article review
               </h1>
             </div>
+            {draft.status !== "published" ? (
+              <Link
+                href={`/admin/contentops/${draft.id}/edit`}
+                className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+              >
+                Edit article
+              </Link>
+            ) : null}
             <Link
               href={`/admin/contentops/${draft.id}/images`}
               className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"

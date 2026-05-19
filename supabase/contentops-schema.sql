@@ -13,6 +13,8 @@ create table if not exists public.contentops_drafts (
   approved_at timestamptz null,
   published_at timestamptz null,
   scheduled_at timestamptz null,
+  manually_edited boolean not null default false,
+  last_edited_at timestamptz null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -20,6 +22,14 @@ create table if not exists public.contentops_drafts (
 -- Idempotent column add for databases provisioned before publish_notes existed.
 alter table public.contentops_drafts
   add column if not exists publish_notes text null;
+
+-- Edit-in-place revision tracking (Commit X). Lightweight: a single
+-- boolean flag + last-edited timestamp. Full version history is out of
+-- scope; these two fields are enough for the operator-facing "AI
+-- draft" vs "Edited" distinction.
+alter table public.contentops_drafts
+  add column if not exists manually_edited boolean not null default false,
+  add column if not exists last_edited_at timestamptz null;
 
 -- Commit K: forward-compat for scheduled publishing. The column lands now
 -- so Commit M can wire scheduling without a second migration. No rows use

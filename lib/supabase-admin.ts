@@ -101,6 +101,8 @@ type ContentopsDraftsTable = {
   approved_at: string | null;
   published_at: string | null;
   scheduled_at: string | null;
+  manually_edited: boolean;
+  last_edited_at: string | null;
   created_at: string;
   updated_at: string;
 };

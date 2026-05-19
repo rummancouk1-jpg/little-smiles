@@ -56,6 +56,11 @@ export function MediaUploader({
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
+  // Edit-details mode (Commit X): operator refines alt text and/or
+  // caption on an already-attached image without re-uploading the blob.
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [editAltText, setEditAltText] = useState(current?.altText ?? "");
+  const [editCaption, setEditCaption] = useState(current?.caption ?? "");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Object-URL hygiene: revoke the preview URL whenever the selection
@@ -198,6 +203,49 @@ export function MediaUploader({
     });
   };
 
+  const submitMetadataEdit = () => {
+    setError(null);
+    const trimmedAlt = editAltText.trim();
+    if (trimmedAlt.length === 0) {
+      setError("Alt text cannot be empty.");
+      return;
+    }
+    if (trimmedAlt.length > 500) {
+      setError("Alt text too long (max 500 characters).");
+      return;
+    }
+    const trimmedCaption = editCaption.trim();
+    startTransition(async () => {
+      let response: Response;
+      try {
+        response = await fetch(slotHref, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            altText: trimmedAlt,
+            caption: trimmedCaption.length > 0 ? trimmedCaption : null,
+          }),
+        });
+      } catch {
+        setError("Network problem. Try again.");
+        return;
+      }
+      const data = (await response.json().catch(() => null)) as
+        | { ok: true; draft: unknown }
+        | { ok: false; error: string }
+        | null;
+      if (!response.ok || !data || data.ok !== true) {
+        setError(
+          (data && "error" in data && data.error) ||
+            "Failed to update image details.",
+        );
+        return;
+      }
+      setEditingDetails(false);
+      router.refresh();
+    });
+  };
+
   const submitRemove = () => {
     setError(null);
     startTransition(async () => {
@@ -277,6 +325,23 @@ export function MediaUploader({
           >
             Replace
           </button>
+          {!editingDetails ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (disabled || isPending) return;
+                setConfirmingRemove(false);
+                setError(null);
+                setEditAltText(current.altText);
+                setEditCaption(current.caption ?? "");
+                setEditingDetails(true);
+              }}
+              disabled={disabled || isPending}
+              className="text-xs text-[#3B2F2F]/65 underline underline-offset-2 hover:text-[#3B2F2F] disabled:opacity-50"
+            >
+              Edit details
+            </button>
+          ) : null}
           {confirmingRemove ? (
             <>
               <button
@@ -307,6 +372,71 @@ export function MediaUploader({
             </button>
           )}
         </div>
+        {editingDetails ? (
+          <div className="mt-5 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3] p-4">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+              Edit image details
+            </p>
+            <div className="mt-3 space-y-3">
+              <div>
+                <label
+                  htmlFor="edit-alt"
+                  className="text-xs uppercase tracking-[0.12em] text-[#3B2F2F]/55"
+                >
+                  Alt text (required)
+                </label>
+                <input
+                  id="edit-alt"
+                  type="text"
+                  value={editAltText}
+                  onChange={(e) => setEditAltText(e.target.value)}
+                  maxLength={500}
+                  disabled={isPending}
+                  className="mt-2 w-full rounded-xl border border-[#3B2F2F]/12 bg-white px-3 py-2 text-sm text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none disabled:opacity-60"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="edit-caption"
+                  className="text-xs uppercase tracking-[0.12em] text-[#3B2F2F]/55"
+                >
+                  Caption (optional)
+                </label>
+                <input
+                  id="edit-caption"
+                  type="text"
+                  value={editCaption}
+                  onChange={(e) => setEditCaption(e.target.value)}
+                  maxLength={500}
+                  disabled={isPending}
+                  className="mt-2 w-full rounded-xl border border-[#3B2F2F]/12 bg-white px-3 py-2 text-sm text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none disabled:opacity-60"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={submitMetadataEdit}
+                  disabled={isPending}
+                  className="rounded-full bg-[#2F2624] px-4 py-2 text-sm font-medium text-[#F6F1EC] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {isPending ? "Saving…" : "Save details"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingDetails(false);
+                    setError(null);
+                  }}
+                  disabled={isPending}
+                  className="text-xs text-[#3B2F2F]/65 underline underline-offset-2 hover:text-[#3B2F2F] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {error ? <p className="mt-3 text-xs text-[#8A2F40]">{error}</p> : null}
         <input
           ref={fileInputRef}

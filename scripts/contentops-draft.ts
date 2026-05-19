@@ -21,6 +21,10 @@
 import { generateDraftFromTopic } from "../lib/contentops/draft-generation";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
+// CLI path uses generateDraftFromTopic → insertPendingReviewDraft. The
+// new manually_edited/last_edited_at columns default cleanly at the
+// engine layer; no CLI changes needed beyond this no-op marker.
+
 const LOG_PREFIX = "[contentops-draft]";
 
 function fail(message: string): never {
