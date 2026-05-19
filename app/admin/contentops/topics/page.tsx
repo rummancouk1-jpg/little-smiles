@@ -127,7 +127,7 @@ export default async function TopicsQueuePage({ searchParams }: PageProps) {
                 href="/admin/contentops"
                 className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
               >
-                ← Editorial queue
+                ← Overview
               </Link>
               <AdminLogoutButton />
             </div>

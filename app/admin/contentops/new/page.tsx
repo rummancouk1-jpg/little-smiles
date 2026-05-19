@@ -60,7 +60,7 @@ export default async function NewDraftPage() {
                 href="/admin/contentops"
                 className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
               >
-                Back to queue
+                Back to overview
               </Link>
               <AdminLogoutButton />
             </div>

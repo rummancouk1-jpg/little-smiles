@@ -41,3 +41,26 @@ export function formatAbsolute(value: string | Date | null | undefined): string 
     minute: "2-digit",
   });
 }
+
+// Forward-looking counterpart to formatRelativeTime. Returns calm "in 2d /
+// in 4h" hints for upcoming timestamps. Past or invalid inputs fall back
+// to "—" rather than producing "ago" — call formatRelativeTime when the
+// timestamp is expected to be in the past.
+export function formatRelativeFuture(value: string | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  const delta = d.getTime() - Date.now();
+  if (delta <= 0) return "now";
+
+  const minutes = Math.floor(delta / 60_000);
+  if (minutes < 60) return `in ${minutes}m`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `in ${hours}h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 14) return `in ${days}d`;
+
+  return formatAbsolute(d);
+}

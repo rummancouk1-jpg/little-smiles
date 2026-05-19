@@ -64,7 +64,7 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
               Manage media →
             </Link>
             <Link
-              href="/admin/contentops"
+              href="/admin/contentops/drafts"
               className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
             >
               Back to queue
@@ -80,7 +80,7 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           status={draft.status}
           approveHref={`/api/admin/contentops/drafts/${draft.id}/approve`}
           rejectHref={`/api/admin/contentops/drafts/${draft.id}/reject`}
-          backHref="/admin/contentops"
+          backHref="/admin/contentops/drafts"
           articleHref={`/blog/${draft.content.slug}`}
           scheduledAt={draft.scheduled_at}
         />
