@@ -128,6 +128,12 @@ export default async function PublishArticlePage({ params }: PageProps) {
               </h1>
             </div>
             <Link
+              href={`/admin/contentops/${draft.id}/images`}
+              className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
+            >
+              Manage media →
+            </Link>
+            <Link
               href="/admin/contentops/publishing"
               className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
             >

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BlogArticleBody } from "@/components/blog-article-body";
 import {
   blogPosts,
   getAllBlogPosts,
@@ -96,7 +97,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     .slice(0, 3);
 
   const structuredData = blogPostingJsonLd(post);
-  const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
   const breadcrumbLd = breadcrumbJsonLdDocument([
     { name: "Home", path: "/" },
     { name: "Journal", path: "/blog" },
@@ -115,47 +115,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       />
       <article className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-[#3B2F2F]/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
-            {post.category}
-          </p>
-          <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-[#1F1918] sm:text-5xl">
-            {post.title}
-          </h1>
-          <p className="mt-5 text-base leading-relaxed text-[#3B2F2F]/72 sm:text-lg">
-            {post.description}
-          </p>
-          <p className="mt-4 text-xs text-[#3B2F2F]/58">
-            <time dateTime={publishedIso}>
-              {post.publishedAt} · {post.readTime}
-            </time>
-          </p>
-
-          <div className="mt-9 space-y-8">
-            {post.sections.map((section) => (
-              <section key={section.heading}>
-                <h2 className="text-2xl font-semibold tracking-tight text-[#241B1B]">
-                  {section.heading}
-                </h2>
-                <div className="mt-3 space-y-3 text-base leading-relaxed text-[#3B2F2F]/74">
-                  {section.content.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-
-          <div className="mt-10 rounded-2xl border border-[#3B2F2F]/10 bg-[#F8F2EC] p-5">
-            <p className="text-sm text-[#3B2F2F]/72">
-              Ready to shop products mentioned in this guide?
-            </p>
-            <Link
-              href={post.cta.href}
-              className="mt-3 inline-flex rounded-full bg-[#2F2624] px-5 py-2.5 text-sm font-medium text-[#F6F1EC] transition-colors hover:bg-[#251E1D]"
-            >
-              {post.cta.label}
-            </Link>
-          </div>
+          <BlogArticleBody post={post} titleLevel={1} ctaInteractive />
 
           {relatedPosts.length > 0 ? (
             <section className="mt-10">

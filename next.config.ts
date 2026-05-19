@@ -15,6 +15,20 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30,
+    /**
+     * Allow next/image optimization for blog hero / thumbnail / section
+     * images served from Supabase Storage public buckets. Pattern is
+     * scoped to any direct subdomain of supabase.co so it covers the
+     * Little Smiles project bucket without coupling the build to env
+     * vars. Tighten to the specific project hostname if/when this ever
+     * gets pointed at a self-hosted Supabase.
+     */
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+      },
+    ],
   },
 };
 
