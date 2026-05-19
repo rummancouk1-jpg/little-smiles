@@ -55,7 +55,8 @@ export default async function PublishArticlePage({ params }: PageProps) {
     notFound();
   }
 
-  if (draft.status !== "approved") {
+  const isWorkable = draft.status === "approved" || draft.status === "scheduled";
+  if (!isWorkable) {
     const isPublished = draft.status === "published";
     const bannerPalette = isPublished
       ? "border-[#2E6A41]/20 bg-[#EAF5EE]"
@@ -147,8 +148,12 @@ export default async function PublishArticlePage({ params }: PageProps) {
             <ArticlePreview article={preparation.insertionPreview} />
             <PublishAction
               draftId={draft.id}
-              publishHref={`/api/admin/contentops/drafts/${draft.id}/publish`}
+              status={draft.status === "scheduled" ? "scheduled" : "approved"}
+              scheduledAt={draft.scheduled_at}
               ready={preparation.ready}
+              publishHref={`/api/admin/contentops/drafts/${draft.id}/publish`}
+              scheduleHref={`/api/admin/contentops/drafts/${draft.id}/schedule`}
+              unscheduleHref={`/api/admin/contentops/drafts/${draft.id}/unschedule`}
             />
           </>
         ) : null}

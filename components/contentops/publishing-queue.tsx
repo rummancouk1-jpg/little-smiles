@@ -1,19 +1,18 @@
 // Engine component — operator-facing queue. Lists drafts that are
-// approved (ready to publish) or already published (historical). The
-// reviewer never lands here; her surface remains at /admin/contentops.
+// approved (ready to publish), scheduled (publish queued for a future
+// time), or already published (historical). The reviewer never lands
+// here; her surface remains at /admin/contentops.
 //
-// Separate component from DraftQueue because the table shape differs:
-// operator cares about "ready since" + status; reviewer cares about
-// "drafted" + status. Reusing one component with branching props would
-// muddle both.
+// Commit M adds the scheduled filter and surfaces the scheduled_at
+// timestamp in the "When" column for scheduled rows.
 
 import Link from "next/link";
 
 import { type Draft, type DraftStatus } from "@/lib/contentops/drafts-store";
 import { getStatusTone } from "@/components/contentops/labels";
-import { formatRelativeTime } from "@/components/contentops/relative-time";
+import { formatAbsolute, formatRelativeTime } from "@/components/contentops/relative-time";
 
-export type OperatorFilter = "approved" | "published" | "all";
+export type OperatorFilter = "approved" | "scheduled" | "published" | "all";
 
 type PublishingQueueProps = {
   drafts: Draft[];
@@ -24,20 +23,47 @@ type PublishingQueueProps = {
 
 const FILTER_LABELS: Record<OperatorFilter, string> = {
   approved: "Ready",
+  scheduled: "Scheduled",
   published: "Live",
   all: "All",
 };
 
-const FILTER_ORDER: OperatorFilter[] = ["approved", "published", "all"];
+const FILTER_ORDER: OperatorFilter[] = ["approved", "scheduled", "published", "all"];
 
-const STATUS_PILL_LABEL: Record<Extract<DraftStatus, "approved" | "published">, string> = {
+const STATUS_PILL_LABEL: Record<
+  Extract<DraftStatus, "approved" | "scheduled" | "published">,
+  string
+> = {
   approved: "Ready",
+  scheduled: "Scheduled",
   published: "Live",
 };
 
-function readySinceTimestamp(draft: Draft): string {
-  if (draft.status === "published" && draft.published_at) return draft.published_at;
-  if (draft.status === "approved" && draft.approved_at) return draft.approved_at;
+function isOperatorStatus(
+  status: DraftStatus,
+): status is "approved" | "scheduled" | "published" {
+  return status === "approved" || status === "scheduled" || status === "published";
+}
+
+type WhenCell = { value: string; absolute: boolean };
+
+function whenCellFor(draft: Draft): WhenCell {
+  if (draft.status === "scheduled" && draft.scheduled_at) {
+    return { value: formatAbsolute(draft.scheduled_at), absolute: true };
+  }
+  if (draft.status === "published" && draft.published_at) {
+    return { value: formatRelativeTime(draft.published_at), absolute: false };
+  }
+  if (draft.status === "approved" && draft.approved_at) {
+    return { value: formatRelativeTime(draft.approved_at), absolute: false };
+  }
+  return { value: formatRelativeTime(draft.created_at), absolute: false };
+}
+
+function rawTimestampFor(draft: Draft): string {
+  if (draft.status === "scheduled") return draft.scheduled_at ?? draft.created_at;
+  if (draft.status === "published") return draft.published_at ?? draft.created_at;
+  if (draft.status === "approved") return draft.approved_at ?? draft.created_at;
   return draft.created_at;
 }
 
@@ -55,16 +81,17 @@ export function PublishingQueue({
         : "border border-[#3B2F2F]/14 bg-white/75 text-[#2E2323] hover:border-[#3B2F2F]/24 hover:bg-[#F2EAE4]",
     ].join(" ");
 
-  // "Ready" is the canonical default and links to the bare path.
   const filterHref = (filter: OperatorFilter) =>
     filter === "approved" ? baseHref : `${baseHref}?filter=${filter}`;
 
   const emptyLabel =
     activeFilter === "approved"
       ? "All caught up. Articles appear here once approved."
-      : activeFilter === "published"
-        ? "Nothing live yet."
-        : "Nothing here yet.";
+      : activeFilter === "scheduled"
+        ? "Nothing scheduled."
+        : activeFilter === "published"
+          ? "Nothing live yet."
+          : "Nothing here yet.";
 
   return (
     <section className="space-y-6">
@@ -86,16 +113,15 @@ export function PublishingQueue({
             <thead className="bg-[#FBF7F3] text-xs uppercase tracking-[0.12em] text-[#3B2F2F]/55">
               <tr>
                 <th className="px-5 py-3 font-medium">Article</th>
-                <th className="px-5 py-3 font-medium">Ready since</th>
+                <th className="px-5 py-3 font-medium">When</th>
                 <th className="px-5 py-3 font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
               {drafts.map((draft) => {
                 const tone = getStatusTone(draft.status);
-                const ts = readySinceTimestamp(draft);
-                const isOperatorStatus =
-                  draft.status === "approved" || draft.status === "published";
+                const when = whenCellFor(draft);
+                const rawTs = rawTimestampFor(draft);
                 return (
                   <tr
                     key={draft.id}
@@ -110,17 +136,24 @@ export function PublishingQueue({
                       </Link>
                       <p className="mt-1 text-xs text-[#3B2F2F]/65">{draft.content.category}</p>
                     </td>
-                    <td className="px-5 py-4 text-xs text-[#3B2F2F]/72" title={ts}>
-                      {formatRelativeTime(ts)}
+                    <td className="px-5 py-4 text-xs text-[#3B2F2F]/72" title={rawTs}>
+                      {when.absolute ? (
+                        <span>
+                          <span className="text-[10px] uppercase tracking-[0.12em] text-[#3B2F2F]/55">
+                            for
+                          </span>{" "}
+                          {when.value}
+                        </span>
+                      ) : (
+                        when.value
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${tone.pill}`}
                       >
-                        {isOperatorStatus
-                          ? STATUS_PILL_LABEL[
-                              draft.status as "approved" | "published"
-                            ]
+                        {isOperatorStatus(draft.status)
+                          ? STATUS_PILL_LABEL[draft.status]
                           : draft.status}
                       </span>
                     </td>

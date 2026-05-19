@@ -73,10 +73,26 @@ export function PublishReport({ preparation }: PublishReportProps) {
   const errorConflicts = preparation.conflicts.filter((c) => c.severity === "error");
   const warningConflicts = preparation.conflicts.filter((c) => c.severity === "warning");
 
-  const bannerClasses = preparation.ready
-    ? "border-[#2E6A41]/25 bg-[#EAF5EE]"
-    : "border-[#8A2F40]/25 bg-[#FBEEF1]";
-  const bannerLabelClasses = preparation.ready ? "text-[#1E5A37]" : "text-[#5E1C29]";
+  const isScheduled = preparation.draft.status === "scheduled";
+  const bannerClasses = isScheduled
+    ? "border-[#2F4F6A]/25 bg-[#EAF1F7]"
+    : preparation.ready
+      ? "border-[#2E6A41]/25 bg-[#EAF5EE]"
+      : "border-[#8A2F40]/25 bg-[#FBEEF1]";
+  const bannerLabelClasses = isScheduled
+    ? "text-[#1E3F5A]"
+    : preparation.ready
+      ? "text-[#1E5A37]"
+      : "text-[#5E1C29]";
+  const bannerLabel = isScheduled
+    ? "Scheduled for publish"
+    : preparation.ready
+      ? "Cleared for publish"
+      : "Needs attention";
+  const scheduledDetail =
+    isScheduled && preparation.draft.scheduled_at
+      ? `Set to go live at ${formatAbsolute(preparation.draft.scheduled_at)}.`
+      : null;
 
   return (
     <article className="space-y-6">
@@ -84,11 +100,14 @@ export function PublishReport({ preparation }: PublishReportProps) {
         className={`rounded-3xl border p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9 ${bannerClasses}`}
       >
         <p className={`text-xs font-medium uppercase tracking-[0.18em] ${bannerLabelClasses}`}>
-          {preparation.ready ? "Cleared for publish" : "Needs attention"}
+          {bannerLabel}
         </p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
           {preparation.draft.content.title}
         </h2>
+        {scheduledDetail ? (
+          <p className={`mt-2 text-sm ${bannerLabelClasses}`}>{scheduledDetail}</p>
+        ) : null}
         <p className="mt-2 text-xs text-[#3B2F2F]/65">
           Last checked {formatAbsolute(preparation.preparedAt)}
         </p>

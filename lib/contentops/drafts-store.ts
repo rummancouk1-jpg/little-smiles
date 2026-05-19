@@ -132,11 +132,13 @@ export async function rejectDraft(id: string, note?: string): Promise<Draft> {
   return data as Draft;
 }
 
-// Closes the publish loop: a human has pasted the diff into lib/blog.ts and
-// shipped it. Source-state guard is enforced at the SQL layer so concurrent
-// clicks cannot double-publish, and so re-publishing a rejected or
-// already-published draft is impossible. Full transition centralization
-// lands in Commit F; this guard exists in D because publish is the new path.
+// Closes the publish loop. Source-state guard enforced at the SQL layer so
+// concurrent clicks cannot double-publish and re-publishing a rejected or
+// already-published draft is impossible.
+//
+// Commit M broadens the source-state set to include 'scheduled' — the cron
+// sweep (app/api/cron/contentops-publish-due) uses this path, and an
+// operator can also override a scheduled draft by clicking Publish now.
 export async function markDraftPublished(id: string, notes?: string): Promise<Draft> {
   const supabase = requireClient();
   const now = new Date().toISOString();
@@ -153,13 +155,97 @@ export async function markDraftPublished(id: string, notes?: string): Promise<Dr
       updated_at: now,
     })
     .eq("id", id)
-    .eq("status", "approved")
+    .in("status", ["approved", "scheduled"])
     .select("*")
     .single();
   if (error || !data) {
     throw new Error(
-      `Failed to mark draft published: ${error?.message ?? "draft not in approved state"}`,
+      `Failed to mark draft published: ${error?.message ?? "draft not in approved or scheduled state"}`,
     );
   }
   return data as Draft;
+}
+
+// Schedule an approved (or already scheduled — i.e., reschedule) draft to
+// publish at a specific time. The cron sweep at
+// app/api/cron/contentops-publish-due flips due rows to 'published' and
+// triggers revalidation.
+//
+// Source-state guard at SQL level: only ('approved', 'scheduled') rows
+// can transition to 'scheduled'. Validation of scheduledAt-must-be-future
+// lives at the API layer, not here, so the engine stays purely transactional.
+export async function markDraftScheduled(
+  id: string,
+  scheduledAt: string,
+  notes?: string,
+): Promise<Draft> {
+  const supabase = requireClient();
+  const now = new Date().toISOString();
+  const trimmed = notes?.trim();
+  const normalizedNotes =
+    trimmed && trimmed.length > 0 ? trimmed.slice(0, PUBLISH_NOTES_MAX_LENGTH) : null;
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      status: "scheduled",
+      scheduled_at: scheduledAt,
+      publish_notes: normalizedNotes,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .in("status", ["approved", "scheduled"])
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(
+      `Failed to schedule draft: ${error?.message ?? "draft not in approved or scheduled state"}`,
+    );
+  }
+  return data as Draft;
+}
+
+// Reverse a schedule. Returns the draft to 'approved' state and clears
+// scheduled_at. Source-state guard: only 'scheduled' rows can move back
+// to 'approved' through this path.
+export async function markDraftUnscheduled(id: string): Promise<Draft> {
+  const supabase = requireClient();
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      status: "approved",
+      scheduled_at: null,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .eq("status", "scheduled")
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(
+      `Failed to unschedule draft: ${error?.message ?? "draft not in scheduled state"}`,
+    );
+  }
+  return data as Draft;
+}
+
+// Cron-facing list helper. Returns drafts whose scheduled_at has passed,
+// regardless of how far in the past. Bounded by a generous limit so a
+// huge backlog can't OOM the sweep; remaining rows pick up on the next
+// cron tick.
+export async function listScheduledDue(nowIso: string, limit = 50): Promise<Draft[]> {
+  const supabase = requireClient();
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .select("*")
+    .eq("status", "scheduled")
+    .lte("scheduled_at", nowIso)
+    .order("scheduled_at", { ascending: true })
+    .limit(limit);
+  if (error) {
+    throw new Error(`Failed to list due scheduled drafts: ${error.message}`);
+  }
+  return (data ?? []) as Draft[];
 }

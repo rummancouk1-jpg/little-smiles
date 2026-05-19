@@ -160,6 +160,32 @@ The reviewer approves a draft in the admin, then prepares its publish bundle, th
 
 **Schema requirement:** `contentops_drafts` must have the `publish_notes text null` column. The migration in `supabase/contentops-schema.sql` is idempotent; re-running it on an older database adds the column safely.
 
+## ContentOps Scheduled Publishing
+
+Approved articles can be queued to go live at a future date/time. The operator picks a time from the publishing surface; a Vercel cron sweeps due rows and promotes them to `published` with on-demand revalidation.
+
+**Workflow:**
+1. Reviewer approves the draft (unchanged).
+2. Operator opens `/admin/contentops/publishing/<id>`, clicks **Schedule publish**.
+3. Picks a datetime (browser local timezone, must be ≥1 minute in the future).
+4. Confirms. The draft moves to `status='scheduled'` with `scheduled_at` set; an audit row tagged `contentops_draft_scheduled` is written.
+5. The `/api/cron/contentops-publish-due` cron runs every 15 minutes, lists rows whose `scheduled_at <= now()`, calls `markDraftPublished` per row, and triggers `revalidatePath` for `/blog`, `/blog/<slug>`, and `/`.
+6. The article goes live within ~15 minutes of its scheduled time.
+
+**Override paths:**
+- **Publish now (override):** operator can publish a scheduled draft immediately. Same API as the regular Publish now flow; the engine's SQL-level guard accepts `scheduled → published` transitions.
+- **Reschedule:** open the picker again on a scheduled draft and confirm a new time.
+- **Cancel schedule:** flip back to `approved` and clear `scheduled_at`. Audit row tagged `contentops_draft_unscheduled`.
+
+**Cron configuration:**
+- `vercel.json` schedules `/api/cron/contentops-publish-due` every 15 minutes (`*/15 * * * *`).
+- Auth via `CRON_SECRET` Bearer token (same token as `communications-retries`).
+- Manual trigger for verification: `curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/cron/contentops-publish-due`.
+
+**Vercel tier note:** Hobby plan limits cron jobs to once per day. If you're on Hobby, change `*/15 * * * *` to `0 12 * * *` (or similar daily slot) — scheduling resolution becomes once-per-day. Pro plan supports the 15-minute cadence.
+
+**Failure isolation:** the sweep processes drafts row-by-row inside a try/catch. One bad row never blocks the rest. Revalidation failures inside the sweep are logged via `captureServerError` but don't fail the publish — ISR (`revalidate=300`) is the safety net.
+
 ## Rollback Steps
 
 1. Revert deployment to last stable build in Vercel.

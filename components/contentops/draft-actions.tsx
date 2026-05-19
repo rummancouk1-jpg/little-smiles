@@ -8,6 +8,7 @@ import { useState, useTransition } from "react";
 
 import { type DraftStatus } from "@/lib/contentops/drafts-store";
 import { getStatusLabel } from "@/components/contentops/labels";
+import { formatAbsolute } from "@/components/contentops/relative-time";
 
 type DraftActionsProps = {
   draftId: string;
@@ -21,6 +22,11 @@ type DraftActionsProps = {
    * state. Optional so legacy callers without slug context still compile.
    */
   articleHref?: string;
+  /**
+   * When the draft is scheduled, the absolute time it will go live.
+   * Surfaced in the terminal copy so the reviewer knows what to expect.
+   */
+  scheduledAt?: string | null;
 };
 
 export function DraftActions({
@@ -30,6 +36,7 @@ export function DraftActions({
   rejectHref,
   backHref,
   articleHref,
+  scheduledAt,
 }: DraftActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -144,11 +151,15 @@ export function DraftActions({
           <p className="text-sm text-[#3B2F2F]/85">
             {status === "approved"
               ? "Approved. Sent to the publishing queue. You're done."
-              : status === "published"
-                ? "Live on site."
-                : status === "rejected"
-                  ? "Declined. No further action needed."
-                  : `Status: ${getStatusLabel(status)}.`}
+              : status === "scheduled"
+                ? scheduledAt
+                  ? `Approved. Scheduled to go live ${formatAbsolute(scheduledAt)}.`
+                  : "Approved. Scheduled to go live."
+                : status === "published"
+                  ? "Live on site."
+                  : status === "rejected"
+                    ? "Declined. No further action needed."
+                    : `Status: ${getStatusLabel(status)}.`}
           </p>
           <div className="flex shrink-0 flex-wrap items-center gap-4">
             {status === "published" && articleHref ? (

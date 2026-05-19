@@ -22,16 +22,23 @@ function asSingle(v: string | string[] | undefined): string | undefined {
 }
 
 function isOperatorFilter(v: string): v is OperatorFilter {
-  return v === "approved" || v === "published" || v === "all";
+  return (
+    v === "approved" ||
+    v === "scheduled" ||
+    v === "published" ||
+    v === "all"
+  );
 }
 
 function readySinceMs(draft: Draft): number {
   const raw =
-    draft.status === "published"
-      ? (draft.published_at ?? draft.created_at)
-      : draft.status === "approved"
-        ? (draft.approved_at ?? draft.created_at)
-        : draft.created_at;
+    draft.status === "scheduled"
+      ? (draft.scheduled_at ?? draft.created_at)
+      : draft.status === "published"
+        ? (draft.published_at ?? draft.created_at)
+        : draft.status === "approved"
+          ? (draft.approved_at ?? draft.created_at)
+          : draft.created_at;
   const t = new Date(raw).getTime();
   return Number.isNaN(t) ? 0 : t;
 }
@@ -66,11 +73,12 @@ export default async function PublishingQueuePage({ searchParams }: PageProps) {
   let listError: string | null = null;
   try {
     if (activeFilter === "all") {
-      const [approved, published] = await Promise.all([
+      const [approved, scheduled, published] = await Promise.all([
         listDrafts("approved"),
+        listDrafts("scheduled"),
         listDrafts("published"),
       ]);
-      drafts = [...approved, ...published].sort(
+      drafts = [...approved, ...scheduled, ...published].sort(
         (a, b) => readySinceMs(b) - readySinceMs(a),
       );
     } else {
