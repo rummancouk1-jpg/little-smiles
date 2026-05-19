@@ -86,6 +86,12 @@ export default async function EditorialOverviewPage() {
               >
                 + Create draft
               </Link>
+              <Link
+                href="/admin/contentops/settings/notifications"
+                className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
+              >
+                Notifications →
+              </Link>
               <AdminLogoutButton />
             </div>
           </div>

@@ -42,7 +42,8 @@
 2. Run `supabase/admin-audit-schema.sql`
 3. Run `supabase/contentops-schema.sql`
 4. Run `supabase/contentops-topics-schema.sql`
-5. Confirm new/altered tables exist:
+5. Run `supabase/contentops-notifications-schema.sql`
+6. Confirm new/altered tables exist:
    - `order_intents`
    - `orders`
    - `order_status_history`
@@ -51,7 +52,8 @@
    - `admin_audit_logs`
    - `contentops_drafts`
    - `contentops_topics`
-6. Verify indexes are present for:
+   - `contentops_notification_preferences`
+7. Verify indexes are present for:
    - order intent recency and product grouping
    - order status filters
    - communication retry scheduling
@@ -210,6 +212,50 @@ The topic state machine gains one value:
 **New audit actions:** `contentops_topic_snoozed`, `contentops_topic_unsnoozed`, `contentops_topic_seasonal_priority`.
 
 **Migration safety:** `supabase/contentops-topics-schema.sql` is fully idempotent. New columns are added with `IF NOT EXISTS`; the status `CHECK` constraint is dropped-and-recreated by name; seeded rows use `ON CONFLICT (title) DO UPDATE` to backfill the new intelligence fields without overwriting operator edits to other columns.
+
+## ContentOps Notifications + Daily Digest
+
+The notification engine sits at `lib/contentops/notifications/`. Channel-agnostic types + a channel-adapter interface let future providers (WhatsApp, alternate email backends) plug in without changing the cron, composer, or settings UI.
+
+**Current channel:** email via Resend.
+
+**One-time setup:**
+1. Apply `supabase/contentops-notifications-schema.sql` (idempotent). Seeds the singleton preferences row.
+2. Set runtime env vars:
+   - `RESEND_API_KEY` (required for any send)
+   - `CONTENTOPS_DIGEST_FROM_EMAIL` (optional; falls back to `CONTACT_FROM_EMAIL`)
+   - `CRON_SECRET` (already used by other crons)
+3. Open `/admin/contentops/settings/notifications`. Set a recipient email, save, then enable the digest toggle.
+
+**Daily cron:**
+- Route: `/api/cron/contentops-daily-digest`
+- Schedule (in `vercel.json`): `30 3 * * *` UTC → **08:30 PKT** morning brief
+- Auth: `CRON_SECRET` Bearer
+- Manual trigger: `curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/cron/contentops-daily-digest`
+
+**Quiet skips (no error, just exits):**
+- `digest_enabled = false` → skipped reason: `digest_disabled`
+- `digest_recipient_email = null` → `no_recipient`
+- Email channel not configured → `email_channel_not_configured`
+- `skip_empty_digests = true` AND state is genuinely empty → `empty_state`
+
+**Manual test send:** the settings page has a "Send a test digest" button that POSTs to `/api/admin/contentops/notifications/send-digest`. Bypasses the `skip_empty_digests` filter so the operator can see the calm-day version too.
+
+**What the digest contains (in order, sections omitted if empty):**
+1. Awaiting your review (pending drafts)
+2. Approved drafts ready to publish
+3. Scheduled this week (next 7 days)
+4. Recently live (last 7 days, informational)
+5. Heads up (low topic queue, missing hero images, cadence gaps)
+
+**Vercel tier:** this is the third cron in `vercel.json`. Hobby tier caps free cron count; Pro removes the cap. If you're on Hobby and over the limit, disable the digest cron or upgrade.
+
+**Audit:**
+- `contentops_notification_prefs_updated` — settings page saves
+- `contentops_digest_sent_manual` — operator-triggered test sends
+- Daily cron sends are not audited (system path, not admin action) — Sentry telemetry covers them via `captureServerError` on failure.
+
+**Future channels:** the `NotificationChannelAdapter` interface accepts any provider. WhatsApp will land as a new file at `lib/contentops/notifications/channels/whatsapp.ts` implementing the same shape. The cron and settings page won't need restructuring.
 
 ## ContentOps Publish Loop
 

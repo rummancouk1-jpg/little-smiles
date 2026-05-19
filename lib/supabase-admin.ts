@@ -105,6 +105,15 @@ type ContentopsDraftsTable = {
   updated_at: string;
 };
 
+type ContentopsNotificationPreferencesTable = {
+  id: string;
+  digest_enabled: boolean;
+  digest_recipient_email: string | null;
+  skip_empty_digests: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 type ContentopsTopicsTable = {
   id: string;
   title: string;
@@ -197,6 +206,15 @@ type SupabaseSchema = {
           updated_at?: string;
         };
         Update: Partial<ContentopsTopicsTable>;
+        Relationships: [];
+      };
+      contentops_notification_preferences: {
+        Row: ContentopsNotificationPreferencesTable;
+        Insert: Omit<ContentopsNotificationPreferencesTable, "created_at" | "updated_at"> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ContentopsNotificationPreferencesTable>;
         Relationships: [];
       };
     };
