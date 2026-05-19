@@ -9,9 +9,12 @@ import { notFound, redirect } from "next/navigation";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { ArticlePreview } from "@/components/contentops/article-preview";
+import { EditorialSummary } from "@/components/contentops/editorial-summary";
 import { getStatusLabel } from "@/components/contentops/labels";
+import { MediaConfidence } from "@/components/contentops/media-confidence";
 import { PublishAction } from "@/components/contentops/publish-action";
-import { PublishReport } from "@/components/contentops/publish-report";
+import { PublishingDestination } from "@/components/contentops/publishing-destination";
+import { ReadinessPanel } from "@/components/contentops/readiness-panel";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
@@ -150,7 +153,18 @@ export default async function PublishArticlePage({ params }: PageProps) {
           </article>
         ) : preparation ? (
           <>
-            <PublishReport preparation={preparation} />
+            <PublishingDestination
+              draft={preparation.draft}
+              preparedAt={preparation.preparedAt}
+              ready={preparation.ready}
+            />
+            <EditorialSummary post={preparation.insertionPreview} />
+            <ReadinessPanel readiness={preparation.readiness} />
+            <MediaConfidence
+              hero={preparation.insertionPreview.hero ?? null}
+              thumbnail={preparation.insertionPreview.thumbnail ?? null}
+              draftId={preparation.draft.id}
+            />
             <ArticlePreview article={preparation.insertionPreview} />
             <PublishAction
               draftId={draft.id}

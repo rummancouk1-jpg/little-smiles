@@ -18,9 +18,12 @@ type ArticlePreviewProps = {
 export function ArticlePreview({ article }: ArticlePreviewProps) {
   return (
     <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)]">
-      <header className="border-b border-[#3B2F2F]/8 px-7 pb-4 pt-6 sm:px-9 sm:pt-7">
+      <header className="border-b border-[#3B2F2F]/8 px-7 pb-5 pt-6 sm:px-9 sm:pt-7">
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-          Article preview · this is what readers will see
+          Live article preview
+        </p>
+        <p className="mt-1 text-sm text-[#3B2F2F]/72">
+          This is how the article will appear on the public site.
         </p>
       </header>
 
