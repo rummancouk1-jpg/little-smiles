@@ -10,6 +10,7 @@
 //   drafted   -> archived  (archiveTopic — operator can give up on a draft)
 //   archived  -> X         (terminal in Commit R; re-activation deferred)
 
+import { describeMissingTable } from "@/lib/contentops/supabase-error-copy";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export type TopicStatus =
@@ -126,6 +127,8 @@ export async function listTopics(status?: TopicStatus): Promise<Topic[]> {
   }
   const { data, error } = await query;
   if (error) {
+    const friendly = describeMissingTable(error, "contentops_topics");
+    if (friendly) throw new Error(friendly);
     throw new Error(`Failed to list topics: ${error.message}`);
   }
   return sortByPriorityThenCreated((data ?? []) as Topic[]);
@@ -139,6 +142,8 @@ export async function getTopicById(id: string): Promise<Topic | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) {
+    const friendly = describeMissingTable(error, "contentops_topics");
+    if (friendly) throw new Error(friendly);
     throw new Error(`Failed to fetch topic: ${error.message}`);
   }
   return (data as Topic | null) ?? null;

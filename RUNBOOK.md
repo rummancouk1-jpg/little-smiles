@@ -2,16 +2,26 @@
 
 ## Required Environment Variables
 
-### Core Runtime (required)
+### Core Runtime (required for app boot + admin + ContentOps generation)
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `ADMIN_SECRET` (if `ADMIN_AUTH_MODE=secret`)
 - `CRON_SECRET`
+- `ANTHROPIC_API_KEY` — required by the in-app draft generator at
+  `/admin/contentops/new` and by `POST /api/admin/contentops/drafts/generate`.
+  Without it the generate endpoint returns 500 with a clear "API key not
+  configured" message; everything else in ContentOps continues to work.
 
-### Contact + Marketing
+### Optional — email delivery (contact form + ContentOps daily digest)
+The app boots and the ContentOps admin works without these. Missing values
+only disable email-dependent surfaces (contact form delivery, daily digest,
+test-digest send), and the notifications settings page surfaces a calm
+"Email delivery isn't configured yet" banner instead of failing.
 - `RESEND_API_KEY`
 - `CONTACT_TO_EMAIL` (expected: `littlesmiles.co.uk@gmail.com`)
-- `CONTACT_FROM_EMAIL`
+- `CONTACT_FROM_EMAIL` — also used as the digest sender if
+  `CONTENTOPS_DIGEST_FROM_EMAIL` is not set
+- `CONTENTOPS_DIGEST_FROM_EMAIL` (optional override for digest sender)
 - `NEXT_PUBLIC_GA_ID` (format: `G-XXXXXXXXXX`)
 
 ### Admin Auth (optional, if using Supabase admin auth mode)
@@ -20,7 +30,7 @@
 - `ADMIN_ALLOWED_EMAILS`
 - `ADMIN_DEFAULT_LABEL`
 
-### Notifications (optional provider-specific)
+### Order notifications (optional provider-specific)
 - `ORDER_NOTIFICATION_PROVIDER` (`twilio`, `webhook`, or fallback simulation)
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
@@ -32,9 +42,6 @@
 ### Observability
 - `SENTRY_DSN` and/or `NEXT_PUBLIC_SENTRY_DSN`
 - `SENTRY_ORG` + `SENTRY_PROJECT` (for source map upload in CI/build)
-
-### ContentOps Draft CLI (local-only)
-- `ANTHROPIC_API_KEY` — required only when running `npm run contentops:draft`. Not used by the deployed server; do not set in Vercel production.
 
 ## Supabase Migration Order
 
@@ -474,3 +481,62 @@ Slot support in Commit N: `hero` and `thumbnail`. Per-section images are schema-
 - [ ] Audit logs capture admin and export actions.
 - [ ] Track-order lookup works with real order + phone.
 - [ ] Sentry DSN configured and test error appears in Sentry dashboard.
+
+## ContentOps End-to-End Audit Checklist
+
+Run through this after migrations and env vars are in place. Each step is
+operator-driven from the admin UI; no special tooling required.
+
+### Prerequisites
+- [ ] `supabase/contentops-schema.sql` applied (creates `contentops_drafts`).
+- [ ] `supabase/contentops-topics-schema.sql` applied (creates `contentops_topics`, seeds 7 starter topics covering newborn care, swaddles, summer baby clothing, baby sleep, feeding routines, baby essentials, Eid gifting).
+- [ ] `supabase/contentops-notifications-schema.sql` applied (creates `contentops_notification_preferences` singleton).
+- [ ] Storage bucket `contentops-images` exists and is public (see "ContentOps Media → One-time Supabase Storage setup").
+- [ ] Required core env vars set, including `ANTHROPIC_API_KEY` in the runtime.
+- [ ] (Optional) Email env vars set if the daily digest will be used.
+
+### Walkthrough
+
+1. **Overview** — `/admin/contentops`
+   - [ ] Page loads with overview cards (no red error banner).
+2. **Topic queue** — `/admin/contentops/topics`
+   - [ ] Seeded topics render in the queued tab.
+   - [ ] Filter pills (`queued`, `snoozed`, `drafted`, `published`, `archived`, `all`) navigate cleanly.
+   - [ ] Missing-table case shows the calm "Apply supabase/contentops-topics-schema.sql" message rather than a Postgres dump.
+3. **Add topic** — `/admin/contentops/topics/new`
+   - [ ] Form submits, returns to the queue with the new card present.
+   - [ ] Duplicate-title attempt surfaces a clear in-form message.
+4. **Generate draft from topic**
+   - [ ] Card-level **Generate draft** action redirects to the new draft's review page (15–30s wait).
+   - [ ] Without `ANTHROPIC_API_KEY` the action returns the calm "API key not configured" error and the draft is not created.
+5. **Edit draft** — `/admin/contentops/<id>/edit`
+   - [ ] Title/description/category/sections all save; slug is locked.
+   - [ ] Unsaved-changes guard appears when navigating away while dirty.
+6. **Restore previous / AI version** — `/admin/contentops/<id>`
+   - [ ] Revisions card appears after at least one edit.
+   - [ ] **Restore previous version** swaps content back.
+   - [ ] **Restore AI draft** resets to the original snapshot.
+7. **Media upload** — `/admin/contentops/<id>/media`
+   - [ ] Hero upload succeeds with alt text (JPEG/PNG/WebP, ≤8 MB).
+   - [ ] Bucket-missing case returns "Storage upload failed. Is the bucket configured?"
+8. **Approve**
+   - [ ] **Approve** moves the draft to status `approved`.
+   - [ ] **Reject** with optional note moves to status `rejected`.
+9. **Publish readiness** — `/admin/contentops/publishing/<id>`
+   - [ ] Readiness panel shows hero/structure checks. Editorial connections card renders related articles + products.
+10. **Schedule**
+    - [ ] **Schedule publish** accepts a future datetime; draft moves to `scheduled`.
+    - [ ] **Reschedule** updates the time; **Cancel schedule** reverts to `approved`.
+11. **Publish now**
+    - [ ] **Mark as published** (Step 2 of the publish flow) succeeds after the operator pastes the diff into `lib/blog.ts` and redeploys.
+12. **Notifications settings** — `/admin/contentops/settings/notifications`
+    - [ ] Page loads; missing-table case shows the calm "Apply supabase/contentops-notifications-schema.sql" message.
+    - [ ] Without email env, the yellow "Email delivery isn't configured yet" banner appears (saving still works; sends skip).
+    - [ ] With email env, **Save preferences** then **Send a test digest** delivers a calm-day or summary email.
+13. **Public blog rendering** — `/blog/<slug>`
+    - [ ] Published article renders with hero, sections, related articles, and related products.
+
+### What's still operator-blocked by external credentials
+- **Draft generation** needs a valid `ANTHROPIC_API_KEY` on the runtime — no local fallback.
+- **Contact form + daily digest** need `RESEND_API_KEY` + a verified sender; without them the UI surfaces calm warnings instead of crashing.
+- **Order notifications** need Twilio or webhook env if you want anything beyond the simulation fallback.

@@ -8,6 +8,7 @@ import {
   type BlogImageSlot,
   type BlogPost,
 } from "@/lib/contentops/blog-schema";
+import { describeMissingTable } from "@/lib/contentops/supabase-error-copy";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export type DraftStatus =
@@ -448,6 +449,8 @@ export async function listDrafts(status?: DraftStatus): Promise<Draft[]> {
   }
   const { data, error } = await query;
   if (error) {
+    const friendly = describeMissingTable(error, "contentops_drafts");
+    if (friendly) throw new Error(friendly);
     throw new Error(`Failed to list drafts: ${error.message}`);
   }
   return (data ?? []) as Draft[];
@@ -461,6 +464,8 @@ export async function getDraftById(id: string): Promise<Draft | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) {
+    const friendly = describeMissingTable(error, "contentops_drafts");
+    if (friendly) throw new Error(friendly);
     throw new Error(`Failed to fetch draft: ${error.message}`);
   }
   return (data as Draft | null) ?? null;

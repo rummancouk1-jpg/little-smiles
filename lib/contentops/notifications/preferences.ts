@@ -2,6 +2,7 @@
 // id='default'. Engine-level — no auth, no UI knowledge.
 
 import type { NotificationPreferences } from "@/lib/contentops/notifications/types";
+import { describeMissingTable } from "@/lib/contentops/supabase-error-copy";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 const SINGLETON_ID = "default";
@@ -44,6 +45,8 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
     .eq("id", SINGLETON_ID)
     .maybeSingle();
   if (error) {
+    const friendly = describeMissingTable(error, "contentops_notification_preferences");
+    if (friendly) throw new Error(friendly);
     throw new Error(`Failed to read notification preferences: ${error.message}`);
   }
   if (data) return fromRow(data as RowShape);

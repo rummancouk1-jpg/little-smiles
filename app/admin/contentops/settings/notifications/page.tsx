@@ -10,6 +10,7 @@ import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { NotificationPreferencesForm } from "@/components/contentops/notification-preferences-form";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
+import { emailNotificationChannel } from "@/lib/contentops/notifications/channels/email";
 import { getNotificationPreferences } from "@/lib/contentops/notifications/preferences";
 import type { NotificationPreferences } from "@/lib/contentops/notifications/types";
 
@@ -40,6 +41,16 @@ export default async function NotificationsSettingsPage() {
     preferences = await getNotificationPreferences();
   } catch (err) {
     loadError = err instanceof Error ? err.message : "Failed to read preferences.";
+  }
+
+  const emailConfigured = emailNotificationChannel.isConfigured();
+  const missingEmailEnv: string[] = [];
+  if (!process.env.RESEND_API_KEY?.trim()) missingEmailEnv.push("RESEND_API_KEY");
+  if (
+    !process.env.CONTENTOPS_DIGEST_FROM_EMAIL?.trim() &&
+    !process.env.CONTACT_FROM_EMAIL?.trim()
+  ) {
+    missingEmailEnv.push("CONTENTOPS_DIGEST_FROM_EMAIL (or CONTACT_FROM_EMAIL)");
   }
 
   return (
@@ -78,9 +89,31 @@ export default async function NotificationsSettingsPage() {
             <p className="font-medium">Unable to load preferences</p>
             <p className="mt-1 text-xs">{loadError}</p>
           </article>
-        ) : preferences ? (
-          <NotificationPreferencesForm initialPreferences={preferences} />
-        ) : null}
+        ) : (
+          <>
+            {!emailConfigured ? (
+              <article className="rounded-3xl border border-[#B58A2A]/25 bg-[#FBF3DD] p-5 text-sm text-[#5C4314] sm:p-6">
+                <p className="font-medium">Email delivery isn&rsquo;t configured yet</p>
+                <p className="mt-1 text-xs leading-relaxed">
+                  Saving preferences works, but the daily digest and test sends will
+                  skip quietly until these env vars are set:
+                </p>
+                <ul className="mt-2 list-disc pl-5 text-xs">
+                  {missingEmailEnv.map((v) => (
+                    <li key={v}>{v}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-[#5C4314]/80">
+                  See <span className="font-mono">RUNBOOK.md</span> → &ldquo;ContentOps
+                  Notifications + Daily Digest&rdquo; for setup.
+                </p>
+              </article>
+            ) : null}
+            {preferences ? (
+              <NotificationPreferencesForm initialPreferences={preferences} />
+            ) : null}
+          </>
+        )}
       </section>
     </main>
   );
