@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { DraftActions } from "@/components/contentops/draft-actions";
 import { DraftDetail } from "@/components/contentops/draft-detail";
+import { RevisionsCard } from "@/components/contentops/revisions-card";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getDraftById } from "@/lib/contentops/drafts-store";
@@ -83,6 +84,14 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
 
         <DraftDetail draft={draft} />
 
+        {draft.status === "approved" ? (
+          <p className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3] px-4 py-3 text-xs text-[#3B2F2F]/72">
+            {draft.content.hero
+              ? "Next step: publish now or schedule from the publishing queue."
+              : "Next step: attach a hero image, then publish."}
+          </p>
+        ) : null}
+
         <DraftActions
           draftId={draft.id}
           status={draft.status}
@@ -92,6 +101,17 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           articleHref={`/blog/${draft.content.slug}`}
           scheduledAt={draft.scheduled_at}
         />
+
+        {draft.status !== "published" ? (
+          <RevisionsCard
+            draftId={draft.id}
+            currentContent={draft.content}
+            previousContent={draft.previous_content}
+            aiContent={draft.ai_generated_content}
+            lastEditedAt={draft.last_edited_at}
+            manuallyEdited={draft.manually_edited}
+          />
+        ) : null}
       </section>
     </main>
   );

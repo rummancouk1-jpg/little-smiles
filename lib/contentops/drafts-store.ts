@@ -29,6 +29,8 @@ export type Draft = {
   scheduled_at: string | null;
   manually_edited: boolean;
   last_edited_at: string | null;
+  ai_generated_content: BlogPost | null;
+  previous_content: BlogPost | null;
   created_at: string;
   updated_at: string;
 };
@@ -123,6 +125,11 @@ export async function insertPendingReviewDraft(
       scheduled_at: null,
       manually_edited: false,
       last_edited_at: null,
+      // Commit Z: capture the original AI output once. Operator can
+      // always restore to this regardless of how many edits have
+      // happened since.
+      ai_generated_content: content,
+      previous_content: null,
     })
     .select("id, slug")
     .single();
@@ -224,12 +231,127 @@ export async function editDraftContent(
       manually_edited: true,
       last_edited_at: now,
       updated_at: now,
+      // Commit Z: capture the pre-edit content as the single-step undo
+      // target. Replaces the previous snapshot if one exists — this
+      // is one-deep history by design.
+      previous_content: currentContent,
     })
     .eq("id", id)
     .select("*")
     .single();
   if (error || !data) {
     throw new Error(`Failed to save edit: ${error?.message ?? "no row returned"}`);
+  }
+  return data as Draft;
+}
+
+// --- Restore helpers (Commit Z) ----------------------------------------
+
+function deepEqual(a: BlogPost, b: BlogPost): boolean {
+  // Structured content — JSON stringify equality is sufficient and
+  // robust for our shape (no functions, no circular refs).
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/**
+ * Restore the single-step previous version. Swaps content ↔
+ * previous_content so the restore itself is undoable. Recomputes
+ * manually_edited by comparing the restored content against the AI
+ * snapshot.
+ *
+ * Frozen on status='published'. Throws if no previous snapshot exists.
+ */
+export async function restorePreviousVersion(id: string): Promise<Draft> {
+  const supabase = requireClient();
+  const { data: current, error: readErr } = await supabase
+    .from("contentops_drafts")
+    .select("content, previous_content, ai_generated_content, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) {
+    throw new Error(`Failed to read draft: ${readErr.message}`);
+  }
+  if (!current) {
+    throw new Error("Draft not found");
+  }
+  if (current.status === "published") {
+    throw new Error("Cannot restore a published draft.");
+  }
+  if (!current.previous_content) {
+    throw new Error("No previous version to restore.");
+  }
+
+  const restored = current.previous_content as BlogPost;
+  const swappedOut = current.content as BlogPost;
+  const ai = current.ai_generated_content as BlogPost | null;
+  const stillEdited = ai ? !deepEqual(restored, ai) : true;
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      content: restored,
+      previous_content: swappedOut,
+      manually_edited: stillEdited,
+      last_edited_at: now,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to restore previous version: ${error?.message ?? "no row returned"}`);
+  }
+  return data as Draft;
+}
+
+/**
+ * Restore the original AI-generated content. Current content moves to
+ * previous_content so a single undo is still available. manually_edited
+ * resets to false because the article is now identical to the AI
+ * snapshot.
+ *
+ * Frozen on status='published'. Throws if no AI snapshot exists (drafts
+ * created before Commit Z).
+ */
+export async function restoreAiVersion(id: string): Promise<Draft> {
+  const supabase = requireClient();
+  const { data: current, error: readErr } = await supabase
+    .from("contentops_drafts")
+    .select("content, ai_generated_content, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) {
+    throw new Error(`Failed to read draft: ${readErr.message}`);
+  }
+  if (!current) {
+    throw new Error("Draft not found");
+  }
+  if (current.status === "published") {
+    throw new Error("Cannot restore a published draft.");
+  }
+  if (!current.ai_generated_content) {
+    throw new Error("No original AI version stored for this draft.");
+  }
+
+  const restored = current.ai_generated_content as BlogPost;
+  const swappedOut = current.content as BlogPost;
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .update({
+      content: restored,
+      previous_content: swappedOut,
+      manually_edited: false,
+      last_edited_at: now,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to restore AI version: ${error?.message ?? "no row returned"}`);
   }
   return data as Draft;
 }

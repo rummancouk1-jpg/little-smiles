@@ -104,7 +104,12 @@ export default async function EditDraftPage({ params }: PageProps) {
             </Link>
           </article>
         ) : (
-          <DraftEditForm draftId={draft.id} initial={draft.content} />
+          <DraftEditForm
+            draftId={draft.id}
+            initial={draft.content}
+            draftStatus={draft.status}
+            scheduledAt={draft.scheduled_at}
+          />
         )}
       </section>
     </main>

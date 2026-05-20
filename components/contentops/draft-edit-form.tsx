@@ -16,8 +16,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
+import { formatAbsolute } from "@/components/contentops/relative-time";
 import {
   blogCategorySchema,
   blogRelatedProductCategorySchema,
@@ -25,10 +26,13 @@ import {
   type BlogPost,
   type BlogRelatedProductCategory,
 } from "@/lib/contentops/blog-schema";
+import type { DraftStatus } from "@/lib/contentops/drafts-store";
 
 type DraftEditFormProps = {
   draftId: string;
   initial: BlogPost;
+  draftStatus: DraftStatus;
+  scheduledAt: string | null;
 };
 
 type EditableSection = {
@@ -84,11 +88,44 @@ function parseSectionBody(body: string): string[] {
     .filter((p) => p.length > 0);
 }
 
-export function DraftEditForm({ draftId, initial }: DraftEditFormProps) {
+export function DraftEditForm({
+  draftId,
+  initial,
+  draftStatus,
+  scheduledAt,
+}: DraftEditFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [state, setState] = useState<FormState>(() => initialState(initial));
   const [error, setError] = useState<string | null>(null);
+
+  // Commit Z: unsaved-changes guard. Compare normalized JSON of the
+  // initial snapshot and the current form state. While dirty, attach a
+  // beforeunload handler so the browser warns the operator before they
+  // close the tab or navigate away. Save success clears the dirty
+  // state implicitly by router-pushing away.
+  const initialJson = useMemo(
+    () => JSON.stringify(initialState(initial)),
+    [initial],
+  );
+  const isDirty = useMemo(() => JSON.stringify(state) !== initialJson, [
+    state,
+    initialJson,
+  ]);
+
+  useEffect(() => {
+    if (!isDirty || isPending) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Modern browsers ignore the message text but require returnValue
+      // to be set for the dialog to surface.
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty, isPending]);
+
+  const isScheduled = draftStatus === "scheduled";
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));
@@ -225,6 +262,20 @@ export function DraftEditForm({ draftId, initial }: DraftEditFormProps) {
   return (
     <article className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-9">
       <div className="space-y-7">
+        {isScheduled ? (
+          <div className="rounded-2xl border border-[#2F4F6A]/25 bg-[#EAF1F7] p-4 text-sm leading-relaxed text-[#1E3F5A]">
+            <p className="font-medium">
+              This article is scheduled to publish
+              {scheduledAt ? ` on ${formatAbsolute(scheduledAt)}` : ""}.
+            </p>
+            <p className="mt-1 text-xs text-[#1E3F5A]/85">
+              Your edits update the scheduled version. The publish time
+              isn&rsquo;t changed — reschedule from the publishing surface if
+              you need a different moment.
+            </p>
+          </div>
+        ) : null}
+
         {/* Title + Description */}
         <div>
           <label htmlFor="edit-title" className={labelClass}>Title</label>
@@ -484,7 +535,18 @@ export function DraftEditForm({ draftId, initial }: DraftEditFormProps) {
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/admin/contentops/${draftId}`)}
+            onClick={() => {
+              if (
+                isDirty &&
+                typeof window !== "undefined" &&
+                !window.confirm(
+                  "You have unsaved changes. Leave anyway?",
+                )
+              ) {
+                return;
+              }
+              router.push(`/admin/contentops/${draftId}`);
+            }}
             disabled={isPending}
             className="text-xs text-[#3B2F2F]/65 underline underline-offset-2 hover:text-[#3B2F2F] disabled:opacity-50"
           >

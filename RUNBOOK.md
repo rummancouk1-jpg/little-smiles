@@ -331,6 +331,42 @@ The relationship engine at `lib/contentops/intelligence/relationships.ts` provid
 
 **SaaS-readiness note:** the engine imports `Product` directly from `lib/products`. A future multi-tenant carve-out would move this behind a tenant-catalog adapter so other brands' product models slot in without touching the engine.
 
+## ContentOps Lightweight Revision Safety (Commit Z)
+
+The system stores two snapshots per draft so the operator can always undo an edit without losing the original AI output. Not full version history — single-step undo plus an always-available "back to AI" reset.
+
+**Two new JSONB columns on `contentops_drafts`:**
+- `ai_generated_content` — captured once at insert. Never overwritten. Lets the operator restore to the original AI output regardless of how many edits have happened since.
+- `previous_content` — captured before each edit save. Single-step undo target. Subsequent restores swap `previous_content` ↔ `content`, so the undo itself is undoable.
+
+**Restore semantics:**
+- **Restore previous version** — swaps `content` ↔ `previous_content`. Recomputes `manually_edited` by comparing the restored content against the AI snapshot.
+- **Restore AI draft** — replaces `content` with `ai_generated_content`, captures the swapped-out content as `previous_content`, sets `manually_edited` to `false`.
+
+Both are frozen on `status='published'` — live articles can't be retroactively rolled back through this surface.
+
+**API:** `POST /api/admin/contentops/drafts/<id>/restore` with body `{ source: "previous" | "ai_generated" }`. Writes one of:
+- `contentops_draft_restored_previous`
+- `contentops_draft_restored_ai`
+
+**UI:** the article-review page renders a calm **Revisions** card with up to two `<details>` disclosures (previous + AI). Each shows a title/description/structure summary and a Restore button. The card hides entirely when neither snapshot is available or meaningfully different.
+
+**Backwards compatibility:** drafts created before Commit Z have both columns at `null`. The UI hides the restore action for whichever snapshot is missing; the engine throws a clear "No original AI version stored" / "No previous version to restore" message if a route is called against an absent snapshot.
+
+**Migration safety:** the column additions in `supabase/contentops-schema.sql` are idempotent (`ADD COLUMN IF NOT EXISTS`). The `insertPendingReviewDraft` engine helper now seeds `ai_generated_content` on every new draft.
+
+## ContentOps Edit Safety Layer (Commit Z)
+
+Beyond revisions, the edit page gained two safeguards:
+
+**Unsaved-changes guard:** the edit form tracks dirtiness by comparing the current form state to the initial snapshot (JSON equality). While dirty, a `beforeunload` handler is registered so the browser surfaces its native "Leave site?" dialog before tab close or navigation away. The Cancel button additionally runs `window.confirm("You have unsaved changes. Leave anyway?")` before navigating, so internal nav stays protected too.
+
+**Scheduled-edit banner:** when the operator opens the edit page for a `status='scheduled'` draft, a calm blue banner at the top of the form notes that edits will update the scheduled version without changing the publish time. The reschedule action remains on the publishing surface — this banner is a heads-up, not a workflow change.
+
+**Approved-state hint:** the article-review page shows a single-line next-step nudge for approved drafts:
+- "Next step: attach a hero image, then publish." — when no hero is attached
+- "Next step: publish now or schedule from the publishing queue." — when hero is attached
+
 ## ContentOps Scheduled Publishing
 
 Approved articles can be queued to go live at a future date/time. The operator picks a time from the publishing surface; a Vercel cron sweeps due rows and promotes them to `published` with on-demand revalidation.

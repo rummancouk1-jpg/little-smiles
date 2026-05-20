@@ -103,6 +103,8 @@ type ContentopsDraftsTable = {
   scheduled_at: string | null;
   manually_edited: boolean;
   last_edited_at: string | null;
+  ai_generated_content: BlogPost | null;
+  previous_content: BlogPost | null;
   created_at: string;
   updated_at: string;
 };

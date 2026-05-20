@@ -15,6 +15,8 @@ create table if not exists public.contentops_drafts (
   scheduled_at timestamptz null,
   manually_edited boolean not null default false,
   last_edited_at timestamptz null,
+  ai_generated_content jsonb null,
+  previous_content jsonb null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -30,6 +32,20 @@ alter table public.contentops_drafts
 alter table public.contentops_drafts
   add column if not exists manually_edited boolean not null default false,
   add column if not exists last_edited_at timestamptz null;
+
+-- Lightweight revision safety (Commit Z). Two JSONB snapshots:
+--   ai_generated_content — captured once at insert, never overwritten.
+--                          Lets the operator restore to the original AI
+--                          output regardless of how many edits have
+--                          happened since.
+--   previous_content     — captured before each edit save. Single-step
+--                          undo. Subsequent restores cycle previous ↔
+--                          current, so the undo itself is undoable.
+-- Both are nullable; the UI hides the corresponding restore action when
+-- a snapshot isn't present (e.g. drafts created before Commit Z).
+alter table public.contentops_drafts
+  add column if not exists ai_generated_content jsonb null,
+  add column if not exists previous_content jsonb null;
 
 -- Commit K: forward-compat for scheduled publishing. The column lands now
 -- so Commit M can wire scheduling without a second migration. No rows use
