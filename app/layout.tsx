@@ -60,6 +60,9 @@ export const metadata: Metadata = {
     description:
       "Parent-loved baby essentials for comfort, gifting, and everyday use.",
   },
+  other: {
+    "p:domain_verify": "c3557302204ad4b3f5163e017298af98",
+  },
 };
 
 export default function RootLayout({
