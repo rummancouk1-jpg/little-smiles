@@ -29,6 +29,7 @@ import {
   detachDraftImage,
   editDraftImageMetadata,
 } from "@/lib/contentops/drafts-store";
+import { deleteImageVariants } from "@/lib/contentops/intelligence/image-optimization";
 import { deleteDraftImage } from "@/lib/contentops/storage";
 import { captureServerError } from "@/lib/error-observability";
 import { z } from "zod";
@@ -60,7 +61,7 @@ export async function POST(request: Request, { params }: RouteProps) {
     return NextResponse.json(
       {
         ok: false,
-        error: `Unsupported image slot '${slot}'. Commit N supports hero and thumbnail.`,
+        error: `Unsupported image slot '${slot}'. Supported: hero, thumbnail, og, pinterest.`,
       },
       { status: 400 },
     );
@@ -119,7 +120,7 @@ export async function DELETE(request: Request, { params }: RouteProps) {
     return NextResponse.json(
       {
         ok: false,
-        error: `Unsupported image slot '${slot}'. Commit N supports hero and thumbnail.`,
+        error: `Unsupported image slot '${slot}'. Supported: hero, thumbnail, og, pinterest.`,
       },
       { status: 400 },
     );
@@ -147,6 +148,9 @@ export async function DELETE(request: Request, { params }: RouteProps) {
           },
         );
       }
+      // Best-effort variant cleanup. Failures inside the helper are
+      // swallowed; orphan variants are non-fatal.
+      await deleteImageVariants(removedImage.variants);
     }
     await logAdminAudit(request, {
       action: "contentops_image_removed",

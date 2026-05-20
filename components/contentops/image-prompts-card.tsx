@@ -9,12 +9,18 @@ import { useState } from "react";
 
 import type { BlogImagePrompts } from "@/lib/contentops/blog-schema";
 
-type Slot = { id: keyof Omit<BlogImagePrompts, "generatedAt" | "paletteVersion">; label: string; helper: string };
+// Slot id is the union of the prompt-bearing keys on BlogImagePrompts.
+// Pinterest is optional in storage (older drafts predate it) so we
+// surface it only when actually present below.
+type SlotId = "hero" | "thumbnail" | "og" | "pinterest";
+
+type Slot = { id: SlotId; label: string; helper: string };
 
 const SLOTS: Slot[] = [
   { id: "hero", label: "Hero (16:9)", helper: "Full-width article banner." },
   { id: "thumbnail", label: "Thumbnail (1:1)", helper: "Cards and OG fallback." },
   { id: "og", label: "OG card (1200×630)", helper: "Social share preview." },
+  { id: "pinterest", label: "Pinterest pin (2:3)", helper: "Vertical pin for Pinterest discovery." },
 ];
 
 type Props = {
@@ -64,27 +70,31 @@ export function ImagePromptsCard({ prompts }: Props) {
         </span>
       </div>
       <div className="mt-4 space-y-4">
-        {SLOTS.map((slot) => (
-          <div key={slot.id}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-medium text-[#1F1918]">{slot.label}</p>
-              <button
-                type="button"
-                onClick={() => copy(slot.id, prompts[slot.id])}
-                className="rounded-full border border-[#3B2F2F]/14 bg-white px-3 py-1 text-[11px] font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
-              >
-                {copiedKey === slot.id ? "Copied" : "Copy"}
-              </button>
+        {SLOTS.map((slot) => {
+          const value = prompts[slot.id];
+          if (!value) return null;
+          return (
+            <div key={slot.id}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-medium text-[#1F1918]">{slot.label}</p>
+                <button
+                  type="button"
+                  onClick={() => copy(slot.id, value)}
+                  className="rounded-full border border-[#3B2F2F]/14 bg-white px-3 py-1 text-[11px] font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+                >
+                  {copiedKey === slot.id ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <p className="mt-0.5 text-[11px] text-[#3B2F2F]/55">{slot.helper}</p>
+              <textarea
+                readOnly
+                value={value}
+                rows={4}
+                className="mt-2 w-full resize-y rounded-xl border border-[#3B2F2F]/12 bg-[#FBF7F3] p-3 font-mono text-[12px] leading-relaxed text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none"
+              />
             </div>
-            <p className="mt-0.5 text-[11px] text-[#3B2F2F]/55">{slot.helper}</p>
-            <textarea
-              readOnly
-              value={prompts[slot.id]}
-              rows={4}
-              className="mt-2 w-full resize-y rounded-xl border border-[#3B2F2F]/12 bg-[#FBF7F3] p-3 font-mono text-[12px] leading-relaxed text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none"
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </article>
   );

@@ -7,10 +7,11 @@
 // uploaded as photography, AI output, or curated stock. No technical
 // language, no dimensions tables, no MIME types in the operator view.
 
-import Image from "next/image";
 import Link from "next/link";
 
+import { SafeImage } from "@/components/contentops/safe-image";
 import type { BlogImage } from "@/lib/contentops/blog-schema";
+import { resolveBlogImageSrc } from "@/lib/contentops/image-render";
 
 type MediaConfidenceProps = {
   hero: BlogImage | null;
@@ -64,14 +65,22 @@ export function MediaConfidence({ hero, thumbnail, draftId }: MediaConfidencePro
 
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-[1fr_1.4fr]">
         <div className="overflow-hidden rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
-          <Image
-            src={hero.url}
-            alt={hero.altText}
-            width={hero.width}
-            height={hero.height}
-            sizes="(max-width: 768px) 100vw, 360px"
-            className="h-auto w-full"
-          />
+          {(() => {
+            const resolved = resolveBlogImageSrc(hero);
+            return (
+              <SafeImage
+                src={resolved.src}
+                alt={hero.altText}
+                width={hero.width}
+                height={hero.height}
+                sizes="(max-width: 768px) 100vw, 360px"
+                className="h-auto w-full"
+                {...(resolved.blurDataURL
+                  ? { placeholder: "blur" as const, blurDataURL: resolved.blurDataURL }
+                  : {})}
+              />
+            );
+          })()}
         </div>
 
         <div className="space-y-4 text-sm">

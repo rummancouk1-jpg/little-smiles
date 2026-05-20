@@ -15,9 +15,10 @@
 // Captions are small, italic, centered below the image.
 
 import Link from "next/link";
-import Image from "next/image";
 
+import { SafeImage } from "@/components/contentops/safe-image";
 import type { BlogImage, BlogPost } from "@/lib/contentops/blog-schema";
+import { resolveBlogImageSrc } from "@/lib/contentops/image-render";
 
 type BlogArticleBodyProps = {
   post: BlogPost;
@@ -36,17 +37,21 @@ type BlogArticleBodyProps = {
 };
 
 function HeroFigure({ image }: { image: BlogImage }) {
+  const resolved = resolveBlogImageSrc(image);
   return (
     <figure className="mt-8">
       <div className="overflow-hidden rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
-        <Image
-          src={image.url}
+        <SafeImage
+          src={resolved.src}
           alt={image.altText}
           width={image.width}
           height={image.height}
           sizes="(max-width: 768px) 100vw, 896px"
           className="h-auto w-full"
           priority
+          {...(resolved.blurDataURL
+            ? { placeholder: "blur" as const, blurDataURL: resolved.blurDataURL }
+            : {})}
         />
       </div>
       {image.caption ? (
@@ -59,16 +64,20 @@ function HeroFigure({ image }: { image: BlogImage }) {
 }
 
 function SectionFigure({ image }: { image: BlogImage }) {
+  const resolved = resolveBlogImageSrc(image);
   return (
     <figure className="mt-4">
       <div className="overflow-hidden rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
-        <Image
-          src={image.url}
+        <SafeImage
+          src={resolved.src}
           alt={image.altText}
           width={image.width}
           height={image.height}
           sizes="(max-width: 768px) 100vw, 896px"
           className="h-auto w-full"
+          {...(resolved.blurDataURL
+            ? { placeholder: "blur" as const, blurDataURL: resolved.blurDataURL }
+            : {})}
         />
       </div>
       {image.caption ? (

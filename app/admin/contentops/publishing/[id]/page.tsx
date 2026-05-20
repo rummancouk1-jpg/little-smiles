@@ -17,6 +17,7 @@ import { MediaConfidence } from "@/components/contentops/media-confidence";
 import { PublishAction } from "@/components/contentops/publish-action";
 import { PublishingDestination } from "@/components/contentops/publishing-destination";
 import { ReadinessPanel } from "@/components/contentops/readiness-panel";
+import { SerpIntelligenceCard } from "@/components/contentops/serp-intelligence-card";
 import { getAllBlogPosts } from "@/lib/blog";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
@@ -27,6 +28,7 @@ import {
   computeLinkingSuggestions,
   type InlineLinkSuggestion,
 } from "@/lib/contentops/intelligence/relationships";
+import { inferSerpIntelligence } from "@/lib/contentops/intelligence/serp-intelligence";
 import { preparePublish } from "@/lib/contentops/publish-prep";
 import { products } from "@/lib/products";
 
@@ -206,6 +208,11 @@ export default async function PublishArticlePage({ params }: PageProps) {
             {linkingSuggestions ? (
               <EditorialConnections suggestions={linkingSuggestions} />
             ) : null}
+            <SerpIntelligenceCard
+              report={inferSerpIntelligence({
+                post: preparation.insertionPreview,
+              })}
+            />
             <InlineLinkSuggestions suggestions={inlineLinks} />
             <ArticlePreview article={preparation.insertionPreview} />
             <PublishAction

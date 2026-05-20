@@ -5,6 +5,7 @@ import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { DraftActions } from "@/components/contentops/draft-actions";
 import { DraftDetail } from "@/components/contentops/draft-detail";
 import { RevisionsCard } from "@/components/contentops/revisions-card";
+import { TopicExpansionCard } from "@/components/contentops/topic-expansion-card";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getDraftById } from "@/lib/contentops/drafts-store";
@@ -111,6 +112,12 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
             lastEditedAt={draft.last_edited_at}
             manuallyEdited={draft.manually_edited}
           />
+        ) : null}
+
+        {draft.status === "approved" ||
+        draft.status === "scheduled" ||
+        draft.status === "published" ? (
+          <TopicExpansionCard draftId={draft.id} />
         ) : null}
       </section>
     </main>

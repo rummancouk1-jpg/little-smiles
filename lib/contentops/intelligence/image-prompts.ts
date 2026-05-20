@@ -132,14 +132,19 @@ type PromptArgs = {
 };
 
 /**
- * Compose hero / thumbnail / OG prompts for a draft. Output is
- * deterministic given the same input — useful for tests and for the
- * regenerate-with-different-season UX a future phase may add.
+ * Compose hero / thumbnail / OG / pinterest prompts for a draft.
+ * Output is deterministic given the same input — useful for tests and
+ * for the regenerate-with-different-season UX a future phase may add.
+ *
+ * Phase 5: also emits a Pinterest 2:3 prompt biased for lifestyle
+ * discovery. The Pinterest intelligence layer can override this with
+ * a richer scene if needed; the prompt here is a safe baseline.
  */
 export function composeImagePrompts(args: PromptArgs): {
   hero: string;
   thumbnail: string;
   og: string;
+  pinterest: string;
   generatedAt: string;
   paletteVersion: string;
 } {
@@ -152,6 +157,7 @@ export function composeImagePrompts(args: PromptArgs): {
   const editorialFraming = `Editorial article hero for "${post.title}"`;
   const thumbFraming = `Square thumbnail for an article about ${keyword}`;
   const ogFraming = `Social-card image (1200x630) representing "${post.title}"`;
+  const pinFraming = `Pinterest pin (2:3, vertical) for "${post.title}"`;
 
   const hero = joinParts([
     editorialFraming,
@@ -183,10 +189,23 @@ export function composeImagePrompts(args: PromptArgs): {
     NEGATIVES,
   ]);
 
+  const pinterest = joinParts([
+    pinFraming,
+    scene,
+    seasonal,
+    pakistan,
+    "vertical 2:3 composition optimized for Pinterest discovery",
+    "warm parent-and-baby lifestyle framing where appropriate",
+    "premium motherhood aesthetic, calm emotional warmth",
+    BASE_DIRECTION,
+    NEGATIVES,
+  ]);
+
   return {
     hero,
     thumbnail,
     og,
+    pinterest,
     generatedAt: new Date().toISOString(),
     paletteVersion: PALETTE_VERSION,
   };

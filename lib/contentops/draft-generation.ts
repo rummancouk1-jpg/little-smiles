@@ -12,6 +12,8 @@ import { z } from "zod";
 import { blogPostSchema, type BlogPost } from "@/lib/contentops/blog-schema";
 import { insertPendingReviewDraft } from "@/lib/contentops/drafts-store";
 import { composeImagePrompts } from "@/lib/contentops/intelligence/image-prompts";
+import { composePinterestSeo } from "@/lib/contentops/intelligence/pinterest";
+import { inferVisualStyle } from "@/lib/contentops/intelligence/visual-style-intelligence";
 
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 4000;
@@ -69,10 +71,17 @@ async function generateDraftContent(topic: string): Promise<BlogPost> {
   const exampleJson = JSON.stringify(example, null, 2);
   const { system, user } = buildPrompt(topic, exampleJson);
 
-  // The model only writes editorial fields. imagePrompts is filled
-  // deterministically by the composer after the model returns, so it's
-  // stripped from the tool schema to keep the model focused.
-  const modelFacingSchema = blogPostSchema.omit({ imagePrompts: true });
+  // The model only writes editorial fields. imagePrompts + pinterestSeo
+  // are filled deterministically by composers after the model returns,
+  // so they're stripped from the tool schema to keep the model focused.
+  // og / pinterest image slots are also stripped — the operator
+  // attaches images later.
+  const modelFacingSchema = blogPostSchema.omit({
+    imagePrompts: true,
+    pinterestSeo: true,
+    og: true,
+    pinterest: true,
+  });
   const inputSchema = z.toJSONSchema(modelFacingSchema) as Record<string, unknown>;
   const anthropic = new Anthropic({ apiKey: anthropicKey });
 
@@ -134,12 +143,24 @@ export async function generateDraftFromTopic(topic: string): Promise<GeneratedDr
 
   const content = await generateDraftContent(trimmed);
 
-  // Compose deterministic image prompts at birth time. Operator can
-  // copy them into Midjourney / Imagen / Flux while the Phase-2
-  // provider integration is being wired in. The composer is pure and
-  // cheap; we run it inline rather than as a separate API hop.
+  // Compose deterministic image prompts + Pinterest SEO at birth
+  // time. Both are pure functions; we run them inline rather than as
+  // a separate API hop. Operator can edit either from the media page.
   const imagePrompts = composeImagePrompts({ post: content });
-  const contentWithPrompts: BlogPost = { ...content, imagePrompts };
+  const style = inferVisualStyle({ post: content });
+  const pinterest = composePinterestSeo({
+    post: content,
+    suitabilityScore: style.pinterestSuitability,
+  });
+
+  const contentWithPrompts: BlogPost = {
+    ...content,
+    imagePrompts,
+    pinterestSeo: {
+      title: pinterest.title,
+      description: pinterest.description,
+    },
+  };
 
   const inserted = await insertPendingReviewDraft(contentWithPrompts);
   return {

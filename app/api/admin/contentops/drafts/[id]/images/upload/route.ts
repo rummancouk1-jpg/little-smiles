@@ -20,6 +20,7 @@ import sharp from "sharp";
 import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
 import { logAdminAudit } from "@/lib/admin-audit";
 import { getDraftById } from "@/lib/contentops/drafts-store";
+import { optimizeUploadedImage } from "@/lib/contentops/intelligence/image-optimization";
 import { uploadDraftImage } from "@/lib/contentops/storage";
 import { captureServerError } from "@/lib/error-observability";
 
@@ -189,12 +190,26 @@ export async function POST(request: Request, { params }: RouteProps) {
     );
   }
 
+  // Best-effort optimization: produce WebP variant + blur placeholder.
+  // Any sub-step failure is swallowed inside the helper; the original
+  // upload always succeeds.
+  const optimization = await optimizeUploadedImage({
+    draftId: id,
+    originalStorageKey: stored.storageKey,
+    buffer,
+    width,
+    height,
+  }).catch(() => ({ variants: [], blurDataUrl: null }));
+
   const blogImage = {
     url: stored.publicUrl,
     altText,
     width,
     height,
     storageKey: stored.storageKey,
+    bytes: fileEntry.size,
+    ...(optimization.variants.length > 0 ? { variants: optimization.variants } : {}),
+    ...(optimization.blurDataUrl ? { blurDataUrl: optimization.blurDataUrl } : {}),
   };
 
   await logAdminAudit(request, {
@@ -207,6 +222,8 @@ export async function POST(request: Request, { params }: RouteProps) {
       height,
       sizeBytes: fileEntry.size,
       contentType: fileEntry.type,
+      variantCount: optimization.variants.length,
+      hasBlur: Boolean(optimization.blurDataUrl),
     },
   });
 

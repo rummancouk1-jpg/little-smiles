@@ -40,11 +40,45 @@ cadence) always render from the article catalog alone.
 - `GSC_SITE_URL` — Search Console property URL (e.g. `https://littlesmiles.co.uk/`).
 - `GSC_BEARER_TOKEN` — OAuth2 token with `webmasters.readonly`.
 
-### Optional — image generation providers (Phase 2, not yet wired)
-Phase 1 ships deterministic prompt composition only. When a Phase 2
-provider integration lands, it will read one of:
-- `IMAGE_PROVIDER` (`openai` · `imagen` · `replicate-flux`)
-- Provider-specific keys (`OPENAI_API_KEY`, `GOOGLE_IMAGEN_API_KEY`, `REPLICATE_API_TOKEN`)
+### Optional — AI image generation (Phase 5)
+The "Generate with AI" buttons on `/admin/contentops/<id>/images` resolve
+the active provider from env. Without these set, the buttons stay
+visible but disabled with a calm "Configure `IMAGE_PROVIDER` to enable"
+hint.
+
+- `IMAGE_PROVIDER` (`openai` · `flux` · `imagen` · `ideogram`) — explicit
+  selection. If unset, the first configured adapter is used.
+- **OpenAI Images** (fully implemented):
+  - `OPENAI_API_KEY` (required)
+  - `OPENAI_IMAGE_MODEL` (optional, defaults to `gpt-image-1`)
+- **FLUX** (adapter scaffolded; request body left as a TODO until ready):
+  - `FLUX_API_KEY`
+  - `FLUX_BACKEND` (`bfl` or `replicate`)
+  - `FLUX_MODEL` (optional)
+- **Google Imagen** (adapter scaffolded):
+  - `IMAGEN_PROJECT_ID`
+  - `IMAGEN_BEARER_TOKEN`
+  - `IMAGEN_LOCATION` (optional, defaults to `us-central1`)
+  - `IMAGEN_MODEL` (optional)
+- **Ideogram** (adapter scaffolded):
+  - `IDEOGRAM_API_KEY`
+  - `IDEOGRAM_MODEL` (optional)
+
+### Optional — image optimization
+- `ENABLE_AVIF_VARIANTS` (`true`) — emit an AVIF variant alongside WebP
+  on every upload. Off by default because AVIF encoding is notably
+  slower; turn on when bandwidth matters more than upload latency. The
+  WebP variant + blur placeholder are produced regardless.
+
+### ContentOps storage hygiene
+- Orphan report (read-only):
+  `GET /api/admin/contentops/storage/orphans`
+  Returns the storage keys not referenced by any draft (slot, variant,
+  or revision snapshot) plus the recoverable byte count.
+- Orphan sweep (idempotent, operator-triggered):
+  `POST /api/admin/contentops/storage/orphans` with body `{ "confirm": true }`.
+  Bounded to 200 keys per request; re-run until `remainingOrphans === 0`.
+  Writes a `contentops_storage_orphans_swept` audit row.
 
 ### Admin Auth (optional, if using Supabase admin auth mode)
 - `ADMIN_AUTH_MODE` (`secret` or `supabase`)

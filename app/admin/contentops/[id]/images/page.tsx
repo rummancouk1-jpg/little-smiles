@@ -13,10 +13,17 @@ import { notFound, redirect } from "next/navigation";
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { ImagePromptsCard } from "@/components/contentops/image-prompts-card";
 import { getStatusLabel } from "@/components/contentops/labels";
+import { MediaStrategyCard } from "@/components/contentops/media-strategy-card";
 import { MediaUploader } from "@/components/contentops/media-uploader";
+import { PinterestSeoCard } from "@/components/contentops/pinterest-seo-card";
+import { VisualInspirationCard } from "@/components/contentops/visual-inspiration-card";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getDraftById } from "@/lib/contentops/drafts-store";
+import { resolveImageProvider } from "@/lib/contentops/intelligence/image-providers";
+import { inferMediaStrategy } from "@/lib/contentops/intelligence/media-strategy";
+import { composePinterestSeo } from "@/lib/contentops/intelligence/pinterest";
+import { inferVisualStyle } from "@/lib/contentops/intelligence/visual-style-intelligence";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -61,6 +68,21 @@ export default async function ManageMediaPage({ params }: PageProps) {
     0,
   );
 
+  // Intelligence preflight — pure, cheap, no API calls.
+  const visualStyle = inferVisualStyle({ post: draft.content });
+  const pinterestSuggestion = composePinterestSeo({
+    post: draft.content,
+    suitabilityScore: visualStyle.pinterestSuitability,
+  });
+  // Override the composed title/description with the operator-edited
+  // ones if the draft already stores them.
+  if (draft.content.pinterestSeo) {
+    pinterestSuggestion.title = draft.content.pinterestSeo.title;
+    pinterestSuggestion.description = draft.content.pinterestSeo.description;
+  }
+  const mediaStrategy = inferMediaStrategy({ post: draft.content });
+  const providerConfigured = Boolean(resolveImageProvider());
+
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <section className="mx-auto max-w-4xl space-y-6">
@@ -77,7 +99,7 @@ export default async function ManageMediaPage({ params }: PageProps) {
                 Manage media
               </h1>
               <p className="mt-2 text-sm text-[#3B2F2F]/65">
-                Hero and thumbnail for{" "}
+                Hero, thumbnail, OG, and Pinterest for{" "}
                 <span className="font-medium text-[#1F1918]">
                   {draft.content.title}
                 </span>
@@ -106,6 +128,10 @@ export default async function ManageMediaPage({ params }: PageProps) {
           </article>
         ) : null}
 
+        <MediaStrategyCard strategy={mediaStrategy} />
+
+        <VisualInspirationCard suggestion={visualStyle} />
+
         <MediaUploader
           label="Hero image"
           helperText="Full-width visual anchor at the top of the article. 1600×900 (16:9) works well; 4:3 ratios are also fine."
@@ -113,15 +139,44 @@ export default async function ManageMediaPage({ params }: PageProps) {
           uploadHref={`/api/admin/contentops/drafts/${draft.id}/images/upload`}
           slotHref={`/api/admin/contentops/drafts/${draft.id}/images/hero`}
           disabled={isPublished}
+          draftId={draft.id}
+          slot="hero"
+          providerConfigured={providerConfigured}
+          generateLabel="Generate hero image"
         />
 
         <MediaUploader
           label="Thumbnail"
-          helperText="Smaller representation for blog cards, social previews, and OG metadata. Falls back to the hero when absent."
+          helperText="Smaller representation for blog cards. Falls back to the hero when absent."
           current={draft.content.thumbnail ?? null}
           uploadHref={`/api/admin/contentops/drafts/${draft.id}/images/upload`}
           slotHref={`/api/admin/contentops/drafts/${draft.id}/images/thumbnail`}
           disabled={isPublished}
+          draftId={draft.id}
+          slot="thumbnail"
+          providerConfigured={providerConfigured}
+          generateLabel="Generate thumbnail"
+        />
+
+        <MediaUploader
+          label="OG social card"
+          helperText="1200×630 image shown on social link previews. Falls back to the hero when absent."
+          current={draft.content.og ?? null}
+          uploadHref={`/api/admin/contentops/drafts/${draft.id}/images/upload`}
+          slotHref={`/api/admin/contentops/drafts/${draft.id}/images/og`}
+          disabled={isPublished}
+          draftId={draft.id}
+          slot="og"
+          providerConfigured={providerConfigured}
+          generateLabel="Generate OG image"
+        />
+
+        <PinterestSeoCard
+          draftId={draft.id}
+          pinterestImage={draft.content.pinterest ?? null}
+          suggestion={pinterestSuggestion}
+          providerConfigured={providerConfigured}
+          isPublished={isPublished}
         />
 
         <ImagePromptsCard prompts={draft.content.imagePrompts ?? null} />

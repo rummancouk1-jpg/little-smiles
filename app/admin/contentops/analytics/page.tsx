@@ -24,6 +24,10 @@ import type {
 import {
   computeArticleHealth,
   computeClusterCadence,
+  computeClusterStrength,
+  computeContentDecay,
+  computeMissingAlt,
+  computePinterestReady,
   type ArticleHealthRow,
 } from "@/lib/contentops/intelligence/content-health";
 import { products } from "@/lib/products";
@@ -111,11 +115,18 @@ export default async function ContentOpsAnalyticsPage() {
   const healthBySlug = new Map(health.map((row) => [row.slug, row]));
 
   const cadence = articles.length ? computeClusterCadence(articles) : [];
+  const clusterStrength = health.length ? computeClusterStrength(health) : [];
   const missingHero = health.filter((r) => !r.hasHero);
   const noInboundLinks = health
     .filter((r) => r.inboundLinkCount === 0)
     .sort((a, b) => b.potentialInlineLinkCount - a.potentialInlineLinkCount);
   const mostLinked = [...health].sort((a, b) => b.inboundLinkCount - a.inboundLinkCount);
+  const pinterestReady = computePinterestReady(health);
+  const contentDecay = computeContentDecay(health);
+  const missingAlt = computeMissingAlt(health);
+  const weakClusters = [...clusterStrength].sort(
+    (a, b) => a.strengthScore - b.strengthScore,
+  );
 
   // External fetches — parallel, all degrade to []
   const [ga4TopPages, gscTopQueries] = (await Promise.all([
@@ -313,6 +324,129 @@ export default async function ContentOpsAnalyticsPage() {
                         : ""}
                     </span>
                   </li>
+                ))}
+              </ul>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Top clusters by strength"
+            helper="Volume, link density, image coverage, and freshness combined into a calm 0–100 score."
+          >
+            {clusterStrength.length === 0 ? (
+              <EmptyHint>Ship a few articles first.</EmptyHint>
+            ) : (
+              <ul>
+                {clusterStrength.slice(0, 6).map((c) => (
+                  <li
+                    key={c.cluster}
+                    className="flex items-baseline justify-between gap-3 border-b border-[#3B2F2F]/8 py-2 last:border-b-0"
+                  >
+                    <p className="text-sm text-[#1F1918]">{c.cluster}</p>
+                    <span className="text-xs text-[#3B2F2F]/65">
+                      {c.strengthScore}/100 · {c.articleCount} article
+                      {c.articleCount === 1 ? "" : "s"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Weak clusters needing attention"
+            helper="Clusters with low coverage or staleness — likely high-leverage to invest in next."
+          >
+            {weakClusters.length === 0 ? (
+              <EmptyHint>No clusters to evaluate yet.</EmptyHint>
+            ) : (
+              <ul>
+                {weakClusters
+                  .filter((c) => c.strengthScore < 60)
+                  .slice(0, 6)
+                  .map((c) => (
+                    <li
+                      key={c.cluster}
+                      className="flex items-baseline justify-between gap-3 border-b border-[#3B2F2F]/8 py-2 last:border-b-0"
+                    >
+                      <p className="text-sm text-[#1F1918]">{c.cluster}</p>
+                      <span className="text-xs text-[#3B2F2F]/65">
+                        {c.strengthScore}/100
+                        {c.daysSinceLastPublish !== null
+                          ? ` · last ${c.daysSinceLastPublish}d ago`
+                          : ""}
+                      </span>
+                    </li>
+                  ))}
+                {weakClusters.every((c) => c.strengthScore >= 60) ? (
+                  <EmptyHint>All clusters above 60/100 — healthy spread.</EmptyHint>
+                ) : null}
+              </ul>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Pinterest-ready opportunities"
+            helper="High Pinterest fit, no pin attached yet. Generating a 2:3 pin here is high-leverage discovery work."
+          >
+            {pinterestReady.length === 0 ? (
+              <EmptyHint>
+                No outstanding Pinterest opportunities. Every high-fit article
+                already has a pin attached.
+              </EmptyHint>
+            ) : (
+              <ul>
+                {pinterestReady.slice(0, 8).map((row) => (
+                  <ArticleLine
+                    key={row.slug}
+                    href={`/blog/${row.slug}`}
+                    title={row.title}
+                    trailing={`fit ${row.pinterestSuitability}/100`}
+                  />
+                ))}
+              </ul>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Articles with missing alt text"
+            helper="Accessibility-first signal; also a small but real SEO lift."
+          >
+            {missingAlt.length === 0 ? (
+              <EmptyHint>
+                Every attached image has alt text. Calmly excellent.
+              </EmptyHint>
+            ) : (
+              <ul>
+                {missingAlt.slice(0, 8).map((row) => (
+                  <ArticleLine
+                    key={row.slug}
+                    href={`/blog/${row.slug}`}
+                    title={row.title}
+                    trailing={`missing on ${row.missingAltSlots.join(", ")}`}
+                  />
+                ))}
+              </ul>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Content decay — refresh candidates"
+            helper="Articles older than 180 days, oldest first. Refreshing keeps topical authority warm."
+          >
+            {contentDecay.length === 0 ? (
+              <EmptyHint>Nothing older than 180 days — catalog is fresh.</EmptyHint>
+            ) : (
+              <ul>
+                {contentDecay.slice(0, 8).map((row) => (
+                  <ArticleLine
+                    key={row.slug}
+                    href={`/blog/${row.slug}`}
+                    title={row.title}
+                    trailing={
+                      typeof row.ageDays === "number" ? `${row.ageDays}d` : ""
+                    }
+                  />
                 ))}
               </ul>
             )}

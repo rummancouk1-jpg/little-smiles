@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getAllBlogPosts } from "@/lib/blog";
+import { resolveBlogImageSrc } from "@/lib/contentops/image-render";
 import { products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
 
@@ -55,12 +56,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const allBlogPosts = await getAllBlogPosts();
-  const blogEntries = allBlogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt),
-    changeFrequency: "monthly" as const,
-    priority: 0.74,
-  }));
+  const blogEntries = allBlogPosts.map((post) => {
+    // Image sitemap entries — Google honors images[] on
+    // MetadataRoute.Sitemap (since Next 14). Including the hero on
+    // each post gives crawlers a clean image signal without a separate
+    // /image-sitemap.xml. Falls back to thumbnail when hero is absent.
+    const heroSource = post.hero ?? post.thumbnail ?? null;
+    const heroResolved = heroSource ? resolveBlogImageSrc(heroSource) : null;
+    return {
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.74,
+      ...(heroResolved
+        ? { images: [heroResolved.src] }
+        : {}),
+    };
+  });
 
   return [...staticEntries, ...productEntries, ...blogEntries];
 }

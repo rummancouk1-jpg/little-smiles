@@ -17,11 +17,12 @@
 
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import type { BlogImage } from "@/lib/contentops/blog-schema";
+import { ImageGenerateButton } from "@/components/contentops/image-generate-button";
+import { SafeImage } from "@/components/contentops/safe-image";
+import type { BlogImage, BlogImageSlot } from "@/lib/contentops/blog-schema";
 
 type MediaUploaderProps = {
   label: string;
@@ -30,6 +31,13 @@ type MediaUploaderProps = {
   uploadHref: string;
   slotHref: string;
   disabled?: boolean;
+  /** Phase 5: when both fields are set, surface the "Generate with AI" action. */
+  draftId?: string;
+  slot?: BlogImageSlot;
+  /** Whether a provider is configured server-side. Drives the button state. */
+  providerConfigured?: boolean;
+  /** Operator-friendly label for the generate action ("Generate Hero image"). */
+  generateLabel?: string;
 };
 
 type EmptyState =
@@ -47,7 +55,12 @@ export function MediaUploader({
   uploadHref,
   slotHref,
   disabled = false,
+  draftId,
+  slot,
+  providerConfigured = false,
+  generateLabel,
 }: MediaUploaderProps) {
+  const canGenerate = Boolean(draftId && slot && !disabled);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [emptyState, setEmptyState] = useState<EmptyState>({ mode: "idle" });
@@ -284,7 +297,7 @@ export function MediaUploader({
           </span>
         </div>
         <div className="mt-4 overflow-hidden rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
-          <Image
+          <SafeImage
             src={current.url}
             alt={current.altText}
             width={current.width}
@@ -325,6 +338,14 @@ export function MediaUploader({
           >
             Replace
           </button>
+          {canGenerate && draftId && slot ? (
+            <ImageGenerateButton
+              draftId={draftId}
+              slot={slot}
+              providerConfigured={providerConfigured}
+              label={generateLabel ?? "Regenerate with AI"}
+            />
+          ) : null}
           {!editingDetails ? (
             <button
               type="button"
@@ -520,6 +541,18 @@ export function MediaUploader({
           onCancel={resetSelection}
         />
       )}
+
+      {canGenerate && draftId && slot && emptyState.mode === "idle" ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[#3B2F2F]/8 pt-4">
+          <p className="text-xs text-[#3B2F2F]/65">Or generate one with AI:</p>
+          <ImageGenerateButton
+            draftId={draftId}
+            slot={slot}
+            providerConfigured={providerConfigured}
+            label={generateLabel ?? "Generate with AI"}
+          />
+        </div>
+      ) : null}
 
       {error ? <p className="mt-3 text-xs text-[#8A2F40]">{error}</p> : null}
 

@@ -8,7 +8,9 @@
 // bearer-token assumption for a JWT exchange behind this same surface.
 
 import type {
+  DecliningPage,
   IndexCoveragePoint,
+  LowCtrOpportunity,
   SearchConsoleAdapter,
   TopPagePoint,
   TopQueryPoint,
@@ -117,5 +119,114 @@ export const gscAdapter: SearchConsoleAdapter = {
     // operator dashboard only needs the headline trend. We return [] in
     // the dependency-free shape and let a richer client land later.
     return [];
+  },
+
+  // -------------------------------------------------------------------
+  // Low-CTR opportunities — the single highest-leverage organic-growth
+  // signal GSC produces. Surfaces (page, query) pairs that earn lots of
+  // impressions but few clicks, suggesting the title/meta deserves a
+  // rewrite.
+  // -------------------------------------------------------------------
+  async lowCtrOpportunities({
+    days,
+    limit,
+    minImpressions,
+    maxCtr,
+  }): Promise<LowCtrOpportunity[]> {
+    const rows = await querySearchAnalytics({
+      startDate: daysAgo(days),
+      endDate: daysAgo(0),
+      dimensions: ["page", "query"],
+      rowLimit: Math.min(Math.max(limit * 4, 50), 1000),
+    });
+    if (!rows) return [];
+    return rows
+      .map((row) => {
+        const r = row as {
+          keys?: string[];
+          clicks?: number;
+          impressions?: number;
+          ctr?: number;
+          position?: number;
+        };
+        let path = r.keys?.[0] ?? "";
+        try {
+          path = new URL(path).pathname;
+        } catch {
+          /* leave as-is */
+        }
+        return {
+          path,
+          query: r.keys?.[1] ?? "",
+          impressions: typeof r.impressions === "number" ? r.impressions : 0,
+          clicks: typeof r.clicks === "number" ? r.clicks : 0,
+          ctr: typeof r.ctr === "number" ? r.ctr : 0,
+          position: typeof r.position === "number" ? r.position : 0,
+        };
+      })
+      .filter(
+        (op) =>
+          op.path.startsWith("/") &&
+          op.impressions >= minImpressions &&
+          op.ctr <= maxCtr,
+      )
+      .sort((a, b) => b.impressions - a.impressions)
+      .slice(0, limit);
+  },
+
+  // -------------------------------------------------------------------
+  // Pages losing traffic — two-window comparison. The most actionable
+  // content-decay signal: pages that used to earn clicks and stopped.
+  // -------------------------------------------------------------------
+  async decliningPages({
+    limit,
+    minPriorClicks,
+    minDropPercent,
+  }): Promise<DecliningPage[]> {
+    // Two 28-day windows: 0–28 days ago vs 28–56 days ago.
+    const [recent, prior] = await Promise.all([
+      querySearchAnalytics({
+        startDate: daysAgo(28),
+        endDate: daysAgo(0),
+        dimensions: ["page"],
+        rowLimit: 1000,
+      }),
+      querySearchAnalytics({
+        startDate: daysAgo(56),
+        endDate: daysAgo(28),
+        dimensions: ["page"],
+        rowLimit: 1000,
+      }),
+    ]);
+    if (!recent || !prior) return [];
+
+    const norm = (row: unknown) => {
+      const r = row as { keys?: string[]; clicks?: number };
+      let path = r.keys?.[0] ?? "";
+      try {
+        path = new URL(path).pathname;
+      } catch {
+        /* leave as-is */
+      }
+      return { path, clicks: typeof r.clicks === "number" ? r.clicks : 0 };
+    };
+    const recentMap = new Map(recent.map(norm).map((p) => [p.path, p.clicks]));
+    const priorMap = new Map(prior.map(norm).map((p) => [p.path, p.clicks]));
+
+    const out: DecliningPage[] = [];
+    for (const [path, priorClicks] of priorMap) {
+      if (!path.startsWith("/")) continue;
+      if (priorClicks < minPriorClicks) continue;
+      const recentClicks = recentMap.get(path) ?? 0;
+      const change = ((recentClicks - priorClicks) / priorClicks) * 100;
+      if (change > -minDropPercent) continue;
+      out.push({
+        path,
+        recentClicks,
+        priorClicks,
+        changePercent: Math.round(change),
+      });
+    }
+    return out.sort((a, b) => a.changePercent - b.changePercent).slice(0, limit);
   },
 };

@@ -32,11 +32,46 @@ export type IndexCoveragePoint = {
   indexed: number;
 };
 
+export type EngagementPoint = {
+  path: string;
+  views: number;
+  engagedSessions: number;
+  /** Average engagement time per active user, seconds. */
+  averageEngagementSeconds: number;
+  /** GA4 bounce rate as a 0..1 fraction. */
+  bounceRate: number;
+};
+
 export interface AnalyticsAdapter {
   readonly id: AnalyticsSource;
   isConfigured(): boolean;
   topPages(opts: { days: number; limit: number }): Promise<TopPagePoint[]>;
+  /**
+   * Per-page engagement signals. Used to identify pages that earn
+   * pageviews but don't hold readers — high bounce-rate / low
+   * engagement combos.
+   */
+  engagement(opts: { days: number; limit: number }): Promise<EngagementPoint[]>;
 }
+
+export type LowCtrOpportunity = {
+  path: string;
+  query: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  position: number;
+};
+
+export type DecliningPage = {
+  path: string;
+  /** Clicks in the current 28-day window. */
+  recentClicks: number;
+  /** Clicks in the prior 28-day window (29..56 days ago). */
+  priorClicks: number;
+  /** Negative percent change — e.g. -42 means down 42%. */
+  changePercent: number;
+};
 
 export interface SearchConsoleAdapter {
   readonly id: "gsc";
@@ -44,4 +79,23 @@ export interface SearchConsoleAdapter {
   topQueries(opts: { days: number; limit: number }): Promise<TopQueryPoint[]>;
   topPages(opts: { days: number; limit: number }): Promise<TopPagePoint[]>;
   indexCoverage(opts: { days: number }): Promise<IndexCoveragePoint[]>;
+  /**
+   * High-impression / low-CTR query+page pairs. The single best
+   * lever for organic growth: rewriting the title/meta on these.
+   */
+  lowCtrOpportunities(opts: {
+    days: number;
+    limit: number;
+    minImpressions: number;
+    maxCtr: number;
+  }): Promise<LowCtrOpportunity[]>;
+  /**
+   * Pages whose clicks dropped meaningfully in the most recent
+   * 28-day window vs the prior 28-day window.
+   */
+  decliningPages(opts: {
+    limit: number;
+    minPriorClicks: number;
+    minDropPercent: number;
+  }): Promise<DecliningPage[]>;
 }

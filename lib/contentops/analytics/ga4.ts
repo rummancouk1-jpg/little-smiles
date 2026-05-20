@@ -9,7 +9,11 @@
 // every method returns []. The operator dashboard renders a calm
 // "configure GA4 to see this" hint in that case.
 
-import type { AnalyticsAdapter, TopPagePoint } from "@/lib/contentops/analytics/types";
+import type {
+  AnalyticsAdapter,
+  EngagementPoint,
+  TopPagePoint,
+} from "@/lib/contentops/analytics/types";
 
 const GA4_API = "https://analyticsdata.googleapis.com/v1beta";
 
@@ -69,4 +73,73 @@ export const ga4Adapter: AnalyticsAdapter = {
       return [];
     }
   },
+
+  async engagement({ days, limit }): Promise<EngagementPoint[]> {
+    const { propertyId, token } = getEnv();
+    if (!propertyId || !token) return [];
+    const endpoint = `${GA4_API}/properties/${encodeURIComponent(propertyId)}:runReport`;
+    const body = {
+      dateRanges: [{ startDate: `${days}daysAgo`, endDate: "today" }],
+      dimensions: [{ name: "pagePath" }],
+      metrics: [
+        { name: "screenPageViews" },
+        { name: "engagedSessions" },
+        { name: "userEngagementDuration" },
+        { name: "bounceRate" },
+        { name: "activeUsers" },
+      ],
+      orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+      limit: String(Math.min(Math.max(limit, 1), 250)),
+    };
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+        cache: "no-store",
+      });
+      if (!response.ok) return [];
+      const json = (await response.json()) as {
+        rows?: Array<{
+          dimensionValues?: Array<{ value?: string }>;
+          metricValues?: Array<{ value?: string }>;
+        }>;
+      };
+      const rows = json.rows ?? [];
+      return rows
+        .map((row) => {
+          const path = row.dimensionValues?.[0]?.value ?? "";
+          const views = parseIntSafe(row.metricValues?.[0]?.value);
+          const engagedSessions = parseIntSafe(row.metricValues?.[1]?.value);
+          const engagementDuration = parseFloatSafe(row.metricValues?.[2]?.value);
+          const bounceRate = parseFloatSafe(row.metricValues?.[3]?.value);
+          const activeUsers = parseIntSafe(row.metricValues?.[4]?.value);
+          return {
+            path,
+            views,
+            engagedSessions,
+            averageEngagementSeconds:
+              activeUsers > 0 ? engagementDuration / activeUsers : 0,
+            bounceRate,
+          };
+        })
+        .filter((p) => p.path.startsWith("/"));
+    } catch {
+      return [];
+    }
+  },
 };
+
+function parseIntSafe(v: string | undefined): number {
+  if (!v) return 0;
+  const n = Number.parseInt(v, 10);
+  return Number.isFinite(n) ? n : 0;
+}
+function parseFloatSafe(v: string | undefined): number {
+  if (!v) return 0;
+  const n = Number.parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+}
