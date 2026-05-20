@@ -171,6 +171,11 @@ export function PublishAction({
     >
       <div className="border-t border-[#3B2F2F]/10 bg-[#FDF8F4]/95 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-5 lg:px-8">
         <div className="mx-auto max-w-4xl space-y-3">
+          {/*
+            Mobile-friendly layout: buttons in their own flex row, hint
+            text on its own line below. Avoids the awkward right-aligned
+            wrap that `ml-auto` produces on narrow viewports.
+          */}
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -215,9 +220,9 @@ export function PublishAction({
                 </button>
               </>
             )}
-
-            <p className="ml-auto text-xs text-[#3B2F2F]/60">{hint}</p>
           </div>
+
+          <p className="text-xs text-[#3B2F2F]/60">{hint}</p>
 
           {showScheduleForm ? (
             <div className="rounded-2xl border border-[#3B2F2F]/10 bg-white p-4">
