@@ -47,6 +47,23 @@ export const blogSectionSchema = z.object({
   image: blogImageSchema.optional(),
 });
 
+// Deterministic image-generation prompts attached to every freshly
+// generated draft. The composer that fills these in lives at
+// lib/contentops/intelligence/image-prompts.ts. Operator copies them
+// into their image tool (Midjourney / Imagen / Flux) until the Phase 2
+// provider integration lands. Optional so static-seed posts and pre-P1
+// drafts stay valid.
+export const blogImagePromptsSchema = z.object({
+  hero: z.string().min(1).max(2000),
+  thumbnail: z.string().min(1).max(2000),
+  og: z.string().min(1).max(2000),
+  generatedAt: z.string(),
+  /** Free-form palette tag the composer used. Useful for regeneration UX. */
+  paletteVersion: z.string().min(1).max(50),
+});
+
+export type BlogImagePrompts = z.infer<typeof blogImagePromptsSchema>;
+
 export const blogPostSchema = z.object({
   slug: z.string(),
   title: z.string(),
@@ -66,6 +83,12 @@ export const blogPostSchema = z.object({
   // thumbnail — smaller representation for cards and OG metadata.
   hero: blogImageSchema.optional(),
   thumbnail: blogImageSchema.optional(),
+  /**
+   * Auto-generated image prompts attached at draft creation time. Optional
+   * so static-seed posts (no images, no prompts) stay valid and so older
+   * drafts created before Commit AA don't break schema validation on read.
+   */
+  imagePrompts: blogImagePromptsSchema.optional(),
 });
 
 export const blogPostsSchema = z.array(blogPostSchema);

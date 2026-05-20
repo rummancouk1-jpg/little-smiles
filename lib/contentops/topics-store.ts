@@ -10,6 +10,10 @@
 //   drafted   -> archived  (archiveTopic — operator can give up on a draft)
 //   archived  -> X         (terminal in Commit R; re-activation deferred)
 
+import {
+  TOPICAL_CLUSTERS,
+  type TopicalCluster,
+} from "@/lib/contentops/intelligence/clusters";
 import { describeMissingTable } from "@/lib/contentops/supabase-error-copy";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
@@ -25,6 +29,38 @@ export type TopicCompetition = "low" | "medium" | "high";
 export type TopicSeasonality = "evergreen" | "summer" | "winter" | "monsoon" | "eid";
 export type TopicTrend = "rising" | "steady" | "declining";
 export type TopicSource = "manual" | "seed";
+
+// Programmatic SEO expansion (Commit AB). Optional editorial template
+// the operator (or AI) should write the topic to. Null means "free form
+// — pick whatever fits"; the existing guide-style article is the
+// implicit default.
+export type TopicFormat =
+  | "guide"
+  | "comparison"
+  | "faq"
+  | "checklist"
+  | "seasonal"
+  | "beginner"
+  | "best_for"
+  | "problem_solution";
+
+export const TOPIC_FORMATS: TopicFormat[] = [
+  "guide",
+  "comparison",
+  "faq",
+  "checklist",
+  "seasonal",
+  "beginner",
+  "best_for",
+  "problem_solution",
+];
+
+export function isTopicFormat(value: string): value is TopicFormat {
+  return (TOPIC_FORMATS as string[]).includes(value);
+}
+
+export type { TopicalCluster };
+export { TOPICAL_CLUSTERS };
 
 export type Topic = {
   id: string;
@@ -48,6 +84,11 @@ export type Topic = {
   suggested_cta: string | null;
   confidence_score: number | null;
   snoozed_until: string | null;
+  // Programmatic SEO expansion (Commit AB). All optional — pre-AB rows
+  // read these as null and the UI hides the corresponding chips.
+  format: TopicFormat | null;
+  cluster: TopicalCluster | null;
+  seasonal_relevance: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -156,6 +197,11 @@ type CreateTopicInput = {
   priority?: TopicPriority;
   seasonality?: TopicSeasonality;
   notes?: string | null;
+  // Optional Commit AB fields. Manual creation defaults all three to null
+  // so the existing add-topic form continues to work unchanged.
+  format?: TopicFormat | null;
+  cluster?: TopicalCluster | null;
+  seasonal_relevance?: number | null;
 };
 
 export async function createTopic(input: CreateTopicInput): Promise<Topic> {
@@ -187,6 +233,9 @@ export async function createTopic(input: CreateTopicInput): Promise<Topic> {
       suggested_cta: null,
       confidence_score: null,
       snoozed_until: null,
+      format: input.format ?? null,
+      cluster: input.cluster ?? null,
+      seasonal_relevance: input.seasonal_relevance ?? null,
     })
     .select("*")
     .single();

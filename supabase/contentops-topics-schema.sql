@@ -144,3 +144,173 @@ on conflict (title) do update set
   content_angle    = coalesce(public.contentops_topics.content_angle, excluded.content_angle),
   suggested_cta    = coalesce(public.contentops_topics.suggested_cta, excluded.suggested_cta),
   confidence_score = coalesce(public.contentops_topics.confidence_score, excluded.confidence_score);
+
+-- ---------------------------------------------------------------------------
+-- Programmatic SEO expansion (Commit AB)
+-- ---------------------------------------------------------------------------
+-- format  — editorial template the operator (or AI) should write to.
+-- cluster — high-level topical bucket the topic belongs to; mirrors the
+--           clusters defined in lib/contentops/intelligence/clusters.ts.
+-- seasonal_relevance — operator-set 0..100 score nudging the publishing
+--           cadence when seasonality is non-evergreen. Nullable; the
+--           seasonal-score helper computes a fallback from `seasonality`
+--           + the current month when this is missing.
+--
+-- All three columns are nullable / defaulted so existing rows and any
+-- code path that doesn't yet write them stays valid.
+
+alter table public.contentops_topics
+  add column if not exists format text null,
+  add column if not exists cluster text null,
+  add column if not exists seasonal_relevance integer null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'contentops_topics_format_check'
+  ) then
+    alter table public.contentops_topics
+      add constraint contentops_topics_format_check
+      check (
+        format is null
+        or format in (
+          'guide',
+          'comparison',
+          'faq',
+          'checklist',
+          'seasonal',
+          'beginner',
+          'best_for',
+          'problem_solution'
+        )
+      );
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'contentops_topics_cluster_check'
+  ) then
+    alter table public.contentops_topics
+      add constraint contentops_topics_cluster_check
+      check (
+        cluster is null
+        or cluster in ('Sleep', 'Feeding', 'Wardrobe', 'Outings', 'Gifting', 'Newborn Care')
+      );
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'contentops_topics_seasonal_relevance_check'
+  ) then
+    alter table public.contentops_topics
+      add constraint contentops_topics_seasonal_relevance_check
+      check (
+        seasonal_relevance is null
+        or (seasonal_relevance >= 0 and seasonal_relevance <= 100)
+      );
+  end if;
+end $$;
+
+create index if not exists idx_contentops_topics_format
+  on public.contentops_topics(format)
+  where format is not null;
+
+create index if not exists idx_contentops_topics_cluster
+  on public.contentops_topics(cluster)
+  where cluster is not null;
+
+-- Backfill format + cluster on the original seed rows. ON CONFLICT
+-- preserves any operator edits to other columns. Idempotent.
+insert into public.contentops_topics
+  (title, intent, related_category, priority, competition, seasonality, trend, source,
+   format, cluster, seasonal_relevance)
+values
+  ('How to choose a newborn swaddle for hot weather',
+   'informational', 'Swaddle', 'high', 'medium', 'summer', 'rising', 'seed',
+   'seasonal', 'Sleep', 88),
+  ('Premium baby essentials checklist for new mothers in Pakistan',
+   'commercial', 'Bodysuits', 'high', 'high', 'evergreen', 'steady', 'seed',
+   'checklist', 'Newborn Care', 60),
+  ('Helping your baby sleep through the night: a calm guide',
+   'informational', 'Swaddle', 'medium', 'high', 'evergreen', 'steady', 'seed',
+   'guide', 'Sleep', 55),
+  ('Summer clothing essentials for babies under one year',
+   'commercial', 'Bodysuits', 'medium', 'medium', 'summer', 'rising', 'seed',
+   'seasonal', 'Wardrobe', 84),
+  ('Setting up a feeding routine in the first three months',
+   'informational', 'Feeding Cushion', 'high', 'medium', 'evergreen', 'steady', 'seed',
+   'beginner', 'Feeding', 58),
+  ('Choosing the right diaper bag for short outings',
+   'commercial', 'Food Bag', 'medium', 'medium', 'evergreen', 'steady', 'seed',
+   'best_for', 'Outings', 52),
+  ('Premium baby gift basket ideas for Eid',
+   'commercial', 'Bow Set', 'low', 'low', 'eid', 'rising', 'seed',
+   'seasonal', 'Gifting', 70)
+on conflict (title) do update set
+  format             = coalesce(public.contentops_topics.format, excluded.format),
+  cluster            = coalesce(public.contentops_topics.cluster, excluded.cluster),
+  seasonal_relevance = coalesce(public.contentops_topics.seasonal_relevance, excluded.seasonal_relevance);
+
+-- New seed batch — programmatic SEO topics spanning formats and
+-- clusters. ON CONFLICT (title) DO NOTHING preserves any operator
+-- edits and prevents duplicate inserts on re-run.
+insert into public.contentops_topics
+  (title, intent, related_category, priority, competition, seasonality, trend, source,
+   content_angle, suggested_cta, confidence_score, format, cluster, seasonal_relevance)
+values
+  ('Best swaddle for summer in Pakistan',
+   'commercial', 'Swaddle', 'high', 'medium', 'summer', 'rising', 'seed',
+   'Practical seasonal pick guide with fabric and fit checks.',
+   'Shop summer swaddles', 86, 'best_for', 'Sleep', 92),
+  ('Muslin vs cotton swaddle: which is better for newborns',
+   'informational', 'Swaddle', 'high', 'medium', 'evergreen', 'rising', 'seed',
+   'Calm head-to-head comparison anchored to comfort and breathability.',
+   'Shop muslin swaddles', 80, 'comparison', 'Sleep', 50),
+  ('Newborn sleep checklist for first-time parents',
+   'informational', 'Swaddle', 'high', 'medium', 'evergreen', 'steady', 'seed',
+   'Stepwise checklist with comfort-led routine cues.',
+   'Shop sleep essentials', 74, 'checklist', 'Sleep', 50),
+  ('Diaper bag essentials for travel with a baby',
+   'commercial', 'Food Bag', 'medium', 'medium', 'evergreen', 'steady', 'seed',
+   'Travel-day checklist with what truly gets used.',
+   'Shop travel essentials', 68, 'checklist', 'Outings', 50),
+  ('Winter newborn clothing guide for Pakistan',
+   'informational', 'Bodysuits', 'high', 'medium', 'winter', 'rising', 'seed',
+   'Layer-by-layer winter guide grounded in local climate.',
+   'Shop winter bodysuits', 80, 'seasonal', 'Wardrobe', 88),
+  ('FAQ: bathing a newborn safely',
+   'informational', 'Bodysuits', 'medium', 'low', 'evergreen', 'steady', 'seed',
+   'Operator-friendly FAQ that answers the first questions calmly.',
+   'Shop newborn essentials', 64, 'faq', 'Newborn Care', 50),
+  ('Beginner guide to baby feeding cushions',
+   'commercial', 'Feeding Cushion', 'medium', 'medium', 'evergreen', 'steady', 'seed',
+   'First-time-parent walkthrough of when and how to use a cushion.',
+   'Shop feeding cushions', 70, 'beginner', 'Feeding', 50),
+  ('Best food bag for school lunches in Pakistan',
+   'commercial', 'Food Container', 'medium', 'medium', 'evergreen', 'steady', 'seed',
+   'Lunchbox-style buying guide with practical sizing notes.',
+   'Shop food containers', 66, 'best_for', 'Feeding', 50),
+  ('When your baby refuses the swaddle: gentle next steps',
+   'informational', 'Swaddle', 'medium', 'medium', 'evergreen', 'steady', 'seed',
+   'Problem/solution piece with calm alternatives.',
+   'Shop sleep essentials', 62, 'problem_solution', 'Sleep', 50),
+  ('Eid gifting guide: thoughtful baby gifts under PKR 5,000',
+   'commercial', 'Bow Set', 'medium', 'low', 'eid', 'rising', 'seed',
+   'Curated thoughtful-gift roundup with calm framing.',
+   'Shop Eid gifts', 72, 'best_for', 'Gifting', 75),
+  ('Comparison: feeding cushion vs nursing pillow',
+   'informational', 'Feeding Cushion', 'medium', 'low', 'evergreen', 'steady', 'seed',
+   'Side-by-side comparison anchored to comfort and posture.',
+   'Shop feeding cushions', 66, 'comparison', 'Feeding', 50),
+  ('Monsoon-ready outing kit for parents in Pakistan',
+   'commercial', 'Food Bag', 'medium', 'medium', 'monsoon', 'rising', 'seed',
+   'Seasonal kit guide with practical waterproofing notes.',
+   'Shop outings essentials', 68, 'seasonal', 'Outings', 80)
+on conflict (title) do nothing;

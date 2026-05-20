@@ -11,6 +11,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { ImagePromptsCard } from "@/components/contentops/image-prompts-card";
 import { getStatusLabel } from "@/components/contentops/labels";
 import { MediaUploader } from "@/components/contentops/media-uploader";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
@@ -122,6 +123,8 @@ export default async function ManageMediaPage({ params }: PageProps) {
           slotHref={`/api/admin/contentops/drafts/${draft.id}/images/thumbnail`}
           disabled={isPublished}
         />
+
+        <ImagePromptsCard prompts={draft.content.imagePrompts ?? null} />
 
         <article className="rounded-3xl border border-[#3B2F2F]/10 bg-[#FBF7F3] p-5 text-sm text-[#3B2F2F]/72 sm:p-6">
           <p className="font-medium text-[#1F1918]">Section images</p>

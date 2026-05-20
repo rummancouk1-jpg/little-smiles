@@ -79,11 +79,23 @@ export function TopicCard({ topic }: TopicCardProps) {
         <p className={`text-xs font-medium uppercase tracking-[0.18em] ${priorityClass}`}>
           {getTopicPriorityLabel(topic.priority)}
         </p>
-        <span
-          className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] ${tone.pill}`}
-        >
-          {getTopicStatusFilterLabel(topic.status)}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {topic.format ? (
+            <span className="rounded-full bg-[#EFE7DE] px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/72">
+              {topic.format.replace(/_/g, " ")}
+            </span>
+          ) : null}
+          {topic.cluster ? (
+            <span className="rounded-full bg-[#D7E4EE] px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[#1E3F5A]">
+              {topic.cluster}
+            </span>
+          ) : null}
+          <span
+            className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] ${tone.pill}`}
+          >
+            {getTopicStatusFilterLabel(topic.status)}
+          </span>
+        </div>
       </div>
 
       <h3 className="mt-3 text-lg font-semibold leading-snug text-[#1F1918]">

@@ -7,11 +7,15 @@ import {
   getNotificationPreferences,
   updateNotificationPreferences,
 } from "@/lib/contentops/notifications/preferences";
+import { normalizeRecipientString } from "@/lib/contentops/notifications/recipients";
 import { captureServerError } from "@/lib/error-observability";
 
+// digestRecipientEmail accepts either a single address or a comma-
+// separated list. Per-address validation runs inside
+// normalizeRecipientString below so we can surface the offending entries.
 const putSchema = z.object({
   digestEnabled: z.boolean().optional(),
-  digestRecipientEmail: z.string().email().or(z.literal("")).nullable().optional(),
+  digestRecipientEmail: z.string().max(2000).nullable().optional(),
   skipEmptyDigests: z.boolean().optional(),
 });
 
@@ -51,15 +55,26 @@ export async function PUT(request: Request) {
     );
   }
 
-  // Gate: digest_enabled=true requires a recipient email.
+  // Normalize the (optional) recipient string. parseRecipientList trims,
+  // dedupes, and validates each address; a parse failure produces an
+  // operator-readable error string we can surface directly.
+  let normalizedRecipient: string | null | undefined;
+  if (parsed.data.digestRecipientEmail !== undefined) {
+    try {
+      normalizedRecipient = normalizeRecipientString(parsed.data.digestRecipientEmail);
+    } catch (err) {
+      return NextResponse.json(
+        { ok: false, error: err instanceof Error ? err.message : "Invalid recipient email" },
+        { status: 400 },
+      );
+    }
+  }
+
+  // Gate: digest_enabled=true requires at least one recipient.
   if (parsed.data.digestEnabled === true) {
-    // Need to know current recipient OR new recipient to enable.
-    const incomingEmail =
-      typeof parsed.data.digestRecipientEmail === "string"
-        ? parsed.data.digestRecipientEmail.trim()
-        : null;
-    if (incomingEmail === null || incomingEmail.length === 0) {
-      // Check current value before refusing.
+    const incomingHasRecipient =
+      normalizedRecipient !== undefined && normalizedRecipient !== null;
+    if (!incomingHasRecipient) {
       try {
         const current = await getNotificationPreferences();
         if (!current.digestRecipientEmail) {
@@ -81,18 +96,20 @@ export async function PUT(request: Request) {
     const preferences = await updateNotificationPreferences({
       digestEnabled: parsed.data.digestEnabled,
       digestRecipientEmail:
-        parsed.data.digestRecipientEmail === undefined
-          ? undefined
-          : parsed.data.digestRecipientEmail,
+        normalizedRecipient === undefined ? undefined : normalizedRecipient,
       skipEmptyDigests: parsed.data.skipEmptyDigests,
     });
+    const recipientCount = preferences.digestRecipientEmail
+      ? preferences.digestRecipientEmail.split(",").map((s) => s.trim()).filter(Boolean).length
+      : 0;
     await logAdminAudit(request, {
       action: "contentops_notification_prefs_updated",
       targetType: "contentops_notification_preferences",
       targetId: preferences.id,
       metadata: {
         digestEnabled: preferences.digestEnabled,
-        hasRecipient: Boolean(preferences.digestRecipientEmail),
+        hasRecipient: recipientCount > 0,
+        recipientCount,
         skipEmptyDigests: preferences.skipEmptyDigests,
       },
     });

@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { blogPostSchema, type BlogPost } from "@/lib/contentops/blog-schema";
 import { insertPendingReviewDraft } from "@/lib/contentops/drafts-store";
+import { composeImagePrompts } from "@/lib/contentops/intelligence/image-prompts";
 
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 4000;
@@ -68,7 +69,11 @@ async function generateDraftContent(topic: string): Promise<BlogPost> {
   const exampleJson = JSON.stringify(example, null, 2);
   const { system, user } = buildPrompt(topic, exampleJson);
 
-  const inputSchema = z.toJSONSchema(blogPostSchema) as Record<string, unknown>;
+  // The model only writes editorial fields. imagePrompts is filled
+  // deterministically by the composer after the model returns, so it's
+  // stripped from the tool schema to keep the model focused.
+  const modelFacingSchema = blogPostSchema.omit({ imagePrompts: true });
+  const inputSchema = z.toJSONSchema(modelFacingSchema) as Record<string, unknown>;
   const anthropic = new Anthropic({ apiKey: anthropicKey });
 
   const response = await anthropic.messages.create(
@@ -98,7 +103,7 @@ async function generateDraftContent(topic: string): Promise<BlogPost> {
     );
   }
 
-  const parsed = blogPostSchema.safeParse(toolUse.input);
+  const parsed = modelFacingSchema.safeParse(toolUse.input);
   if (!parsed.success) {
     const issues = parsed.error.issues
       .slice(0, 3)
@@ -128,7 +133,15 @@ export async function generateDraftFromTopic(topic: string): Promise<GeneratedDr
   }
 
   const content = await generateDraftContent(trimmed);
-  const inserted = await insertPendingReviewDraft(content);
+
+  // Compose deterministic image prompts at birth time. Operator can
+  // copy them into Midjourney / Imagen / Flux while the Phase-2
+  // provider integration is being wired in. The composer is pure and
+  // cheap; we run it inline rather than as a separate API hop.
+  const imagePrompts = composeImagePrompts({ post: content });
+  const contentWithPrompts: BlogPost = { ...content, imagePrompts };
+
+  const inserted = await insertPendingReviewDraft(contentWithPrompts);
   return {
     id: inserted.id,
     slug: inserted.slug,

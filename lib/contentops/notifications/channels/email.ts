@@ -12,6 +12,7 @@
 
 import { Resend } from "resend";
 
+import { parseRecipientList } from "@/lib/contentops/notifications/recipients";
 import type {
   ChannelSendResult,
   Digest,
@@ -139,8 +140,18 @@ export const emailNotificationChannel: NotificationChannelAdapter = {
           "No sender address configured. Set CONTENTOPS_DIGEST_FROM_EMAIL or CONTACT_FROM_EMAIL.",
       };
     }
-    const trimmedRecipient = recipient.trim();
-    if (trimmedRecipient.length === 0) {
+    // Recipient may be a single address (legacy/backward compat) or a
+    // comma-separated list. parseRecipientList collapses both to a
+    // deduplicated, validated array. Single-entry lists send identically
+    // to the previous single-recipient flow.
+    const parsed = parseRecipientList(recipient);
+    if (!parsed.ok) {
+      return {
+        ok: false,
+        error: `Invalid recipient email${parsed.invalid.length > 1 ? "s" : ""}: ${parsed.invalid.join(", ")}`,
+      };
+    }
+    if (parsed.emails.length === 0) {
       return { ok: false, error: "Recipient email is empty." };
     }
 
@@ -152,7 +163,7 @@ export const emailNotificationChannel: NotificationChannelAdapter = {
     try {
       const { data, error } = await resend.emails.send({
         from,
-        to: [trimmedRecipient],
+        to: parsed.emails,
         subject,
         html,
         text,

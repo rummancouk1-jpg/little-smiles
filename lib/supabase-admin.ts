@@ -137,6 +137,25 @@ type ContentopsTopicsTable = {
   suggested_cta: string | null;
   confidence_score: number | null;
   snoozed_until: string | null;
+  format:
+    | "guide"
+    | "comparison"
+    | "faq"
+    | "checklist"
+    | "seasonal"
+    | "beginner"
+    | "best_for"
+    | "problem_solution"
+    | null;
+  cluster:
+    | "Sleep"
+    | "Feeding"
+    | "Wardrobe"
+    | "Outings"
+    | "Gifting"
+    | "Newborn Care"
+    | null;
+  seasonal_relevance: number | null;
   created_at: string;
   updated_at: string;
 };

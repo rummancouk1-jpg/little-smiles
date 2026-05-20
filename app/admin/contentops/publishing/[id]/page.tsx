@@ -11,6 +11,7 @@ import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { ArticlePreview } from "@/components/contentops/article-preview";
 import { EditorialConnections } from "@/components/contentops/editorial-connections";
 import { EditorialSummary } from "@/components/contentops/editorial-summary";
+import { InlineLinkSuggestions } from "@/components/contentops/inline-link-suggestions";
 import { getStatusLabel } from "@/components/contentops/labels";
 import { MediaConfidence } from "@/components/contentops/media-confidence";
 import { PublishAction } from "@/components/contentops/publish-action";
@@ -21,7 +22,11 @@ import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getDraftById } from "@/lib/contentops/drafts-store";
-import { computeLinkingSuggestions } from "@/lib/contentops/intelligence/relationships";
+import {
+  computeInlineLinkSuggestions,
+  computeLinkingSuggestions,
+  type InlineLinkSuggestion,
+} from "@/lib/contentops/intelligence/relationships";
 import { preparePublish } from "@/lib/contentops/publish-prep";
 import { products } from "@/lib/products";
 
@@ -125,6 +130,7 @@ export default async function PublishArticlePage({ params }: PageProps) {
   let linkingSuggestions:
     | ReturnType<typeof computeLinkingSuggestions>
     | null = null;
+  let inlineLinks: InlineLinkSuggestion[] = [];
   if (preparation) {
     try {
       const allArticles = await getAllBlogPosts();
@@ -133,8 +139,16 @@ export default async function PublishArticlePage({ params }: PageProps) {
         candidates: allArticles,
         products,
       });
+      inlineLinks = computeInlineLinkSuggestions({
+        article: preparation.insertionPreview,
+        candidates: allArticles,
+        products,
+        maxLinks: 4,
+        maxProductLinks: 2,
+      });
     } catch {
       linkingSuggestions = null;
+      inlineLinks = [];
     }
   }
 
@@ -192,6 +206,7 @@ export default async function PublishArticlePage({ params }: PageProps) {
             {linkingSuggestions ? (
               <EditorialConnections suggestions={linkingSuggestions} />
             ) : null}
+            <InlineLinkSuggestions suggestions={inlineLinks} />
             <ArticlePreview article={preparation.insertionPreview} />
             <PublishAction
               draftId={draft.id}

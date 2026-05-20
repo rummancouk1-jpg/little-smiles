@@ -24,6 +24,28 @@ test-digest send), and the notifications settings page surfaces a calm
 - `CONTENTOPS_DIGEST_FROM_EMAIL` (optional override for digest sender)
 - `NEXT_PUBLIC_GA_ID` (format: `G-XXXXXXXXXX`)
 
+The digest recipient field in `/admin/contentops/settings/notifications`
+accepts either a single email or a comma-separated list. The Resend send
+is a single API call with multiple recipients; backward compatible —
+existing single-recipient values keep working unchanged.
+
+### Optional — operational analytics (`/admin/contentops/analytics`)
+The page works without these and renders calm "configure to see this"
+hints in their place. Derived signals (missing assets, link health,
+cadence) always render from the article catalog alone.
+- `GA4_PROPERTY_ID` — Google Analytics 4 property ID (numeric).
+- `GA4_BEARER_TOKEN` — short-lived OAuth2 token with `analytics.readonly`
+  scope. (No service-account JWT exchange in-app yet — operator refreshes
+  the token externally.)
+- `GSC_SITE_URL` — Search Console property URL (e.g. `https://littlesmiles.co.uk/`).
+- `GSC_BEARER_TOKEN` — OAuth2 token with `webmasters.readonly`.
+
+### Optional — image generation providers (Phase 2, not yet wired)
+Phase 1 ships deterministic prompt composition only. When a Phase 2
+provider integration lands, it will read one of:
+- `IMAGE_PROVIDER` (`openai` · `imagen` · `replicate-flux`)
+- Provider-specific keys (`OPENAI_API_KEY`, `GOOGLE_IMAGEN_API_KEY`, `REPLICATE_API_TOKEN`)
+
 ### Admin Auth (optional, if using Supabase admin auth mode)
 - `ADMIN_AUTH_MODE` (`secret` or `supabase`)
 - `SUPABASE_ANON_KEY`

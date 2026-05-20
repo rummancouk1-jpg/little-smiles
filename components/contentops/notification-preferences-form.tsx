@@ -152,16 +152,16 @@ export function NotificationPreferencesForm({
           </label>
           <input
             id="recipient"
-            type="email"
+            type="text"
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
             disabled={savePending}
-            placeholder="you@example.com"
+            placeholder="you@example.com, team@example.com"
             className="mt-2 w-full rounded-xl border border-[#3B2F2F]/12 bg-white px-3 py-2 text-sm text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none disabled:opacity-60"
           />
           <p className="mt-1 text-xs text-[#3B2F2F]/55">
-            One recipient for now. Multi-recipient and WhatsApp delivery land in
-            a future release.
+            One email, or several separated by commas. WhatsApp delivery lands
+            in a future release.
           </p>
         </div>
 
