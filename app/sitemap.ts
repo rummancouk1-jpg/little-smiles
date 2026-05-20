@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import { blogPosts } from "@/lib/blog";
+import { blogPosts, getBlogAnchorProduct } from "@/lib/blog";
 import { products } from "@/lib/products";
-import { siteUrl } from "@/lib/site";
+import { absoluteUrl, siteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = siteUrl;
@@ -42,19 +42,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: staticPriorities[route] ?? 0.65,
   }));
 
+  // Product entries advertise their hero image so Google + Pinterest can
+  // discover and index it. Image URL must be absolute per the sitemap spec.
   const productEntries = products.map((product) => ({
     url: `${baseUrl}/shop/${product.slug}`,
     lastModified: buildDate,
     changeFrequency: "weekly" as const,
     priority: 0.82,
+    images: [absoluteUrl(product.image)],
   }));
 
-  const blogEntries = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt),
-    changeFrequency: "monthly" as const,
-    priority: 0.74,
-  }));
+  // Blog entries reuse the same anchor-product image the article renders
+  // and JSON-LD already declares — keeps SERP / Pinterest previews aligned
+  // with what the visitor will actually see on-page.
+  const blogEntries = blogPosts.map((post) => {
+    const anchor = getBlogAnchorProduct(post);
+    const entry: MetadataRoute.Sitemap[number] = {
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.74,
+    };
+    if (anchor) {
+      entry.images = [absoluteUrl(anchor.image)];
+    }
+    return entry;
+  });
 
   return [...staticEntries, ...productEntries, ...blogEntries];
 }

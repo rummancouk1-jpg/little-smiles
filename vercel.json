@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/communications-retries",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/contentops-digest",
+      "schedule": "30 15 * * *"
     }
   ]
 }

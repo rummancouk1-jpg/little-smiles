@@ -12,7 +12,9 @@
 - `RESEND_API_KEY`
 - `CONTACT_TO_EMAIL` (expected: `littlesmiles.co.uk@gmail.com`)
 - `CONTACT_FROM_EMAIL`
+- `CONTENTOPS_DIGEST_TO` (optional; comma-separated. Falls back to `CONTACT_TO_EMAIL` when unset.)
 - `NEXT_PUBLIC_GA_ID` (format: `G-XXXXXXXXXX`)
+- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (optional; only if verifying Search Console via meta tag instead of DNS/file)
 
 ### Admin Auth (optional, if using Supabase admin auth mode)
 - `ADMIN_AUTH_MODE` (`secret` or `supabase`)
@@ -35,6 +37,20 @@
 
 ### ContentOps Draft CLI (local-only)
 - `ANTHROPIC_API_KEY` — required only when running `npm run contentops:draft`. Not used by the deployed server; do not set in Vercel production.
+
+### SEO Intelligence — future activation (optional)
+
+These env vars are read by the provider scaffolds in `lib/providers/`. When set, the relevant panels on `/admin/seo` and `/admin/readiness` flip from "not connected" to "connected". The actual fetchers are not yet implemented — see each provider file's header for the activation steps.
+
+**Search Console:**
+- `GSC_CLIENT_EMAIL` — service-account email with Search Console read access
+- `GSC_PRIVATE_KEY` — PEM-formatted private key (Vercel: paste with literal `\n` escapes)
+- `GSC_SITE_URL` — exact property URL (e.g. `https://www.littlesmiles.co/`)
+
+**GA4 Data API:**
+- `GA4_PROPERTY_ID` — numeric property ID (not the G- measurement ID)
+- `GA4_CLIENT_EMAIL` — service-account email with Viewer access on the property
+- `GA4_PRIVATE_KEY` — PEM-formatted private key
 
 ## Supabase Migration Order
 
@@ -83,14 +99,23 @@
 
 ## Cron Validation
 
-1. Ensure `vercel.json` includes `/api/cron/communications-retries` schedule.
+Two scheduled jobs:
+
+| Path | Schedule (UTC) | Local time | Purpose |
+|---|---|---|---|
+| `/api/cron/communications-retries` | `0 12 * * *` | 17:00 PKT | Re-attempt failed order SMS/WhatsApp sends. |
+| `/api/cron/contentops-digest` | `30 15 * * *` | 20:30 PKT | Email reviewer the pending ContentOps drafts. Empty-queue runs send no email. |
+
+1. Ensure `vercel.json` lists both schedules.
 2. Set `CRON_SECRET` in Vercel.
-3. Manually hit cron endpoint with authorization:
-   - `Authorization: Bearer <CRON_SECRET>`
+3. Manually hit either endpoint with authorization:
+   - `curl -H "Authorization: Bearer $CRON_SECRET" $BASE_URL/api/cron/communications-retries`
+   - `curl -H "Authorization: Bearer $CRON_SECRET" $BASE_URL/api/cron/contentops-digest`
 4. Verify:
-   - response contains retry summary.
-   - `/admin/notifications` "Last cron run" card updates.
-   - status badge is `healthy` after recent execution.
+   - retries endpoint returns retry summary; `/admin/notifications` "Last cron run" card updates.
+   - digest endpoint returns `{ ok: true, pendingCount, recipientCount }` or `{ ok: true, skipped: true, reason: "empty_queue" }`.
+   - `/admin/readiness` shows both crons under "Cron health" with `ready` badges.
+   - audit row exists with action `contentops_digest_run` (and existing `order_communication_auto_retry_run`).
 
 ## Admin Login Flow
 

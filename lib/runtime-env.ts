@@ -8,7 +8,16 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   CONTACT_TO_EMAIL: z.string().email().optional(),
   CONTACT_FROM_EMAIL: z.string().email().optional(),
+  CONTENTOPS_DIGEST_TO: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().regex(/^G-[A-Z0-9]+$/).optional(),
+  // Optional GSC + GA4 Data API service-account credentials. None are
+  // required today — they light up the SEO intelligence "future" panels.
+  GSC_CLIENT_EMAIL: z.string().email().optional(),
+  GSC_PRIVATE_KEY: z.string().min(1).optional(),
+  GSC_SITE_URL: z.string().url().optional(),
+  GA4_PROPERTY_ID: z.string().min(1).optional(),
+  GA4_CLIENT_EMAIL: z.string().email().optional(),
+  GA4_PRIVATE_KEY: z.string().min(1).optional(),
 });
 
 type ValidationResult = {

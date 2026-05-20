@@ -1,23 +1,9 @@
-import { timingSafeEqual } from "node:crypto";
-
 import { NextResponse } from "next/server";
 
+import { logSystemAudit } from "@/lib/admin-audit";
+import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { captureServerError } from "@/lib/error-observability";
 import { processDueCommunicationRetries } from "@/lib/order-communication-retries";
-
-function isAuthorizedCronRequest(request: Request): boolean {
-  const cronSecret = process.env.CRON_SECRET?.trim();
-  if (!cronSecret) return false;
-  const authHeader = request.headers.get("authorization")?.trim();
-  if (!authHeader) return false;
-  // Constant-time compare. Length guard prevents the underlying
-  // timingSafeEqual from throwing on mismatched buffer lengths.
-  const expected = `Bearer ${cronSecret}`;
-  const a = Buffer.from(authHeader, "utf8");
-  const b = Buffer.from(expected, "utf8");
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
 
 export async function GET(request: Request) {
   if (!isAuthorizedCronRequest(request)) {
@@ -26,6 +12,11 @@ export async function GET(request: Request) {
 
   try {
     const summary = await processDueCommunicationRetries();
+    await logSystemAudit({
+      action: "order_communication_auto_retry_run",
+      targetType: "order_communication",
+      metadata: summary,
+    }).catch(() => {});
     return NextResponse.json({ ok: true, ...summary });
   } catch (error) {
     captureServerError("api_cron_communications_retries_failed", error);

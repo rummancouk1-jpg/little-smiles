@@ -153,7 +153,7 @@ There is no Jest/Vitest suite in-repo; rely on **build**, **lint**, **smoke scri
 - **Inventory:** Enforced in UI from catalog; cart clamps quantities to `inventoryQty`.
 - **SEO:** `/cart` uses `noindex`; sitemap lists public routes and products, not the cart page.
 - **Runbook:** Operational checklist, Twilio, Resend, and rollback notes live in **`RUNBOOK.md`**.
-- **Middleware:** Next may warn about legacy `middleware` convention—track framework migration guidance separately.
+- **Proxy:** Apex → www 301 redirect lives in `proxy.ts` (Next.js 16 `proxy` file convention; replaces the legacy `middleware` file).
 
 ## Further reading
 
