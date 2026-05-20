@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 import { DraftActions } from "@/components/contentops/draft-actions";
 import { DraftDetail } from "@/components/contentops/draft-detail";
+import { RevisionsCard } from "@/components/contentops/revisions-card";
+import { TopicExpansionCard } from "@/components/contentops/topic-expansion-card";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getDraftById } from "@/lib/contentops/drafts-store";
@@ -54,19 +56,25 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
               </p>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">Signed in as {adminSession.actorLabel}</p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
-                Draft review
+                Article review
               </h1>
             </div>
-            {draft.status === "approved" ? (
+            {draft.status !== "published" ? (
               <Link
-                href={`/admin/contentops/${draft.id}/prepare-publish`}
-                className="rounded-full bg-[#2F2624] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC] hover:opacity-90"
+                href={`/admin/contentops/${draft.id}/edit`}
+                className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
               >
-                Prepare publish
+                Edit article
               </Link>
             ) : null}
             <Link
-              href="/admin/contentops"
+              href={`/admin/contentops/${draft.id}/images`}
+              className="text-xs text-[#3B2F2F]/55 underline underline-offset-2 hover:text-[#3B2F2F]"
+            >
+              Manage media →
+            </Link>
+            <Link
+              href="/admin/contentops/drafts"
               className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
             >
               Back to queue
@@ -77,13 +85,40 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
 
         <DraftDetail draft={draft} />
 
+        {draft.status === "approved" ? (
+          <p className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3] px-4 py-3 text-xs text-[#3B2F2F]/72">
+            {draft.content.hero
+              ? "Next step: publish now or schedule from the publishing queue."
+              : "Next step: attach a hero image, then publish."}
+          </p>
+        ) : null}
+
         <DraftActions
           draftId={draft.id}
           status={draft.status}
           approveHref={`/api/admin/contentops/drafts/${draft.id}/approve`}
           rejectHref={`/api/admin/contentops/drafts/${draft.id}/reject`}
-          backHref="/admin/contentops"
+          backHref="/admin/contentops/drafts"
+          articleHref={`/blog/${draft.content.slug}`}
+          scheduledAt={draft.scheduled_at}
         />
+
+        {draft.status !== "published" ? (
+          <RevisionsCard
+            draftId={draft.id}
+            currentContent={draft.content}
+            previousContent={draft.previous_content}
+            aiContent={draft.ai_generated_content}
+            lastEditedAt={draft.last_edited_at}
+            manuallyEdited={draft.manually_edited}
+          />
+        ) : null}
+
+        {draft.status === "approved" ||
+        draft.status === "scheduled" ||
+        draft.status === "published" ? (
+          <TopicExpansionCard draftId={draft.id} />
+        ) : null}
       </section>
     </main>
   );

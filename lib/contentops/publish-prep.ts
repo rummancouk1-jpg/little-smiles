@@ -5,6 +5,7 @@
 
 import { blogPostSchema, type BlogPost } from "@/lib/contentops/blog-schema";
 import { listDrafts, type Draft } from "@/lib/contentops/drafts-store";
+import { computeReadiness } from "@/lib/contentops/readiness";
 import type {
   Conflict,
   PublishAdapter,
@@ -134,17 +135,23 @@ export async function preparePublish(
   const validation = validateDraftSchema(draft);
 
   if (!validation.schemaValid) {
+    const schemaInvalidConflicts: Conflict[] = [
+      {
+        code: "SCHEMA_INVALID",
+        severity: "error",
+        message: "Draft content does not match the BlogPost schema.",
+        hint: validation.schemaErrors.join("; "),
+      },
+    ];
     return {
       draft,
       validation,
-      conflicts: [
-        {
-          code: "SCHEMA_INVALID",
-          severity: "error",
-          message: "Draft content does not match the BlogPost schema.",
-          hint: validation.schemaErrors.join("; "),
-        },
-      ],
+      conflicts: schemaInvalidConflicts,
+      readiness: computeReadiness({
+        draft,
+        validation,
+        conflicts: schemaInvalidConflicts,
+      }),
       insertionPreview: draft.content,
       diffText: "// Cannot generate diff: schema validation failed.",
       ready: false,
@@ -156,11 +163,13 @@ export async function preparePublish(
   const conflicts = await detectConflicts(draft, adapter, insertionPreview);
   const diffText = adapter.buildDiffText(insertionPreview);
   const ready = conflicts.every((c) => c.severity !== "error");
+  const readiness = computeReadiness({ draft, validation, conflicts });
 
   return {
     draft,
     validation,
     conflicts,
+    readiness,
     insertionPreview,
     diffText,
     ready,

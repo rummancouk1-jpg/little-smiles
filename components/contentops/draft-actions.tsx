@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { type DraftStatus } from "@/lib/contentops/drafts-store";
+import { getStatusLabel } from "@/components/contentops/labels";
+import { formatAbsolute } from "@/components/contentops/relative-time";
 
 type DraftActionsProps = {
   draftId: string;
@@ -14,9 +16,28 @@ type DraftActionsProps = {
   approveHref: string;
   rejectHref: string;
   backHref: string;
+  /**
+   * Public URL where the article lives once published, e.g. /blog/<slug>.
+   * Rendered as a "View live article" link in the published terminal
+   * state. Optional so legacy callers without slug context still compile.
+   */
+  articleHref?: string;
+  /**
+   * When the draft is scheduled, the absolute time it will go live.
+   * Surfaced in the terminal copy so the reviewer knows what to expect.
+   */
+  scheduledAt?: string | null;
 };
 
-export function DraftActions({ draftId, status, approveHref, rejectHref, backHref }: DraftActionsProps) {
+export function DraftActions({
+  draftId,
+  status,
+  approveHref,
+  rejectHref,
+  backHref,
+  articleHref,
+  scheduledAt,
+}: DraftActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -90,7 +111,7 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
               disabled={isPending}
               className="rounded-full border border-[#3B2F2F]/14 bg-white px-5 py-2 text-sm font-medium text-[#2E2323] hover:bg-[#F2EAE4] disabled:opacity-50"
             >
-              {showRejectForm ? "Cancel" : "Reject"}
+              {showRejectForm ? "Cancel" : "Decline"}
             </button>
             <a href={backHref} className="ml-auto text-xs text-[#3B2F2F]/72 underline underline-offset-2">
               Back to queue
@@ -103,7 +124,7 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
                 htmlFor="rejection-note"
                 className="text-xs uppercase tracking-[0.12em] text-[#3B2F2F]/55"
               >
-                Rejection note (optional)
+                Note (optional)
               </label>
               <textarea
                 id="rejection-note"
@@ -112,7 +133,7 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
                 rows={3}
                 maxLength={2000}
                 className="w-full rounded-2xl border border-[#3B2F2F]/12 bg-white p-3 text-sm text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none"
-                placeholder="Why is this draft being rejected? Optional."
+                placeholder="What should the AI avoid next time? Optional."
               />
               <button
                 type="button"
@@ -120,19 +141,44 @@ export function DraftActions({ draftId, status, approveHref, rejectHref, backHre
                 disabled={isPending}
                 className="rounded-full bg-[#6A3E31] px-5 py-2 text-sm font-medium text-[#F6F1EC] transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {isPending ? "Saving…" : "Confirm rejection"}
+                {isPending ? "Saving…" : "Confirm decline"}
               </button>
             </div>
           ) : null}
         </div>
       ) : (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-[#3B2F2F]/72">
-            No reviewer actions for {status.replace("_", " ")} drafts.
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-[#3B2F2F]/85">
+            {status === "approved"
+              ? "Approved. Sent to the publishing queue. You're done."
+              : status === "scheduled"
+                ? scheduledAt
+                  ? `Approved. Scheduled to go live ${formatAbsolute(scheduledAt)}.`
+                  : "Approved. Scheduled to go live."
+                : status === "published"
+                  ? "Live on site."
+                  : status === "rejected"
+                    ? "Declined. No further action needed."
+                    : `Status: ${getStatusLabel(status)}.`}
           </p>
-          <a href={backHref} className="text-xs text-[#3B2F2F]/72 underline underline-offset-2">
-            Back to queue
-          </a>
+          <div className="flex shrink-0 flex-wrap items-center gap-4">
+            {status === "published" && articleHref ? (
+              <a
+                href={articleHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-[#1E5A37] underline underline-offset-2 hover:text-[#175030]"
+              >
+                View live article →
+              </a>
+            ) : null}
+            <a
+              href={backHref}
+              className="text-xs text-[#3B2F2F]/72 underline underline-offset-2"
+            >
+              Back to queue
+            </a>
+          </div>
         </div>
       )}
 

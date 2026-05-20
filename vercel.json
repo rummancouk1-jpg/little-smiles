@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/communications-retries",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/contentops-publish-due",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/contentops-daily-digest",
+      "schedule": "30 3 * * *"
     }
   ]
 }

@@ -74,11 +74,32 @@ export default function RootLayout({
 
   const sitewideStructuredData = organizationAndWebsiteJsonLd();
 
+  // Preconnect to Supabase Storage so the first hero image on /blog/*
+  // shaves DNS + TLS setup off LCP. Only emit when the env is present;
+  // adding a preconnect to a non-existent host is wasted work.
+  let supabaseOrigin: string | null = null;
+  const rawSupabase = process.env.SUPABASE_URL?.trim();
+  if (rawSupabase) {
+    try {
+      supabaseOrigin = new URL(rawSupabase).origin;
+    } catch {
+      supabaseOrigin = null;
+    }
+  }
+
   return (
     <html
       lang="en-PK"
       className={`${bodySans.variable} ${editorialSerif.variable} h-full antialiased`}
     >
+      <head>
+        {supabaseOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} crossOrigin="" />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        ) : null}
+      </head>
       <body className="grain-surface min-h-full flex flex-col">
         <GoogleAnalytics />
         <script

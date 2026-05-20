@@ -94,11 +94,68 @@ type OrderCommunicationsTable = {
 type ContentopsDraftsTable = {
   id: string;
   slug: string;
-  status: "pending_review" | "approved" | "rejected" | "published";
+  status: "pending_review" | "approved" | "rejected" | "published" | "scheduled";
   content: BlogPost;
   rejection_note: string | null;
+  publish_notes: string | null;
   approved_at: string | null;
   published_at: string | null;
+  scheduled_at: string | null;
+  manually_edited: boolean;
+  last_edited_at: string | null;
+  ai_generated_content: BlogPost | null;
+  previous_content: BlogPost | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type ContentopsNotificationPreferencesTable = {
+  id: string;
+  digest_enabled: boolean;
+  digest_recipient_email: string | null;
+  skip_empty_digests: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type ContentopsTopicsTable = {
+  id: string;
+  title: string;
+  intent: "informational" | "commercial" | "transactional";
+  related_category: string | null;
+  priority: "high" | "medium" | "low";
+  competition: "low" | "medium" | "high";
+  seasonality: "evergreen" | "summer" | "winter" | "monsoon" | "eid";
+  trend: "rising" | "steady" | "declining";
+  suggested_window_start: string | null;
+  suggested_window_end: string | null;
+  status: "queued" | "drafted" | "published" | "archived" | "snoozed";
+  draft_id: string | null;
+  source: "manual" | "seed";
+  notes: string | null;
+  content_angle: string | null;
+  suggested_cta: string | null;
+  confidence_score: number | null;
+  snoozed_until: string | null;
+  format:
+    | "guide"
+    | "comparison"
+    | "faq"
+    | "checklist"
+    | "seasonal"
+    | "beginner"
+    | "best_for"
+    | "problem_solution"
+    | null;
+  cluster:
+    | "Sleep"
+    | "Feeding"
+    | "Wardrobe"
+    | "Outings"
+    | "Gifting"
+    | "Newborn Care"
+    | null;
+  seasonal_relevance: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -163,6 +220,24 @@ type SupabaseSchema = {
           updated_at?: string;
         };
         Update: Partial<ContentopsDraftsTable>;
+        Relationships: [];
+      };
+      contentops_topics: {
+        Row: ContentopsTopicsTable;
+        Insert: Omit<ContentopsTopicsTable, "id" | "created_at" | "updated_at"> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ContentopsTopicsTable>;
+        Relationships: [];
+      };
+      contentops_notification_preferences: {
+        Row: ContentopsNotificationPreferencesTable;
+        Insert: Omit<ContentopsNotificationPreferencesTable, "created_at" | "updated_at"> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ContentopsNotificationPreferencesTable>;
         Relationships: [];
       };
     };

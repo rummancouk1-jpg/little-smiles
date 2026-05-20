@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
+import { BlogArticleBody } from "@/components/blog-article-body";
+import {
+  blogPosts,
+  getAllBlogPosts,
+  getBlogPostBySlugAsync,
+} from "@/lib/blog";
+import { computeLinkingSuggestions } from "@/lib/contentops/intelligence/relationships";
 import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
@@ -11,7 +17,21 @@ type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+// Five-minute ISR. Known static slugs are pre-rendered via
+// generateStaticParams; Supabase-only slugs render on-demand and get
+// cached per the revalidate window. Commit L will pair this with
+// revalidatePath() on publish for instant visibility.
+export const revalidate = 300;
+
+// Allow on-demand rendering for slugs not in the static seed (i.e. those
+// born in Supabase after build). Default behaviour, declared explicitly
+// so the contract is visible at the file head.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
+  // Pre-render the static seed only. Including Supabase drafts here
+  // would couple builds to DB availability without meaningful upside:
+  // ISR handles dynamic slugs at first request and caches the result.
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
 
@@ -19,7 +39,7 @@ export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlugAsync(slug);
 
   if (!post) {
     return {
@@ -63,18 +83,27 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlugAsync(slug);
 
   if (!post) notFound();
-  const relatedPosts = blogPosts
-    .filter((entry) => entry.slug !== post.slug)
-    .slice(0, 2);
-  const relatedProducts = products
-    .filter((product) => product.category === post.relatedProductCategory)
-    .slice(0, 3);
+
+  // Related posts + products are now ranked by the editorial intelligence
+  // engine instead of the naive "first 2" / "category match" selectors.
+  // Same data sources — static seed + Supabase-published drafts — just
+  // ordered by topical resonance (shared anchor collection, shared
+  // category, keyword overlap).
+  const allPosts = await getAllBlogPosts();
+  const suggestions = computeLinkingSuggestions({
+    article: post,
+    candidates: allPosts,
+    products,
+  });
+  const relatedPosts = suggestions.relatedArticles.slice(0, 2).map((r) => r.article);
+  const relatedProducts = suggestions.relatedProducts
+    .slice(0, 3)
+    .map((r) => r.product);
 
   const structuredData = blogPostingJsonLd(post);
-  const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
   const breadcrumbLd = breadcrumbJsonLdDocument([
     { name: "Home", path: "/" },
     { name: "Journal", path: "/blog" },
@@ -93,47 +122,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       />
       <article className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-[#3B2F2F]/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
-            {post.category}
-          </p>
-          <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-[#1F1918] sm:text-5xl">
-            {post.title}
-          </h1>
-          <p className="mt-5 text-base leading-relaxed text-[#3B2F2F]/72 sm:text-lg">
-            {post.description}
-          </p>
-          <p className="mt-4 text-xs text-[#3B2F2F]/58">
-            <time dateTime={publishedIso}>
-              {post.publishedAt} · {post.readTime}
-            </time>
-          </p>
-
-          <div className="mt-9 space-y-8">
-            {post.sections.map((section) => (
-              <section key={section.heading}>
-                <h2 className="text-2xl font-semibold tracking-tight text-[#241B1B]">
-                  {section.heading}
-                </h2>
-                <div className="mt-3 space-y-3 text-base leading-relaxed text-[#3B2F2F]/74">
-                  {section.content.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-
-          <div className="mt-10 rounded-2xl border border-[#3B2F2F]/10 bg-[#F8F2EC] p-5">
-            <p className="text-sm text-[#3B2F2F]/72">
-              Ready to shop products mentioned in this guide?
-            </p>
-            <Link
-              href={post.cta.href}
-              className="mt-3 inline-flex rounded-full bg-[#2F2624] px-5 py-2.5 text-sm font-medium text-[#F6F1EC] transition-colors hover:bg-[#251E1D]"
-            >
-              {post.cta.label}
-            </Link>
-          </div>
+          <BlogArticleBody post={post} titleLevel={1} ctaInteractive />
 
           {relatedPosts.length > 0 ? (
             <section className="mt-10">

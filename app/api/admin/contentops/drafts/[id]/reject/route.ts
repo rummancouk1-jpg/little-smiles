@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
+import { logAdminAudit } from "@/lib/admin-audit";
 import { rejectDraft } from "@/lib/contentops/drafts-store";
 import { captureServerError } from "@/lib/error-observability";
 
@@ -34,6 +35,15 @@ export async function POST(request: Request, { params }: RouteProps) {
 
   try {
     const draft = await rejectDraft(id, parsed.data.note);
+    await logAdminAudit(request, {
+      action: "contentops_draft_rejected",
+      targetType: "contentops_draft",
+      targetId: draft.id,
+      metadata: {
+        slug: draft.slug,
+        hasNote: Boolean(draft.rejection_note),
+      },
+    });
     return NextResponse.json({ ok: true, draft });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to reject draft";

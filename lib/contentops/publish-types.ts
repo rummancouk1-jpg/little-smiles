@@ -40,10 +40,50 @@ export type ImageAvailabilityReport = {
   reason?: string;
 };
 
+// ---------------------------------------------------------------------------
+// Publishing Readiness model (Commit O)
+//
+// Higher-level dashboard the operator scans before publishing. Aggregates
+// the engine's lower-level Conflict emissions plus new image/metadata
+// checks into six facets. Additive: this model coexists with the existing
+// conflicts/validation/ready fields, never replaces them.
+// ---------------------------------------------------------------------------
+
+export type ReadinessLevel = "ready" | "warnings" | "blocked" | "not_applicable";
+
+export type ReadinessFacet =
+  | "content"
+  | "images"
+  | "seo"
+  | "cta"
+  | "metadata"
+  | "channels";
+
+export type ReadinessCheck = {
+  id: string;
+  label: string;
+  state: ReadinessLevel;
+  hint?: string;
+};
+
+export type FacetState = {
+  facet: ReadinessFacet;
+  label: string;
+  level: ReadinessLevel;
+  summary: string;
+  checks: ReadinessCheck[];
+};
+
+export type PublishingReadiness = {
+  overall: ReadinessLevel;
+  facets: FacetState[];
+};
+
 export type PublishPreparation = {
   draft: Draft;
   validation: ValidationReport;
   conflicts: Conflict[];
+  readiness: PublishingReadiness;
   insertionPreview: BlogPost;
   diffText: string;
   ready: boolean;
