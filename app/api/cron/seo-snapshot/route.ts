@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     action: "seo_snapshot_run",
     metadata: {
       status: summary.status,
+      warnings: summary.warnings,
       windowStart: summary.windowStart,
       windowEnd: summary.windowEnd,
       gsc: summary.gsc,
@@ -43,14 +44,5 @@ export async function GET(request: Request) {
     },
   }).catch(() => {});
 
-  // 200 if at least one leg succeeded; 207 multi-status for partial;
-  // 502 if both legs failed (not skipped); 200+skipped if both not connected.
-  const httpStatus = (() => {
-    if (summary.status === "ok") return 200;
-    if (summary.status === "partial") return 207;
-    if (summary.status === "skipped") return 200;
-    return 502;
-  })();
-
-  return NextResponse.json({ ok: summary.status !== "failed", ...summary }, { status: httpStatus });
+  return NextResponse.json({ ok: true, ...summary }, { status: 200 });
 }
