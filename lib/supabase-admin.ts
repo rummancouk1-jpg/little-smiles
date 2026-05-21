@@ -1,6 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { BlogPost } from "@/lib/contentops/blog-schema";
+import type { Ga4PagePathRow } from "@/lib/providers/ga4";
+import type { GscQueryRow } from "@/lib/providers/search-console";
 
 type OrderIntentsTable = {
   id: string;
@@ -103,6 +105,26 @@ type ContentopsDraftsTable = {
   updated_at: string;
 };
 
+type SeoGscSnapshotsTable = {
+  id: string;
+  snapshot_date: string;
+  window_start: string;
+  window_end: string;
+  rows: GscQueryRow[];
+  row_count: number;
+  created_at: string;
+};
+
+type SeoGa4SnapshotsTable = {
+  id: string;
+  snapshot_date: string;
+  window_start: string;
+  window_end: string;
+  rows: Ga4PagePathRow[];
+  row_count: number;
+  created_at: string;
+};
+
 type SupabaseSchema = {
   public: {
     Tables: {
@@ -163,6 +185,24 @@ type SupabaseSchema = {
           updated_at?: string;
         };
         Update: Partial<ContentopsDraftsTable>;
+        Relationships: [];
+      };
+      seo_gsc_snapshots: {
+        Row: SeoGscSnapshotsTable;
+        Insert: Omit<SeoGscSnapshotsTable, "id" | "created_at"> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<SeoGscSnapshotsTable>;
+        Relationships: [];
+      };
+      seo_ga4_snapshots: {
+        Row: SeoGa4SnapshotsTable;
+        Insert: Omit<SeoGa4SnapshotsTable, "id" | "created_at"> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<SeoGa4SnapshotsTable>;
         Relationships: [];
       };
     };

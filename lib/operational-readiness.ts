@@ -14,6 +14,10 @@ import { listDrafts } from "@/lib/contentops/drafts-store";
 import { validateDraftSchema } from "@/lib/contentops/publish-prep";
 import { getGa4ConnectionState } from "@/lib/providers/ga4";
 import { getSearchConsoleConnectionState } from "@/lib/providers/search-console";
+import {
+  getLatestGa4Snapshot,
+  getLatestGscSnapshot,
+} from "@/lib/seo-intelligence/snapshots-store";
 import { getSupabaseAdminClient, getSupabaseRuntimeChecks } from "@/lib/supabase-admin";
 
 export type ReadinessLevel = "ready" | "warning" | "missing";
@@ -49,10 +53,20 @@ export type ContentOpsQueueReport = {
   approvedMissingHeroImage: number;
 };
 
+export type SnapshotFreshnessReport = {
+  label: string;
+  level: ReadinessLevel;
+  snapshotDate: string | null;
+  ageDays: number | null;
+  rowCount: number | null;
+  detail: string;
+};
+
 export type ReadinessReport = {
   generatedAt: string;
   providers: ProviderReport[];
   crons: CronRunReport[];
+  snapshotFreshness: SnapshotFreshnessReport[];
   contentops: ContentOpsQueueReport | null;
   contentopsError: string | null;
   seo: ProviderReport;
@@ -395,7 +409,14 @@ export async function buildReadinessReport(): Promise<ReadinessReport> {
     anthropicProvider(),
   ];
 
-  const [communicationsRetries, contentopsDigest, contentopsResult] = await Promise.all([
+  const [
+    communicationsRetries,
+    contentopsDigest,
+    seoSnapshot,
+    contentopsResult,
+    gscSnap,
+    ga4Snap,
+  ] = await Promise.all([
     buildCronReport({
       action: "order_communication_auto_retry_run",
       label: "Order communications retry",
@@ -408,16 +429,64 @@ export async function buildReadinessReport(): Promise<ReadinessReport> {
       expectedScheduleUtc: "30 15 * * * (20:30 PKT)",
       maxAgeHours: 26,
     }),
+    buildCronReport({
+      action: "seo_snapshot_run",
+      label: "SEO snapshot (GSC + GA4)",
+      expectedScheduleUtc: "0 6 * * *",
+      maxAgeHours: 26,
+    }),
     buildContentOpsReport(),
+    getLatestGscSnapshot().catch(() => null),
+    getLatestGa4Snapshot().catch(() => null),
   ]);
+
+  const snapshotFreshness: SnapshotFreshnessReport[] = [
+    buildSnapshotFreshness("Search Console snapshot", gscSnap),
+    buildSnapshotFreshness("GA4 snapshot", ga4Snap),
+  ];
 
   return {
     generatedAt: new Date().toISOString(),
     providers,
-    crons: [communicationsRetries, contentopsDigest],
+    crons: [communicationsRetries, contentopsDigest, seoSnapshot],
+    snapshotFreshness,
     contentops: contentopsResult.report,
     contentopsError: contentopsResult.error,
     seo: seoChecks(),
+  };
+}
+
+function buildSnapshotFreshness(
+  label: string,
+  snapshot: { snapshotDate: string; rowCount: number } | null,
+): SnapshotFreshnessReport {
+  if (!snapshot) {
+    return {
+      label,
+      level: "missing",
+      snapshotDate: null,
+      ageDays: null,
+      rowCount: null,
+      detail: "No snapshot row yet. Provider may not be connected, or the cron has not run successfully.",
+    };
+  }
+  const t = new Date(`${snapshot.snapshotDate}T00:00:00Z`).getTime();
+  const ageDays = Number.isFinite(t) ? Math.floor((Date.now() - t) / 86_400_000) : null;
+  let level: ReadinessLevel = "ready";
+  if (ageDays === null) level = "warning";
+  else if (ageDays > 2) level = "warning";
+  return {
+    label,
+    level,
+    snapshotDate: snapshot.snapshotDate,
+    ageDays,
+    rowCount: snapshot.rowCount,
+    detail:
+      ageDays === null
+        ? "Snapshot timestamp could not be parsed."
+        : ageDays === 0
+          ? `Fresh — today's snapshot has ${snapshot.rowCount} rows.`
+          : `Snapshot is ${ageDays} day(s) old with ${snapshot.rowCount} rows.`,
   };
 }
 

@@ -11,10 +11,12 @@ import { buildContentDecayReport, type ContentDecayReport } from "@/lib/seo-inte
 import { buildInternalLinkingReport, type InternalLinkingReport } from "@/lib/seo-intelligence/internal-linking";
 import { buildMetadataCoverageReport, type MetadataCoverageReport } from "@/lib/seo-intelligence/metadata-coverage";
 import { buildPinterestReadinessReport, type PinterestReadinessReport } from "@/lib/seo-intelligence/pinterest-readiness";
+import { buildSnapshotInsightsReport, type SnapshotInsightsReport } from "@/lib/seo-intelligence/snapshot-insights";
 import { buildTopicGroupingReport, type TopicGroupingReport } from "@/lib/seo-intelligence/topic-grouping";
 
 export type SeoIntelligenceReport = {
   generatedAt: string;
+  snapshotInsights: SnapshotInsightsReport;
   internalLinking: InternalLinkingReport;
   pinterest: PinterestReadinessReport;
   contentDecay: ContentDecayReport;
@@ -28,13 +30,15 @@ export type SeoIntelligenceReport = {
 
 export async function buildSeoIntelligenceReport(): Promise<SeoIntelligenceReport> {
   // Run async engines in parallel; the synchronous ones execute inline.
-  const [pinterest, contentDecay] = await Promise.all([
+  const [pinterest, contentDecay, snapshotInsights] = await Promise.all([
     buildPinterestReadinessReport(),
     buildContentDecayReport(),
+    buildSnapshotInsightsReport(),
   ]);
 
   return {
     generatedAt: new Date().toISOString(),
+    snapshotInsights,
     internalLinking: buildInternalLinkingReport(),
     pinterest,
     contentDecay,

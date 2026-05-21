@@ -11,6 +11,7 @@ import {
   type SubjectReport,
 } from "@/lib/seo-intelligence";
 import type { PinterestSubjectReport } from "@/lib/seo-intelligence/pinterest-readiness";
+import type { GscInsights, Ga4Insights, SnapshotFreshness } from "@/lib/seo-intelligence/snapshot-insights";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,100 @@ function summariseSeverity(diagnostics: Diagnostic[]): Severity {
   return "ok";
 }
 
+function FreshnessBadge({ f }: { f: SnapshotFreshness }) {
+  const tone = f.isFresh ? "bg-[#E7F4EA] text-[#2E6A41]" : "bg-[#FBEEDE] text-[#7A4A12]";
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide ${tone}`}>
+      Snapshot {f.snapshotDate} · {f.ageDays}d old
+    </span>
+  );
+}
+
+function formatPercent(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function formatNumber(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  return value.toLocaleString("en-PK");
+}
+
+function formatPosition(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "—";
+  return value.toFixed(1);
+}
+
+function formatSeconds(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  if (value < 60) return `${value.toFixed(0)}s`;
+  const minutes = Math.floor(value / 60);
+  const seconds = Math.round(value - minutes * 60);
+  return `${minutes}m ${seconds}s`;
+}
+
+function GscQueryTable({ rows, columns }: { rows: GscInsights["topByImpressions"]; columns: ("clicks" | "impressions" | "ctr" | "position")[] }) {
+  if (rows.length === 0) {
+    return <p className="mt-3 text-xs text-[#3B2F2F]/65">No rows in this slice.</p>;
+  }
+  return (
+    <table className="mt-3 w-full table-auto text-xs">
+      <thead>
+        <tr className="text-left text-[#3B2F2F]/60">
+          <th className="py-1 pr-3 font-medium">Query</th>
+          <th className="py-1 pr-3 font-medium">Page</th>
+          {columns.includes("clicks") ? <th className="py-1 pr-3 text-right font-medium">Clicks</th> : null}
+          {columns.includes("impressions") ? <th className="py-1 pr-3 text-right font-medium">Impr.</th> : null}
+          {columns.includes("ctr") ? <th className="py-1 pr-3 text-right font-medium">CTR</th> : null}
+          {columns.includes("position") ? <th className="py-1 text-right font-medium">Pos.</th> : null}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, idx) => (
+          <tr key={`${row.query}-${row.page}-${idx}`} className="border-t border-[#3B2F2F]/8">
+            <td className="py-1.5 pr-3 text-[#1F1918]">{row.query}</td>
+            <td className="py-1.5 pr-3 max-w-[280px] truncate text-[#3B2F2F]/72">{row.page}</td>
+            {columns.includes("clicks") ? <td className="py-1.5 pr-3 text-right tabular-nums text-[#1F1918]">{formatNumber(row.clicks)}</td> : null}
+            {columns.includes("impressions") ? <td className="py-1.5 pr-3 text-right tabular-nums text-[#1F1918]">{formatNumber(row.impressions)}</td> : null}
+            {columns.includes("ctr") ? <td className="py-1.5 pr-3 text-right tabular-nums text-[#1F1918]">{formatPercent(row.ctr)}</td> : null}
+            {columns.includes("position") ? <td className="py-1.5 text-right tabular-nums text-[#1F1918]">{formatPosition(row.position)}</td> : null}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function Ga4PageTable({ rows, columns }: { rows: Ga4Insights["topBySessions"]; columns: ("sessions" | "users" | "engagement" | "bounce")[] }) {
+  if (rows.length === 0) {
+    return <p className="mt-3 text-xs text-[#3B2F2F]/65">No rows in this slice.</p>;
+  }
+  return (
+    <table className="mt-3 w-full table-auto text-xs">
+      <thead>
+        <tr className="text-left text-[#3B2F2F]/60">
+          <th className="py-1 pr-3 font-medium">Page</th>
+          {columns.includes("sessions") ? <th className="py-1 pr-3 text-right font-medium">Sessions</th> : null}
+          {columns.includes("users") ? <th className="py-1 pr-3 text-right font-medium">Users</th> : null}
+          {columns.includes("engagement") ? <th className="py-1 pr-3 text-right font-medium">Avg sess.</th> : null}
+          {columns.includes("bounce") ? <th className="py-1 text-right font-medium">Bounce</th> : null}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, idx) => (
+          <tr key={`${row.pagePath}-${idx}`} className="border-t border-[#3B2F2F]/8">
+            <td className="py-1.5 pr-3 max-w-[280px] truncate text-[#1F1918]">{row.pagePath}</td>
+            {columns.includes("sessions") ? <td className="py-1.5 pr-3 text-right tabular-nums text-[#1F1918]">{formatNumber(row.sessions)}</td> : null}
+            {columns.includes("users") ? <td className="py-1.5 pr-3 text-right tabular-nums text-[#1F1918]">{formatNumber(row.totalUsers)}</td> : null}
+            {columns.includes("engagement") ? <td className="py-1.5 pr-3 text-right tabular-nums text-[#1F1918]">{formatSeconds(row.averageSessionDurationSeconds)}</td> : null}
+            {columns.includes("bounce") ? <td className="py-1.5 text-right tabular-nums text-[#1F1918]">{formatPercent(row.bounceRate)}</td> : null}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export default async function SeoIntelligencePage() {
   if (!isAdminAuthConfigured()) {
     return (
@@ -226,6 +321,89 @@ export default async function SeoIntelligencePage() {
               )}
             </article>
           </div>
+        </section>
+
+        {/* Search Console insights — real snapshot data */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-[#1F1918]">Search Console insights</h2>
+              <p className="mt-1 text-xs text-[#3B2F2F]/65">
+                Derived from the latest snapshot in <code>seo_gsc_snapshots</code>. Cron schedule: 06:00 UTC daily.
+              </p>
+            </div>
+            {report.snapshotInsights.gsc.available === false ? null : (
+              <FreshnessBadge f={report.snapshotInsights.gsc.freshness} />
+            )}
+          </div>
+          {report.snapshotInsights.gsc.available === false ? (
+            <p className="mt-3 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4 text-sm text-[#3B2F2F]/72">
+              {report.snapshotInsights.gsc.reason}
+            </p>
+          ) : (
+            <>
+              <p className="mt-3 text-xs text-[#3B2F2F]/65">
+                Window {report.snapshotInsights.gsc.snapshot.windowStart} → {report.snapshotInsights.gsc.snapshot.windowEnd} ·
+                {" "}{formatNumber(report.snapshotInsights.gsc.totals.clicks)} clicks · {formatNumber(report.snapshotInsights.gsc.totals.impressions)} impressions ·
+                {" "}{report.snapshotInsights.gsc.snapshot.rowCount} query/page rows
+              </p>
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top queries by impressions</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Sort: impressions desc, top {report.snapshotInsights.gsc.topByImpressions.length}.</p>
+              <GscQueryTable rows={report.snapshotInsights.gsc.topByImpressions} columns={["clicks", "impressions", "ctr", "position"]} />
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Low CTR · high impressions</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Filter: impressions ≥ 50 AND CTR &lt; 2%. Sort: impressions desc.</p>
+              <GscQueryTable rows={report.snapshotInsights.gsc.lowCtrHighImpressions} columns={["impressions", "ctr", "position"]} />
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Near page-one queries</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Filter: avg position &lt; 10.5. Sort: position asc.</p>
+              <GscQueryTable rows={report.snapshotInsights.gsc.nearPageOne} columns={["impressions", "ctr", "position"]} />
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top queries by clicks</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Sort: clicks desc, top {report.snapshotInsights.gsc.topByClicks.length}.</p>
+              <GscQueryTable rows={report.snapshotInsights.gsc.topByClicks} columns={["clicks", "impressions", "ctr", "position"]} />
+            </>
+          )}
+        </section>
+
+        {/* GA4 insights — real snapshot data */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-[#1F1918]">GA4 insights</h2>
+              <p className="mt-1 text-xs text-[#3B2F2F]/65">
+                Derived from the latest snapshot in <code>seo_ga4_snapshots</code>. Cron schedule: 06:00 UTC daily.
+              </p>
+            </div>
+            {report.snapshotInsights.ga4.available === false ? null : (
+              <FreshnessBadge f={report.snapshotInsights.ga4.freshness} />
+            )}
+          </div>
+          {report.snapshotInsights.ga4.available === false ? (
+            <p className="mt-3 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4 text-sm text-[#3B2F2F]/72">
+              {report.snapshotInsights.ga4.reason}
+            </p>
+          ) : (
+            <>
+              <p className="mt-3 text-xs text-[#3B2F2F]/65">
+                Window {report.snapshotInsights.ga4.snapshot.windowStart} → {report.snapshotInsights.ga4.snapshot.windowEnd} ·
+                {" "}{formatNumber(report.snapshotInsights.ga4.totals.sessions)} sessions · {formatNumber(report.snapshotInsights.ga4.totals.totalUsers)} users ·
+                {" "}{report.snapshotInsights.ga4.snapshot.rowCount} page-path rows
+              </p>
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top pages by sessions</h3>
+              <Ga4PageTable rows={report.snapshotInsights.ga4.topBySessions} columns={["sessions", "users", "engagement", "bounce"]} />
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top pages by engagement</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Filter: sessions ≥ 10. Sort: avg session duration desc.</p>
+              <Ga4PageTable rows={report.snapshotInsights.ga4.topByEngagement} columns={["sessions", "engagement", "bounce"]} />
+
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">High-bounce with meaningful traffic</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Filter: sessions ≥ 20 AND bounce ≥ 70%.</p>
+              <Ga4PageTable rows={report.snapshotInsights.ga4.highBounceWithTraffic} columns={["sessions", "bounce", "engagement"]} />
+            </>
+          )}
         </section>
 
         {/* Internal linking */}

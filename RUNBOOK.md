@@ -57,7 +57,8 @@ These env vars are read by the provider scaffolds in `lib/providers/`. When set,
 1. Run `supabase/orders-schema.sql`
 2. Run `supabase/admin-audit-schema.sql`
 3. Run `supabase/contentops-schema.sql`
-4. Confirm new/altered tables exist:
+4. Run `supabase/seo-snapshots-schema.sql`
+5. Confirm new/altered tables exist:
    - `order_intents`
    - `orders`
    - `order_status_history`
@@ -65,12 +66,15 @@ These env vars are read by the provider scaffolds in `lib/providers/`. When set,
    - `order_communications`
    - `admin_audit_logs`
    - `contentops_drafts`
-5. Verify indexes are present for:
+   - `seo_gsc_snapshots`
+   - `seo_ga4_snapshots`
+6. Verify indexes are present for:
    - order intent recency and product grouping
    - order status filters
    - communication retry scheduling
    - audit log timeline/action filtering
    - contentops draft status/created ordering and slug-active uniqueness
+   - seo snapshot date uniqueness (per provider table) + created_at recency
 
 ## Resend Setup
 
@@ -99,23 +103,26 @@ These env vars are read by the provider scaffolds in `lib/providers/`. When set,
 
 ## Cron Validation
 
-Two scheduled jobs:
+Three scheduled jobs:
 
 | Path | Schedule (UTC) | Local time | Purpose |
 |---|---|---|---|
 | `/api/cron/communications-retries` | `0 12 * * *` | 17:00 PKT | Re-attempt failed order SMS/WhatsApp sends. |
 | `/api/cron/contentops-digest` | `30 15 * * *` | 20:30 PKT | Email reviewer the pending ContentOps drafts. Empty-queue runs send no email. |
+| `/api/cron/seo-snapshot` | `0 6 * * *` | 11:00 PKT | Fetch 28-day GSC + GA4 windows, upsert into `seo_*_snapshots`, prune rows older than 30 days. |
 
 1. Ensure `vercel.json` lists both schedules.
 2. Set `CRON_SECRET` in Vercel.
-3. Manually hit either endpoint with authorization:
+3. Manually hit any endpoint with authorization:
    - `curl -H "Authorization: Bearer $CRON_SECRET" $BASE_URL/api/cron/communications-retries`
    - `curl -H "Authorization: Bearer $CRON_SECRET" $BASE_URL/api/cron/contentops-digest`
+   - `curl -H "Authorization: Bearer $CRON_SECRET" $BASE_URL/api/cron/seo-snapshot`
 4. Verify:
    - retries endpoint returns retry summary; `/admin/notifications` "Last cron run" card updates.
    - digest endpoint returns `{ ok: true, pendingCount, recipientCount }` or `{ ok: true, skipped: true, reason: "empty_queue" }`.
-   - `/admin/readiness` shows both crons under "Cron health" with `ready` badges.
-   - audit row exists with action `contentops_digest_run` (and existing `order_communication_auto_retry_run`).
+   - snapshot endpoint returns `{ ok: true, status: "ok" | "partial" | "skipped", gsc, ga4, windowStart, windowEnd }`. HTTP 200 (ok/skipped), 207 (partial), 502 (failed).
+   - `/admin/readiness` shows all three crons under "Cron health" with `ready` badges and snapshot freshness rows in green.
+   - audit rows exist for `seo_snapshot_run`, `contentops_digest_run`, `order_communication_auto_retry_run`.
 
 ## Admin Login Flow
 

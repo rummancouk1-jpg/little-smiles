@@ -182,6 +182,36 @@ export default async function ReadinessAdminPage() {
         </section>
 
         <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <h2 className="text-base font-semibold text-[#1F1918]">SEO snapshot freshness</h2>
+          <p className="mt-1 text-xs text-[#3B2F2F]/65">
+            Latest row from each snapshot table. Independent of the cron audit — answers "do we have usable data?"
+            instead of "did the cron try?".
+          </p>
+          <ul className="mt-4 space-y-3">
+            {report.snapshotFreshness.map((snap) => (
+              <li key={snap.label} className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-[#1F1918]">{snap.label}</p>
+                  <span
+                    className={[
+                      "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide",
+                      levelBadgeClass(snap.level),
+                    ].join(" ")}
+                  >
+                    {levelLabel(snap.level)}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-[#3B2F2F]/65">
+                  Latest snapshot: <strong>{snap.snapshotDate ?? "—"}</strong>
+                  {snap.rowCount !== null ? ` · ${snap.rowCount} rows` : null}
+                </p>
+                <p className="mt-1 text-xs text-[#3B2F2F]/72">{snap.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
           <h2 className="text-base font-semibold text-[#1F1918]">ContentOps queue</h2>
           {report.contentopsError ? (
             <p className="mt-2 text-sm text-[#8A2F40]">{report.contentopsError}</p>
