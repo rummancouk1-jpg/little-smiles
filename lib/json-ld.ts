@@ -1,4 +1,4 @@
-import { getBlogAnchorProduct, type BlogPost } from "@/lib/blog";
+import { resolveHeroImagePath, type BlogPost } from "@/lib/blog";
 import type { Product } from "@/lib/products";
 import { absoluteUrl, defaultOgImagePath, siteUrl } from "@/lib/site";
 
@@ -42,12 +42,11 @@ export function organizationAndWebsiteJsonLd() {
 export function blogPostingJsonLd(post: BlogPost) {
   const pageUrl = absoluteUrl(`/blog/${post.slug}`);
   const isoPublished = `${post.publishedAt}T12:00:00+05:00`;
-  // Reuse the same anchor product image the blog rail card already
-  // shows for this post — keeps the Discover thumbnail consistent
-  // with what the user sees on-site, and gives each post a unique
-  // image instead of falling back to the brand logo.
-  const anchor = getBlogAnchorProduct(post);
-  const imagePath = anchor ? anchor.image : defaultOgImagePath;
+  // Resolved image follows the same precedence everywhere: explicit
+  // post.heroImage (reviewer override) → anchor product image →
+  // brand-level OG fallback. Keeps the SERP thumbnail consistent
+  // with what the on-page hero renders.
+  const imagePath = resolveHeroImagePath(post) ?? defaultOgImagePath;
 
   return {
     "@context": "https://schema.org",

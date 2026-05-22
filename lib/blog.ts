@@ -161,3 +161,24 @@ export function getBlogAnchorProduct(post: BlogPost): Product | null {
     null
   );
 }
+
+/**
+ * Single source of truth for "which image represents this post."
+ * Prefers an explicit `post.heroImage` (typically chosen by a reviewer in
+ * ContentOps) and falls back to the auto-resolved anchor product image
+ * when no override is present.
+ *
+ * Used by:
+ *   - JSON-LD BlogPosting.image (lib/json-ld.ts)
+ *   - the public blog page hero (app/blog/[slug]/page.tsx)
+ *   - the admin reviewer preview (components/contentops/website-preview.tsx)
+ *
+ * Returns `null` only when neither an override nor an in-category product
+ * image exists. Callers must decide whether to fall through to a brand-level
+ * default (e.g. defaultOgImagePath) — this helper stays project-data-only.
+ */
+export function resolveHeroImagePath(post: BlogPost): string | null {
+  const explicit = post.heroImage?.trim();
+  if (explicit && explicit.length > 0) return explicit;
+  return getBlogAnchorProduct(post)?.image ?? null;
+}

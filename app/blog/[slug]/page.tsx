@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { blogPosts, getBlogPostBySlug } from "@/lib/blog";
+import { blogPosts, getBlogPostBySlug, resolveHeroImagePath } from "@/lib/blog";
 import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
@@ -75,6 +76,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const structuredData = blogPostingJsonLd(post);
   const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
+  const heroImagePath = resolveHeroImagePath(post);
   const breadcrumbLd = breadcrumbJsonLdDocument([
     { name: "Home", path: "/" },
     { name: "Journal", path: "/blog" },
@@ -107,6 +109,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               {post.publishedAt} · {post.readTime}
             </time>
           </p>
+
+          {heroImagePath ? (
+            <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
+              <Image
+                src={heroImagePath}
+                alt={`${post.title} hero image`}
+                fill
+                sizes="(min-width: 1024px) 768px, 100vw"
+                className="object-cover"
+                priority
+              />
+            </div>
+          ) : null}
 
           <div className="mt-9 space-y-8">
             {post.sections.map((section) => (

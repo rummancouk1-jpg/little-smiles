@@ -79,6 +79,11 @@ function formatBlogPostLiteral(post: BlogPost): string {
   lines.push(`${indent(3)}label: ${formatString(post.cta.label)},`);
   lines.push(`${indent(3)}href: ${formatString(post.cta.href)},`);
   lines.push(`${indent(2)}},`);
+  // Emit the optional heroImage field only when present so existing
+  // posts that omit it stay byte-identical when re-formatted.
+  if (typeof post.heroImage === "string" && post.heroImage.length > 0) {
+    lines.push(...formatProperty(2, "heroImage", formatString(post.heroImage)));
+  }
   lines.push(`${indent(1)}},`);
   return lines.join("\n");
 }
@@ -89,7 +94,15 @@ export const littleSmilesPublishAdapter: PublishAdapter = {
   },
 
   buildInsertionObject(draft: Draft): BlogPost {
-    // LS publishes the draft content verbatim — no transformation.
+    // Propagate the reviewer-selected hero image (stored on the draft row,
+    // not inside the BlogPost JSON) into the published BlogPost literal.
+    // When the reviewer never overrode, hero_image_path is null and the
+    // emitted post omits heroImage entirely — preserving the auto-anchor
+    // fallback used by every pre-existing live post.
+    const override = draft.hero_image_path?.trim();
+    if (override && override.length > 0) {
+      return { ...draft.content, heroImage: override };
+    }
     return draft.content;
   },
 
@@ -98,6 +111,10 @@ export const littleSmilesPublishAdapter: PublishAdapter = {
   },
 
   reportImageAvailability(insertion: BlogPost): ImageAvailabilityReport {
+    // An explicit heroImage already proves there's an image to render.
+    if (typeof insertion.heroImage === "string" && insertion.heroImage.length > 0) {
+      return { ok: true };
+    }
     const inCategory = products.filter(
       (p) => p.category === insertion.relatedProductCategory,
     );

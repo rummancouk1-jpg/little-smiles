@@ -40,6 +40,14 @@ export const blogPostSchema = z.object({
     label: z.string(),
     href: z.string(),
   }),
+  /**
+   * Optional reviewer-selected hero image path under /public (e.g.
+   * "/products/foo.jpg"). When absent, the on-page hero and BlogPosting
+   * JSON-LD fall back to getBlogAnchorProduct(post).image. Backwards-
+   * compatible: existing posts in lib/blog.ts omit this field and keep
+   * the old auto-resolved behaviour.
+   */
+  heroImage: z.string().optional(),
 });
 
 export const blogPostsSchema = z.array(blogPostSchema);

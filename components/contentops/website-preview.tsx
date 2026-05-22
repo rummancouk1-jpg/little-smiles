@@ -1,12 +1,18 @@
 // Reader-facing preview of a draft. Renders the body content using the
 // SAME max-width, headings, paragraph rhythm, and visual structure as the
-// public blog post page (app/blog/[slug]/page.tsx). Keep this separate
-// from admin diagnostics — operators look at the diagnostics panels for
-// numbers; this one shows them how a reader will experience the post.
+// public blog post page (app/blog/[slug]/page.tsx).
 //
-// IMPORTANT: this component is purely presentational. If the public blog
-// page's typography changes, mirror that change here so the preview stays
-// honest.
+// Hero image precedence here MUST stay identical to
+// `lib/blog.ts:resolveHeroImagePath()` so the reviewer sees exactly what
+// publishes:
+//   1. an explicit `post.heroImage` (reviewer override propagated by the
+//      publish adapter)
+//   2. the auto-resolved anchor product image (caller supplies the
+//      fallback as `fallbackHeroImagePath`)
+//   3. nothing — render without a hero
+//
+// Keep this component presentational. If the public blog page's typography
+// or image rules change, mirror that change here so the preview stays honest.
 
 import Image from "next/image";
 import Link from "next/link";
@@ -15,11 +21,23 @@ import { type BlogPost } from "@/lib/contentops/blog-schema";
 
 type Props = {
   post: BlogPost;
-  heroImagePath: string | null;
+  /**
+   * Auto-resolved fallback path used when `post.heroImage` is not set
+   * (typically `getBlogAnchorProduct(post)?.image`). Pass `null` when no
+   * fallback can be derived; the preview will render without a hero.
+   */
+  fallbackHeroImagePath: string | null;
 };
 
-export function WebsitePreview({ post, heroImagePath }: Props) {
+function resolveHeroPath(post: BlogPost, fallback: string | null): string | null {
+  const explicit = post.heroImage?.trim();
+  if (explicit && explicit.length > 0) return explicit;
+  return fallback;
+}
+
+export function WebsitePreview({ post, fallbackHeroImagePath }: Props) {
   const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
+  const heroImagePath = resolveHeroPath(post, fallbackHeroImagePath);
 
   return (
     <section className="rounded-3xl border border-[#3B2F2F]/10 bg-[#F9F5F1] p-4 sm:p-6">
@@ -28,7 +46,7 @@ export function WebsitePreview({ post, heroImagePath }: Props) {
           Website preview
         </p>
         <p className="text-[11px] text-[#3B2F2F]/55">
-          Reader view — typography, spacing, and width mirror{" "}
+          Reader view — typography, spacing, and image resolution mirror{" "}
           <code className="font-mono">/blog/{post.slug}</code>.
         </p>
       </div>

@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AdminSectionNav } from "@/components/admin/admin-section-nav";
+import { PublishControlPanel } from "@/components/contentops/publish-control-panel";
 import { PublishReadinessBanner } from "@/components/contentops/publish-readiness-banner";
-import { PublishReport } from "@/components/contentops/publish-report";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { validateDraft } from "@/lib/contentops/draft-validation";
 import { getDraftById } from "@/lib/contentops/drafts-store";
+import { buildHeroImageWorkflow } from "@/lib/contentops/hero-image";
 import { preparePublish } from "@/lib/contentops/publish-prep";
 
 type PageProps = {
@@ -83,6 +84,9 @@ export default async function PreparePublishPage({ params }: PageProps) {
     prepError = err instanceof Error ? err.message : "Failed to prepare publish.";
   }
 
+  const validation = validateDraft(draft);
+  const heroWorkflow = await buildHeroImageWorkflow(draft);
+
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <section className="mx-auto max-w-4xl space-y-6">
@@ -114,7 +118,7 @@ export default async function PreparePublishPage({ params }: PageProps) {
         </header>
 
         <PublishReadinessBanner
-          badges={validateDraft(draft).badges}
+          badges={validation.badges}
           publishWarnings={(preparation?.conflicts ?? []).map((c) => ({
             code: c.code,
             message: c.message,
@@ -128,7 +132,19 @@ export default async function PreparePublishPage({ params }: PageProps) {
             <p className="mt-1 text-xs">{prepError}</p>
           </article>
         ) : preparation ? (
-          <PublishReport preparation={preparation} />
+          <PublishControlPanel
+            preparation={preparation}
+            validation={{
+              badges: validation.badges,
+              wordCount: validation.wordCount,
+              sectionCount: validation.sectionCount,
+              internalLinkCount: validation.internalLinkCount,
+              hasAnchorProduct: validation.hasAnchorProduct,
+              anchorImagePath: validation.anchorImagePath,
+              publishReady: validation.publishReady,
+            }}
+            fallbackHeroImagePath={heroWorkflow.autoResolvedPath}
+          />
         ) : null}
       </section>
     </main>

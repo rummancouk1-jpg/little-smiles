@@ -95,7 +95,14 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
 
         <HeroImagePanel draftId={draft.id} workflow={heroWorkflow} />
 
-        <WebsitePreview post={draft.content} heroImagePath={heroWorkflow.effectivePath} />
+        <WebsitePreview
+          post={
+            draft.hero_image_path
+              ? { ...draft.content, heroImage: draft.hero_image_path }
+              : draft.content
+          }
+          fallbackHeroImagePath={heroWorkflow.autoResolvedPath}
+        />
 
         <DraftActions
           draftId={draft.id}
