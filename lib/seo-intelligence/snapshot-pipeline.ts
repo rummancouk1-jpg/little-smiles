@@ -20,7 +20,7 @@ const WINDOW_DAYS = 28;
 
 export type ProviderOutcome =
   | { ok: true; rowCount: number; snapshotDate: string; windowStart: string; windowEnd: string; prunedOldRows: number }
-  | { ok: false; reason: string; skipped: boolean };
+  | { ok: false; reason: string; skipped: boolean; code?: string };
 
 export type SnapshotRunSummary = {
   startedAt: string;
@@ -114,22 +114,24 @@ async function runGa4Leg(windowStart: string, windowEnd: string): Promise<Provid
   try {
     const state = getGa4ConnectionState();
     if (!state.connected) {
-      return { ok: false, reason: state.reason, skipped: true };
+      return { ok: false, reason: state.reason, skipped: true, code: "env_missing" };
     }
 
     let fetchResult;
     try {
       fetchResult = await fetchTopPagePaths({ startDate: windowStart, endDate: windowEnd });
     } catch (err) {
-      return {
-        ok: false,
-        reason: err instanceof Error ? err.message : "GA4 fetch failed",
-        skipped: false,
-      };
+      const reason =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : "GA4 fetch failed";
+      return { ok: false, reason, skipped: false, code: "unknown" };
     }
 
     if (!fetchResult.ok) {
-      return { ok: false, reason: fetchResult.reason, skipped: false };
+      return { ok: false, reason: fetchResult.reason, skipped: false, code: fetchResult.code };
     }
 
     try {
@@ -144,14 +146,17 @@ async function runGa4Leg(windowStart: string, windowEnd: string): Promise<Provid
         prunedOldRows,
       };
     } catch (err) {
-      return { ok: false, reason: err instanceof Error ? err.message : "Persist failed", skipped: false };
+      return {
+        ok: false,
+        reason: err instanceof Error ? err.message : "Persist failed",
+        skipped: false,
+        code: "supabase_insert_failed",
+      };
     }
   } catch (err) {
-    return {
-      ok: false,
-      reason: err instanceof Error ? err.message : "GA4 leg failed",
-      skipped: false,
-    };
+    const reason =
+      err instanceof Error ? err.message : typeof err === "string" ? err : "GA4 leg failed";
+    return { ok: false, reason, skipped: false, code: "unknown" };
   }
 }
 

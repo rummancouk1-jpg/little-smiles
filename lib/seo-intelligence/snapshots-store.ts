@@ -156,14 +156,19 @@ export async function upsertGa4Snapshot(window: Ga4PagePathWindow): Promise<Stor
     .single();
 
   if (error || !data) {
-    logSeo("GA4_SUPABASE_WRITE_FAILED", {
-      reason: error?.message ?? "no row returned",
-      snapshotDate: snapshot_date,
-    });
-    throw new Error(`Failed to upsert GA4 snapshot: ${error?.message ?? "no row returned"}`);
+    const reason = error?.message ?? "no row returned";
+    logSeo("GA4_SUPABASE_WRITE_FAILED", { reason, snapshotDate: snapshot_date });
+    logSeo("GA4_SNAPSHOT_INSERT_FAILED", { reason, snapshotDate: snapshot_date });
+    throw new Error(`Failed to upsert GA4 snapshot: ${reason}`);
   }
 
   logSeo("GA4_SUPABASE_WRITE_SUCCESS", {
+    snapshotDate: data.snapshot_date,
+    rowCount: data.row_count,
+    windowStart: data.window_start,
+    windowEnd: data.window_end,
+  });
+  logSeo("GA4_SNAPSHOT_INSERT_SUCCESS", {
     snapshotDate: data.snapshot_date,
     rowCount: data.row_count,
     windowStart: data.window_start,
@@ -191,9 +196,18 @@ export async function getLatestGa4Snapshot(): Promise<StoredGa4Snapshot | null> 
     .maybeSingle();
 
   if (error) {
+    logSeo("GA4_DASHBOARD_READ_FAILED", { reason: error.message });
     throw new Error(`Failed to read latest GA4 snapshot: ${error.message}`);
   }
-  if (!data) return null;
+  if (!data) {
+    logSeo("GA4_DASHBOARD_READ_SUCCESS", { found: false });
+    return null;
+  }
+  logSeo("GA4_DASHBOARD_READ_SUCCESS", {
+    found: true,
+    snapshotDate: data.snapshot_date,
+    rowCount: data.row_count,
+  });
   return {
     id: data.id,
     snapshotDate: data.snapshot_date,

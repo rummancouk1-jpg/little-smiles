@@ -508,7 +508,9 @@ export default async function SeoIntelligencePage() {
                   <p className="mt-1 inline-flex rounded-full bg-[#E7F4EA] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#2E6A41]">
                     Connected
                   </p>
-                  <p className="mt-2 text-xs text-[#3B2F2F]/72">Property: {report.providers.ga4.propertyId}</p>
+                  <p className="mt-2 text-xs text-[#3B2F2F]/72">
+                    Property: {report.providers.ga4.propertyId} · auth: {report.providers.ga4.authMode}
+                  </p>
                 </>
               ) : (
                 <>

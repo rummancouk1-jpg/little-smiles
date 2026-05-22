@@ -9,6 +9,16 @@
 -- snapshots-store.ts). That ceiling is intentionally wider than the
 -- longest comparison window (30 days) so snapshot-history can resolve
 -- "vs 30 days ago" without missing data.
+--
+-- Column → code mapping (verified against lib/seo-intelligence/snapshots-store.ts):
+--   id            uuid          ← StoredSnapshot.id
+--   snapshot_date date          ← StoredSnapshot.snapshotDate (YYYY-MM-DD UTC)
+--   window_start  date          ← window.startDate (28-day window)
+--   window_end    date          ← window.endDate (yesterday — GSC has 1-3d lag)
+--   rows          jsonb         ← Ga4PagePathRow[] or GscQueryRow[]
+--   row_count     int           ← rows.length
+--   created_at    timestamptz   ← server timestamp at insert
+-- All columns are NOT NULL; insert payloads must include them all.
 
 create table if not exists public.seo_gsc_snapshots (
   id uuid primary key default gen_random_uuid(),

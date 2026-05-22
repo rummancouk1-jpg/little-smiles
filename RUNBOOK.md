@@ -47,8 +47,18 @@ These env vars are read by the provider scaffolds in `lib/providers/`. When set,
 - `GSC_PRIVATE_KEY` — PEM-formatted private key (Vercel: paste with literal `\n` escapes)
 - `GSC_SITE_URL` — exact property URL (e.g. `https://www.littlesmiles.co/`)
 
-**GA4 Data API:**
+**GA4 Data API** (OAuth user is preferred when set; otherwise service account):
+
 - `GA4_PROPERTY_ID` — numeric property ID (not the G- measurement ID)
+
+*OAuth user* (add your Google account under GA4 Admin → Property access; service accounts are often rejected in the UI):
+
+- `GA4_OAUTH_CLIENT_ID` — OAuth 2.0 Web client ID
+- `GA4_OAUTH_CLIENT_SECRET` — OAuth client secret
+- `GA4_OAUTH_REFRESH_TOKEN` — long-lived refresh token (offline)
+
+*Service account* (fallback):
+
 - `GA4_CLIENT_EMAIL` — service-account email with Viewer access on the property
 - `GA4_PRIVATE_KEY` — PEM-formatted private key
 

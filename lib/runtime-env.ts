@@ -18,6 +18,9 @@ const envSchema = z.object({
   GA4_PROPERTY_ID: z.string().min(1).optional(),
   GA4_CLIENT_EMAIL: z.string().email().optional(),
   GA4_PRIVATE_KEY: z.string().min(1).optional(),
+  GA4_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GA4_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
+  GA4_OAUTH_REFRESH_TOKEN: z.string().min(1).optional(),
 });
 
 type ValidationResult = {

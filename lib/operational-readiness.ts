@@ -226,7 +226,11 @@ function ga4DataApiProvider(): ProviderReport {
   const state = getGa4ConnectionState();
   const items: ReadinessItem[] = [];
   if (state.connected) {
-    items.push(ok("GA4 Data API", `Property ${state.propertyId} · service-account ${state.clientEmail}`));
+    const authLabel =
+      state.authMode === "oauth_user"
+        ? "OAuth user"
+        : `service account (${process.env.GA4_CLIENT_EMAIL?.trim() ?? "configured"})`;
+    items.push(ok("GA4 Data API", `Property ${state.propertyId} · ${authLabel}`));
   } else {
     items.push(warn("GA4 Data API", state.reason));
     for (const key of state.missingEnv) {

@@ -10,6 +10,10 @@ import {
   type ReadinessItem,
   type ReadinessLevel,
 } from "@/lib/operational-readiness";
+import {
+  buildDataPipelineHealth,
+  type DataPipelineHealth,
+} from "@/lib/seo-intelligence/data-pipeline-health";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +61,99 @@ function ItemRow({ item }: { item: ReadinessItem }) {
   );
 }
 
+function PipelineRow({
+  label,
+  state,
+  value,
+}: {
+  label: string;
+  state: "ready" | "warning" | "missing";
+  value: string;
+}) {
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 border-b border-[#3B2F2F]/8 py-2 last:border-b-0">
+      <div className="flex items-center gap-2">
+        <span
+          className={[
+            "inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+            levelBadgeClass(state),
+          ].join(" ")}
+        >
+          {state === "ready" ? "ok" : state === "warning" ? "warn" : "missing"}
+        </span>
+        <span className="text-sm font-medium text-[#1F1918]">{label}</span>
+      </div>
+      <span className="text-xs text-[#3B2F2F]/72 tabular-nums">{value}</span>
+    </li>
+  );
+}
+
+function DataPipelineHealthPanel({ health }: { health: DataPipelineHealth }) {
+  const ga4State: ReadinessLevel = !health.ga4.envConfigured
+    ? "missing"
+    : health.ga4.lastErrorSummary
+      ? "warning"
+      : health.ga4.latestSnapshotAt
+        ? "ready"
+        : "warning";
+
+  const gscState: ReadinessLevel =
+    health.gsc.status === "connected"
+      ? "ready"
+      : health.gsc.status === "pending"
+        ? "warning"
+        : "missing";
+
+  const supabaseState: ReadinessLevel = health.supabase.reachable ? "ready" : "missing";
+
+  const ga4LatestText = health.ga4.latestSnapshotAt
+    ? `${formatDateTime(health.ga4.latestSnapshotAt)} · ${health.ga4.rowCount ?? 0} rows`
+    : "no snapshot yet";
+
+  const gscLatestText =
+    health.gsc.status === "connected"
+      ? `connected${health.gsc.latestSnapshotAt ? ` · last ${formatDateTime(health.gsc.latestSnapshotAt)}` : ""}`
+      : health.gsc.status === "pending"
+        ? "previously connected — recheck credentials"
+        : "unavailable";
+
+  const cronText = health.lastCron.seoSnapshotAt
+    ? `${formatDateTime(health.lastCron.seoSnapshotAt)}${
+        health.lastCron.seoSnapshotStatus ? ` (${health.lastCron.seoSnapshotStatus})` : ""
+      }`
+    : "no run logged";
+  const cronState: ReadinessLevel = health.lastCron.seoSnapshotAt ? "ready" : "warning";
+
+  return (
+    <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-semibold text-[#1F1918]">Data pipeline health</h2>
+        <span className="text-[11px] text-[#3B2F2F]/55">
+          Generated {formatDateTime(health.generatedAt)}
+        </span>
+      </div>
+      <ul className="mt-3">
+        <PipelineRow
+          label="GA4 env configured"
+          state={health.ga4.envConfigured ? "ready" : "missing"}
+          value={
+            health.ga4.envConfigured
+              ? `yes · auth ${health.ga4.authMode ?? "unknown"}${health.ga4.propertyIdHint ? ` · property ${health.ga4.propertyIdHint}` : ""}`
+              : "no — set GA4_PROPERTY_ID plus OAuth (GA4_OAUTH_*) or service account (GA4_CLIENT_EMAIL / GA4_PRIVATE_KEY)"
+          }
+        />
+        <PipelineRow label="GA4 latest snapshot" state={ga4State} value={ga4LatestText} />
+        {health.ga4.lastErrorSummary ? (
+          <PipelineRow label="GA4 last error" state="warning" value={health.ga4.lastErrorSummary} />
+        ) : null}
+        <PipelineRow label="Search Console" state={gscState} value={gscLatestText} />
+        <PipelineRow label="Supabase reachable" state={supabaseState} value={health.supabase.detail} />
+        <PipelineRow label="Last SEO snapshot cron" state={cronState} value={cronText} />
+      </ul>
+    </section>
+  );
+}
+
 function ProviderCard({ provider }: { provider: ProviderReport }) {
   const summary = summariseLevels(provider.items);
   return (
@@ -98,7 +195,10 @@ export default async function ReadinessAdminPage() {
     redirect("/admin/login?next=%2Fadmin%2Freadiness");
   }
 
-  const report = await buildReadinessReport();
+  const [report, dataHealth] = await Promise.all([
+    buildReadinessReport(),
+    buildDataPipelineHealth(),
+  ]);
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -118,6 +218,8 @@ export default async function ReadinessAdminPage() {
             <AdminSectionNav active="readiness" />
           </div>
         </header>
+
+        <DataPipelineHealthPanel health={dataHealth} />
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {report.providers.map((provider) => (

@@ -3,13 +3,23 @@ import { type NextRequest, NextResponse } from "next/server";
 import { logSystemAudit } from "@/lib/admin-audit";
 import { getCronAuthDebug, isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { captureServerError } from "@/lib/error-observability";
-import { getGa4ConnectionState } from "@/lib/providers/ga4";
+import {
+  fetchTopPagePaths,
+  getGa4ConnectionState,
+  type Ga4AuthMode,
+  type Ga4SafeErrorFields,
+} from "@/lib/providers/ga4";
 import { getSearchConsoleConnectionState } from "@/lib/providers/search-console";
 import {
   runSnapshotPipeline,
   type ProviderOutcome,
   type SnapshotRunSummary,
 } from "@/lib/seo-intelligence/snapshot-pipeline";
+import {
+  getLatestGa4Snapshot,
+  pruneOldGa4Snapshots,
+  upsertGa4Snapshot,
+} from "@/lib/seo-intelligence/snapshots-store";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -141,6 +151,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Protected GA4-only diagnostic mode. Bypasses GSC, the audit log
+    // write, and the regular response shape so an operator can answer
+    // "is GA4 actually returning data, and does Supabase accept it?" in
+    // one HTTP call. Never echoes secrets back.
+    if (request.nextUrl.searchParams.get("debug") === "ga4") {
+      const ga4Diag = await runGa4DiagnosticOnly();
+      return NextResponse.json(ga4Diag, { status: ga4Diag.ok ? 200 : 200 });
+    }
+
     const envValidation = buildEnvValidation();
 
     if (envValidation.gsc.missing.length > 0 || envValidation.ga4.missing.length > 0) {
@@ -266,4 +285,119 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+type Ga4DiagnosticResponse = {
+  ok: boolean;
+  ga4: {
+    envConfigured: boolean;
+    propertyIdPresent: boolean;
+    authMode: Ga4AuthMode | null;
+    authOk: boolean | null;
+    rowsReturned: number | null;
+    snapshotInserted: boolean;
+    latestSnapshotAt: string | null;
+    failureCode: string | null;
+    reason: string | null;
+    /** Structured SDK error fields (includes nested `cause` when present). */
+    errorFields?: Ga4SafeErrorFields;
+  };
+  warnings: string[];
+};
+
+function isoDateNDaysAgo(n: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
+  const warnings: string[] = [];
+  const state = getGa4ConnectionState();
+
+  if (!state.connected) {
+    return {
+      ok: false,
+      ga4: {
+        envConfigured: false,
+        propertyIdPresent: Boolean(process.env.GA4_PROPERTY_ID?.trim()),
+        authMode: null,
+        authOk: null,
+        rowsReturned: null,
+        snapshotInserted: false,
+        latestSnapshotAt: null,
+        failureCode: "env_missing",
+        reason: sanitizeSafeMessage(state.reason),
+      },
+      warnings: [`Missing env: ${state.missingEnv.join(", ")}`],
+    };
+  }
+
+  const windowEnd = isoDateNDaysAgo(1);
+  const windowStart = isoDateNDaysAgo(28);
+
+  const fetchResult = await fetchTopPagePaths({ startDate: windowStart, endDate: windowEnd });
+  if (!fetchResult.ok) {
+    const authOk =
+      fetchResult.code === "auth_failed" || fetchResult.code === "key_parse_failed"
+        ? false
+        : fetchResult.code === "property_access_failed" || fetchResult.code === "api_disabled"
+          ? true
+          : null;
+    return {
+      ok: false,
+      ga4: {
+        envConfigured: true,
+        propertyIdPresent: true,
+        authMode: state.authMode,
+        authOk,
+        rowsReturned: null,
+        snapshotInserted: false,
+        latestSnapshotAt: null,
+        failureCode: fetchResult.code,
+        reason: sanitizeSafeMessage(fetchResult.reason),
+        errorFields: fetchResult.safeFields,
+      },
+      warnings,
+    };
+  }
+
+  const rowsReturned = fetchResult.window.rows.length;
+  if (rowsReturned === 0) {
+    warnings.push("GA4 returned 0 rows for the window — auth + property are working but the window has no traffic.");
+  }
+
+  let snapshotInserted = false;
+  let latestSnapshotAt: string | null = null;
+  try {
+    const stored = await upsertGa4Snapshot(fetchResult.window);
+    snapshotInserted = true;
+    latestSnapshotAt = stored.createdAt;
+    await pruneOldGa4Snapshots().catch(() => 0);
+  } catch (err) {
+    warnings.push(`Supabase upsert failed: ${sanitizeSafeMessage(err instanceof Error ? err.message : "unknown")}`);
+  }
+
+  if (!latestSnapshotAt) {
+    // Best-effort follow-up read; some failures still leave the most-recent
+    // row intact and an operator wants to see it.
+    const latest = await getLatestGa4Snapshot().catch(() => null);
+    latestSnapshotAt = latest?.createdAt ?? null;
+  }
+
+  return {
+    ok: snapshotInserted && rowsReturned > 0,
+    ga4: {
+      envConfigured: true,
+      propertyIdPresent: true,
+      authMode: state.authMode,
+      authOk: true,
+      rowsReturned,
+      snapshotInserted,
+      latestSnapshotAt,
+      failureCode: null,
+      reason: null,
+    },
+    warnings,
+  };
 }
