@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
+import { listDraftSlugIndex, type DraftStatus } from "@/lib/contentops/drafts-store";
 import {
   buildSeoIntelligenceReport,
   type Diagnostic,
@@ -58,7 +59,43 @@ function DiagnosticItem({ d }: { d: Diagnostic }) {
   );
 }
 
-function SubjectCard({ report }: { report: SubjectReport }) {
+function SubjectCardActions({
+  report,
+  draftIndex,
+}: {
+  report: SubjectReport;
+  draftIndex: Map<string, { id: string; status: DraftStatus }>;
+}) {
+  if (report.subject.kind !== "blog") return null;
+  const draft = draftIndex.get(report.subject.slug);
+  return (
+    <div className="mt-3 flex flex-wrap gap-1.5">
+      {draft ? (
+        <Link
+          href={`/admin/contentops/${draft.id}`}
+          className="inline-flex items-center gap-1 rounded-full border border-[#2F2624]/10 bg-white px-2.5 py-1 text-[11px] font-medium text-[#2F2624] hover:bg-[#F2EAE4]"
+        >
+          Open in ContentOps →
+        </Link>
+      ) : (
+        <Link
+          href={`/blog/${report.subject.slug}`}
+          className="inline-flex items-center gap-1 rounded-full border border-[#3B2F2F]/12 bg-white px-2.5 py-1 text-[11px] text-[#3B2F2F]/72 hover:bg-[#F2EAE4]"
+        >
+          View live post →
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function SubjectCard({
+  report,
+  draftIndex,
+}: {
+  report: SubjectReport;
+  draftIndex?: Map<string, { id: string; status: DraftStatus }>;
+}) {
   if (report.diagnostics.length === 0) {
     return (
       <article className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
@@ -69,6 +106,7 @@ function SubjectCard({ report }: { report: SubjectReport }) {
         <p className="mt-2 inline-flex rounded-full bg-[#E7F4EA] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#2E6A41]">
           No diagnostics
         </p>
+        {draftIndex ? <SubjectCardActions report={report} draftIndex={draftIndex} /> : null}
       </article>
     );
   }
@@ -83,6 +121,7 @@ function SubjectCard({ report }: { report: SubjectReport }) {
           <DiagnosticItem key={idx} d={d} />
         ))}
       </ul>
+      {draftIndex ? <SubjectCardActions report={report} draftIndex={draftIndex} /> : null}
     </article>
   );
 }
@@ -409,7 +448,10 @@ export default async function SeoIntelligencePage() {
     redirect("/admin/login?next=%2Fadmin%2Fseo");
   }
 
-  const report = await buildSeoIntelligenceReport();
+  const [report, draftSlugIndex] = await Promise.all([
+    buildSeoIntelligenceReport(),
+    listDraftSlugIndex().catch(() => new Map<string, { id: string; status: DraftStatus }>()),
+  ]);
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -427,21 +469,7 @@ export default async function SeoIntelligencePage() {
                 images. No external calls.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/admin/readiness"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                Readiness
-              </Link>
-              <Link
-                href="/admin/contentops"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                ContentOps
-              </Link>
-              <AdminLogoutButton />
-            </div>
+            <AdminSectionNav active="seo" />
           </div>
         </header>
 
@@ -615,7 +643,7 @@ export default async function SeoIntelligencePage() {
               {report.schemaCoverage.blogReports
                 .filter((r) => r.diagnostics.length > 0)
                 .map((r) => (
-                  <SubjectCard key={r.subject.slug} report={r} />
+                  <SubjectCard key={r.subject.slug} report={r} draftIndex={draftSlugIndex} />
                 ))}
             </div>
           </details>
@@ -722,7 +750,7 @@ export default async function SeoIntelligencePage() {
           <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Blog posts</h3>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {report.internalLinking.blogReports.map((r) => (
-              <SubjectCard key={r.subject.slug} report={r} />
+              <SubjectCard key={r.subject.slug} report={r} draftIndex={draftSlugIndex} />
             ))}
           </div>
 
@@ -920,6 +948,7 @@ export default async function SeoIntelligencePage() {
                   ) : (
                     <p className="mt-2 text-xs text-[#3B2F2F]/65">All metadata lengths within recommended ranges.</p>
                   )}
+                  <SubjectCardActions report={r} draftIndex={draftSlugIndex} />
                 </article>
               );
             })}

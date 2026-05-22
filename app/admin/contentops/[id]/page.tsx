@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { DraftActions } from "@/components/contentops/draft-actions";
 import { DraftDetail } from "@/components/contentops/draft-detail";
+import { HeroImagePanel } from "@/components/contentops/hero-image-panel";
+import { PublishReadinessBanner } from "@/components/contentops/publish-readiness-banner";
+import { WebsitePreview } from "@/components/contentops/website-preview";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
+import { validateDraft } from "@/lib/contentops/draft-validation";
 import { getDraftById } from "@/lib/contentops/drafts-store";
+import { buildHeroImageWorkflow } from "@/lib/contentops/hero-image";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -43,6 +48,9 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const heroWorkflow = await buildHeroImageWorkflow(draft);
+  const validation = validateDraft(draft);
+
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <section className="mx-auto max-w-4xl space-y-6">
@@ -57,25 +65,37 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
                 Draft review
               </h1>
             </div>
-            {draft.status === "approved" ? (
-              <Link
-                href={`/admin/contentops/${draft.id}/prepare-publish`}
-                className="rounded-full bg-[#2F2624] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC] hover:opacity-90"
-              >
-                Prepare publish
-              </Link>
-            ) : null}
-            <Link
-              href="/admin/contentops"
-              className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-            >
-              Back to queue
-            </Link>
-            <AdminLogoutButton />
+            <AdminSectionNav
+              active="contentops"
+              extraActions={
+                <>
+                  <Link
+                    href="/admin/contentops"
+                    className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+                  >
+                    Back to queue
+                  </Link>
+                  {draft.status === "approved" ? (
+                    <Link
+                      href={`/admin/contentops/${draft.id}/prepare-publish`}
+                      className="rounded-full bg-[#2E6A41] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC] hover:opacity-90"
+                    >
+                      Prepare publish →
+                    </Link>
+                  ) : null}
+                </>
+              }
+            />
           </div>
         </header>
 
+        <PublishReadinessBanner badges={validation.badges} />
+
         <DraftDetail draft={draft} />
+
+        <HeroImagePanel draftId={draft.id} workflow={heroWorkflow} />
+
+        <WebsitePreview post={draft.content} heroImagePath={heroWorkflow.effectivePath} />
 
         <DraftActions
           draftId={draft.id}

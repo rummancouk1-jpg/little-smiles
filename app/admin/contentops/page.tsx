@@ -1,10 +1,17 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { DraftQueue } from "@/components/contentops/draft-queue";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
-import { isDraftStatus, listDrafts, type DraftStatus } from "@/lib/contentops/drafts-store";
+import {
+  countDraftsByStatus,
+  isDraftStatus,
+  listDrafts,
+  type DraftStatus,
+  type DraftStatusCounts,
+} from "@/lib/contentops/drafts-store";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -40,9 +47,12 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
   }
 
   let drafts: Awaited<ReturnType<typeof listDrafts>> = [];
+  let counts: DraftStatusCounts = { all: 0, pending_review: 0, approved: 0, rejected: 0, published: 0 };
   let listError: string | null = null;
   try {
-    drafts = await listDrafts(status);
+    // Counts come from the full draft table; the visible slice respects the
+    // status filter. Running both in parallel keeps the request fast.
+    [drafts, counts] = await Promise.all([listDrafts(status), countDraftsByStatus()]);
   } catch (err) {
     listError = err instanceof Error ? err.message : "Failed to load drafts.";
   }
@@ -60,8 +70,22 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">
                 ContentOps drafts
               </h1>
+              <p className="mt-1 text-xs text-[#3B2F2F]/65">
+                Review, validate, and publish AI-prepared blog drafts. Status badges below mirror the SEO
+                Intelligence thresholds — green here means green there.
+              </p>
             </div>
-            <AdminLogoutButton />
+            <AdminSectionNav
+              active="contentops"
+              extraActions={
+                <Link
+                  href="/admin/seo"
+                  className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+                >
+                  ← Back to SEO Intelligence
+                </Link>
+              }
+            />
           </div>
         </header>
 
@@ -74,6 +98,7 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
 
         <DraftQueue
           drafts={drafts}
+          counts={counts}
           activeStatus={status ?? "all"}
           baseHref="/admin/contentops"
           detailHref={(id) => `/admin/contentops/${id}`}

@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import {
@@ -116,27 +115,7 @@ export default async function ReadinessAdminPage() {
                 Generated {formatDateTime(report.generatedAt)} — config-level checks only, no external calls.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/admin/seo"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                SEO Intelligence
-              </Link>
-              <Link
-                href="/admin/notifications"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                Notifications
-              </Link>
-              <Link
-                href="/admin/contentops"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                ContentOps
-              </Link>
-              <AdminLogoutButton />
-            </div>
+            <AdminSectionNav active="readiness" />
           </div>
         </header>
 

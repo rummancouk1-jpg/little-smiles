@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { NotificationsTable } from "@/components/admin/notifications-table";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
@@ -181,21 +181,25 @@ export default async function NotificationsAdminPage({ searchParams }: PageProps
                 Notifications Monitor
               </h1>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/admin/orders"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                Orders Console
-              </Link>
-              <Link
-                href="/admin/audit?action=order_communication_failed"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EFE7DF] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E9DFD6]"
-              >
-                Failure Audit
-              </Link>
-              <AdminLogoutButton />
-            </div>
+            <AdminSectionNav
+              active="notifications"
+              extraActions={
+                <>
+                  <Link
+                    href="/admin/orders"
+                    className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    href="/admin/audit?action=order_communication_failed"
+                    className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+                  >
+                    Failure audit
+                  </Link>
+                </>
+              }
+            />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {(["failed", "all", "sent", "queued"] as StatusFilter[]).map((item) => (

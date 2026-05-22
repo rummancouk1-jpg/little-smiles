@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
+import { PublishReadinessBanner } from "@/components/contentops/publish-readiness-banner";
 import { PublishReport } from "@/components/contentops/publish-report";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
+import { validateDraft } from "@/lib/contentops/draft-validation";
 import { getDraftById } from "@/lib/contentops/drafts-store";
 import { preparePublish } from "@/lib/contentops/publish-prep";
 
@@ -97,15 +99,28 @@ export default async function PreparePublishPage({ params }: PageProps) {
                 Prepare publish
               </h1>
             </div>
-            <Link
-              href={`/admin/contentops/${id}`}
-              className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-            >
-              Back to draft
-            </Link>
-            <AdminLogoutButton />
+            <AdminSectionNav
+              active="contentops"
+              extraActions={
+                <Link
+                  href={`/admin/contentops/${id}`}
+                  className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+                >
+                  ← Back to draft
+                </Link>
+              }
+            />
           </div>
         </header>
+
+        <PublishReadinessBanner
+          badges={validateDraft(draft).badges}
+          publishWarnings={(preparation?.conflicts ?? []).map((c) => ({
+            code: c.code,
+            message: c.message,
+            severity: c.severity,
+          }))}
+        />
 
         {prepError ? (
           <article className="rounded-3xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-5 text-sm text-[#5E1C29] sm:p-6">

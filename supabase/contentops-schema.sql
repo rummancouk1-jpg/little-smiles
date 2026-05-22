@@ -8,12 +8,18 @@ create table if not exists public.contentops_drafts (
     status in ('pending_review', 'approved', 'rejected', 'published')
   ),
   content jsonb not null,
+  hero_image_path text null,
   rejection_note text null,
   approved_at timestamptz null,
   published_at timestamptz null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Additive migration for tables that pre-date the hero_image_path column.
+-- Safe to re-run.
+alter table public.contentops_drafts
+  add column if not exists hero_image_path text null;
 
 create index if not exists idx_contentops_drafts_status_created
   on public.contentops_drafts(status, created_at desc);

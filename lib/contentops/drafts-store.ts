@@ -12,6 +12,12 @@ export type Draft = {
   slug: string;
   status: DraftStatus;
   content: BlogPost;
+  /**
+   * Optional reviewer-selected hero image path (e.g. "/products/foo.jpg").
+   * Always a path under /public — never an absolute URL. When null, the
+   * blog-publish flow falls back to getBlogAnchorProduct(post).image.
+   */
+  hero_image_path: string | null;
   rejection_note: string | null;
   approved_at: string | null;
   published_at: string | null;
@@ -38,6 +44,39 @@ function requireClient() {
   return client;
 }
 
+export type DraftStatusCounts = Record<DraftStatus, number> & { all: number };
+
+const EMPTY_COUNTS: DraftStatusCounts = {
+  all: 0,
+  pending_review: 0,
+  approved: 0,
+  rejected: 0,
+  published: 0,
+};
+
+/**
+ * Count drafts grouped by status, server-side. Used by the queue to drive
+ * filter pill badges that stay stable while a status filter is applied —
+ * counts must reflect the whole table, not the currently-visible slice.
+ */
+export async function countDraftsByStatus(): Promise<DraftStatusCounts> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return { ...EMPTY_COUNTS };
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .select("status")
+    .limit(10_000);
+  if (error || !data) return { ...EMPTY_COUNTS };
+  const counts: DraftStatusCounts = { ...EMPTY_COUNTS };
+  for (const row of data as { status: DraftStatus }[]) {
+    if (row.status in counts) {
+      counts[row.status]++;
+      counts.all++;
+    }
+  }
+  return counts;
+}
+
 export async function listDrafts(status?: DraftStatus): Promise<Draft[]> {
   const supabase = requireClient();
   let query = supabase
@@ -53,6 +92,47 @@ export async function listDrafts(status?: DraftStatus): Promise<Draft[]> {
     throw new Error(`Failed to list drafts: ${error.message}`);
   }
   return (data ?? []) as Draft[];
+}
+
+/**
+ * Look up the most recent draft whose `slug` matches the given value.
+ * Used by the SEO Intelligence dashboard to deep-link a blog diagnostic
+ * back to its draft. Returns `null` when no draft exists or Supabase is
+ * not configured (caller decides whether that is fatal).
+ */
+export async function findDraftBySlug(slug: string): Promise<Draft | null> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .select("*")
+    .eq("slug", slug)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    return null;
+  }
+  return (data as Draft | null) ?? null;
+}
+
+/** Map every distinct slug in contentops_drafts to its most recent draft id. */
+export async function listDraftSlugIndex(): Promise<Map<string, { id: string; status: DraftStatus }>> {
+  const supabase = getSupabaseAdminClient();
+  const out = new Map<string, { id: string; status: DraftStatus }>();
+  if (!supabase) return out;
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .select("id, slug, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error || !data) return out;
+  for (const row of data as { id: string; slug: string; status: DraftStatus }[]) {
+    if (!out.has(row.slug)) {
+      out.set(row.slug, { id: row.id, status: row.status });
+    }
+  }
+  return out;
 }
 
 export async function getDraftById(id: string): Promise<Draft | null> {
@@ -83,6 +163,32 @@ export async function approveDraft(id: string): Promise<Draft> {
     .single();
   if (error || !data) {
     throw new Error(`Failed to approve draft: ${error?.message ?? "draft not found"}`);
+  }
+  return data as Draft;
+}
+
+/**
+ * Persist a reviewer's choice of hero image path. Pass `null` to clear the
+ * override and fall back to the auto-resolved anchor product image. Path
+ * must be relative to /public (e.g. "/products/foo.jpg"); callers must
+ * validate before invoking — this helper does not sanitize.
+ */
+export async function updateDraftHeroImage(id: string, heroImagePath: string | null): Promise<Draft> {
+  const supabase = requireClient();
+  const now = new Date().toISOString();
+  // supabase-js infers `never` for table updates when no Database type
+  // is supplied. Build the payload then cast at the call site so the
+  // PostgREST runtime still receives the null value for the nullable column.
+  const payload = { hero_image_path: heroImagePath, updated_at: now };
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update(payload as any)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to update hero image: ${error?.message ?? "draft not found"}`);
   }
   return data as Draft;
 }
