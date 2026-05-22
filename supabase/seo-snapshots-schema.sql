@@ -4,6 +4,11 @@
 -- One row per provider per snapshot_date. The unique index on snapshot_date
 -- gives us natural upsert semantics: re-running the cron the same day
 -- refreshes the row instead of creating duplicates.
+--
+-- Retention is 90 days at the application layer (lib/seo-intelligence/
+-- snapshots-store.ts). That ceiling is intentionally wider than the
+-- longest comparison window (30 days) so snapshot-history can resolve
+-- "vs 30 days ago" without missing data.
 
 create table if not exists public.seo_gsc_snapshots (
   id uuid primary key default gen_random_uuid(),

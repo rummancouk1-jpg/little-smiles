@@ -2,12 +2,17 @@
 // Upsert by snapshot_date for natural deduplication. Retention is
 // time-bounded — anything older than RETENTION_DAYS is pruned during the
 // same cron pass that wrote the new snapshot.
+//
+// Retention is intentionally wider than the longest comparison window
+// (30 days) so the snapshot-history layer can resolve "vs. 30 days ago"
+// without a cold cache.
 
 import type { Ga4PagePathRow, Ga4PagePathWindow } from "@/lib/providers/ga4";
 import type { GscQueryRow, GscQueryWindow } from "@/lib/providers/search-console";
+import { logSeo } from "@/lib/seo-intelligence/logger";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
-const RETENTION_DAYS = 30;
+const RETENTION_DAYS = 90;
 
 function requireClient() {
   const client = getSupabaseAdminClient();
@@ -58,8 +63,19 @@ export async function upsertGscSnapshot(window: GscQueryWindow): Promise<StoredG
     .single();
 
   if (error || !data) {
+    logSeo("GSC_SUPABASE_WRITE_FAILED", {
+      reason: error?.message ?? "no row returned",
+      snapshotDate: snapshot_date,
+    });
     throw new Error(`Failed to upsert GSC snapshot: ${error?.message ?? "no row returned"}`);
   }
+
+  logSeo("GSC_SUPABASE_WRITE_SUCCESS", {
+    snapshotDate: data.snapshot_date,
+    rowCount: data.row_count,
+    windowStart: data.window_start,
+    windowEnd: data.window_end,
+  });
 
   return {
     id: data.id,
@@ -140,8 +156,19 @@ export async function upsertGa4Snapshot(window: Ga4PagePathWindow): Promise<Stor
     .single();
 
   if (error || !data) {
+    logSeo("GA4_SUPABASE_WRITE_FAILED", {
+      reason: error?.message ?? "no row returned",
+      snapshotDate: snapshot_date,
+    });
     throw new Error(`Failed to upsert GA4 snapshot: ${error?.message ?? "no row returned"}`);
   }
+
+  logSeo("GA4_SUPABASE_WRITE_SUCCESS", {
+    snapshotDate: data.snapshot_date,
+    rowCount: data.row_count,
+    windowStart: data.window_start,
+    windowEnd: data.window_end,
+  });
 
   return {
     id: data.id,

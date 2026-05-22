@@ -9,6 +9,8 @@
 
 import { google } from "googleapis";
 
+import { logSeo } from "@/lib/seo-intelligence/logger";
+
 const SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"];
 
 const DEFAULT_ROW_LIMIT = 200;
@@ -112,6 +114,15 @@ export async function fetchTopQueries(options: GscFetchOptions): Promise<GscFetc
   const rowLimit = options.rowLimit ?? DEFAULT_ROW_LIMIT;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
+  const startedAt = Date.now();
+  logSeo("GSC_FETCH_START", {
+    siteUrl,
+    windowStart: options.startDate,
+    windowEnd: options.endDate,
+    rowLimit,
+    timeoutMs,
+  });
+
   try {
     const jwt = new google.auth.JWT({
       email: clientEmail,
@@ -135,20 +146,44 @@ export async function fetchTopQueries(options: GscFetchOptions): Promise<GscFetc
       "Search Console fetch",
     );
 
-    const rawRows = response.data.rows ?? [];
-    const rows: GscQueryRow[] = rawRows
-      .map((row) => {
-        const keys = row.keys ?? [];
-        return {
-          query: typeof keys[0] === "string" ? keys[0] : "",
-          page: typeof keys[1] === "string" ? keys[1] : "",
-          clicks: typeof row.clicks === "number" ? row.clicks : 0,
-          impressions: typeof row.impressions === "number" ? row.impressions : 0,
-          ctr: typeof row.ctr === "number" ? row.ctr : 0,
-          position: typeof row.position === "number" ? row.position : 0,
-        };
-      })
-      .filter((row) => row.query.length > 0 && row.page.length > 0);
+    const rawRows = Array.isArray(response?.data?.rows) ? response.data.rows : [];
+    let droppedCount = 0;
+    const rows: GscQueryRow[] = [];
+    for (const row of rawRows) {
+      if (!row || typeof row !== "object") {
+        droppedCount++;
+        continue;
+      }
+      const keys = Array.isArray(row.keys) ? row.keys : [];
+      const query = typeof keys[0] === "string" ? keys[0] : "";
+      const page = typeof keys[1] === "string" ? keys[1] : "";
+      if (query.length === 0 || page.length === 0) {
+        droppedCount++;
+        continue;
+      }
+      const ctr = typeof row.ctr === "number" ? row.ctr : 0;
+      rows.push({
+        query,
+        page,
+        clicks: typeof row.clicks === "number" ? row.clicks : 0,
+        impressions: typeof row.impressions === "number" ? row.impressions : 0,
+        ctr: ctr < 0 ? 0 : ctr > 1 ? 1 : ctr,
+        position: typeof row.position === "number" ? row.position : 0,
+      });
+    }
+
+    if (droppedCount > 0) {
+      logSeo("GSC_VALIDATION_WARNING", { droppedCount, keptCount: rows.length });
+    }
+
+    logSeo("GSC_FETCH_SUCCESS", {
+      siteUrl,
+      rowCount: rows.length,
+      droppedCount,
+      windowStart: options.startDate,
+      windowEnd: options.endDate,
+      elapsedMs: Date.now() - startedAt,
+    });
 
     return {
       ok: true,
@@ -160,6 +195,12 @@ export async function fetchTopQueries(options: GscFetchOptions): Promise<GscFetc
     };
   } catch (err) {
     const reason = err instanceof Error ? err.message : "Unknown GSC error";
+    logSeo("GSC_FETCH_FAILED", {
+      reason,
+      elapsedMs: Date.now() - startedAt,
+      windowStart: options.startDate,
+      windowEnd: options.endDate,
+    });
     return { ok: false, reason };
   }
 }

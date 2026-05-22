@@ -9,6 +9,8 @@
 
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 
+import { logSeo } from "@/lib/seo-intelligence/logger";
+
 const DEFAULT_LIMIT = 200;
 const DEFAULT_TIMEOUT_MS = 25_000;
 
@@ -98,6 +100,50 @@ function parseMetric(raw: string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+type Ga4LikeValue = { value?: string | null };
+type Ga4LikeRow = {
+  dimensionValues?: ReadonlyArray<Ga4LikeValue> | null;
+  metricValues?: ReadonlyArray<Ga4LikeValue> | null;
+};
+
+/** Defensive runtime validation. Drops malformed rows, surfaces issues as warnings. */
+function validateAndShape(
+  rawRows: ReadonlyArray<unknown>,
+): { rows: Ga4PagePathRow[]; droppedCount: number; droppedReasons: string[] } {
+  const droppedReasons: string[] = [];
+  const rows: Ga4PagePathRow[] = [];
+
+  for (const raw of rawRows) {
+    if (!raw || typeof raw !== "object") {
+      droppedReasons.push("non_object_row");
+      continue;
+    }
+    const row = raw as Ga4LikeRow;
+    const dims = (row.dimensionValues ?? []) as ReadonlyArray<Ga4LikeValue>;
+    const mets = (row.metricValues ?? []) as ReadonlyArray<Ga4LikeValue>;
+    const pagePath = typeof dims[0]?.value === "string" ? dims[0].value : "";
+    if (pagePath.length === 0) {
+      droppedReasons.push("empty_page_path");
+      continue;
+    }
+    const sessions = parseMetric(mets[0]?.value);
+    const totalUsers = parseMetric(mets[1]?.value);
+    const averageSessionDurationSeconds = parseMetric(mets[2]?.value);
+    const bounceRate = parseMetric(mets[3]?.value);
+    // Cap pathological bounce rates (GA4 occasionally returns >1 for tiny samples).
+    const normalisedBounce = bounceRate < 0 ? 0 : bounceRate > 1 ? 1 : bounceRate;
+    rows.push({
+      pagePath,
+      sessions,
+      totalUsers,
+      averageSessionDurationSeconds,
+      bounceRate: normalisedBounce,
+    });
+  }
+
+  return { rows, droppedCount: droppedReasons.length, droppedReasons };
+}
+
 export async function fetchTopPagePaths(options: Ga4FetchOptions): Promise<Ga4FetchResult> {
   const state = getGa4ConnectionState();
   if (!state.connected) {
@@ -110,6 +156,15 @@ export async function fetchTopPagePaths(options: Ga4FetchOptions): Promise<Ga4Fe
   const propertyId = env.GA4_PROPERTY_ID!.trim();
   const limit = options.limit ?? DEFAULT_LIMIT;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+  const startedAt = Date.now();
+  logSeo("GA4_FETCH_START", {
+    propertyId,
+    windowStart: options.startDate,
+    windowEnd: options.endDate,
+    limit,
+    timeoutMs,
+  });
 
   try {
     const client = new BetaAnalyticsDataClient({
@@ -134,21 +189,30 @@ export async function fetchTopPagePaths(options: Ga4FetchOptions): Promise<Ga4Fe
       "GA4 fetch",
     );
 
-    const rawRows = response.rows ?? [];
-    const rows: Ga4PagePathRow[] = rawRows
-      .map((row) => {
-        const dims = row.dimensionValues ?? [];
-        const mets = row.metricValues ?? [];
-        const pagePath = typeof dims[0]?.value === "string" ? dims[0].value : "";
-        return {
-          pagePath,
-          sessions: parseMetric(mets[0]?.value),
-          totalUsers: parseMetric(mets[1]?.value),
-          averageSessionDurationSeconds: parseMetric(mets[2]?.value),
-          bounceRate: parseMetric(mets[3]?.value),
-        };
-      })
-      .filter((row) => row.pagePath.length > 0);
+    if (!response || typeof response !== "object") {
+      logSeo("GA4_FETCH_FAILED", { reason: "empty_response", elapsedMs: Date.now() - startedAt });
+      return { ok: false, reason: "GA4 returned an empty response object." };
+    }
+
+    const rawRows = Array.isArray(response.rows) ? response.rows : [];
+    const { rows, droppedCount, droppedReasons } = validateAndShape(rawRows);
+
+    if (droppedCount > 0) {
+      logSeo("GA4_VALIDATION_WARNING", {
+        droppedCount,
+        sampleReasons: droppedReasons.slice(0, 5),
+        keptCount: rows.length,
+      });
+    }
+
+    logSeo("GA4_FETCH_SUCCESS", {
+      propertyId,
+      rowCount: rows.length,
+      droppedCount,
+      windowStart: options.startDate,
+      windowEnd: options.endDate,
+      elapsedMs: Date.now() - startedAt,
+    });
 
     return {
       ok: true,
@@ -160,6 +224,12 @@ export async function fetchTopPagePaths(options: Ga4FetchOptions): Promise<Ga4Fe
     };
   } catch (err) {
     const reason = err instanceof Error ? err.message : "Unknown GA4 error";
+    logSeo("GA4_FETCH_FAILED", {
+      reason,
+      elapsedMs: Date.now() - startedAt,
+      windowStart: options.startDate,
+      windowEnd: options.endDate,
+    });
     return { ok: false, reason };
   }
 }

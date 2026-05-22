@@ -10,7 +10,10 @@ import {
   type Severity,
   type SubjectReport,
 } from "@/lib/seo-intelligence";
+import type { LinkSuggestion } from "@/lib/seo-intelligence/link-suggestions";
 import type { PinterestSubjectReport } from "@/lib/seo-intelligence/pinterest-readiness";
+import type { SeoHealthPillar } from "@/lib/seo-intelligence/seo-health";
+import type { GscDeltaSet, Ga4DeltaSet, Delta } from "@/lib/seo-intelligence/snapshot-history";
 import type { GscInsights, Ga4Insights, SnapshotFreshness } from "@/lib/seo-intelligence/snapshot-insights";
 
 export const dynamic = "force-dynamic";
@@ -218,6 +221,177 @@ function Ga4PageTable({ rows, columns }: { rows: Ga4Insights["topBySessions"]; c
   );
 }
 
+function formatSignedNumber(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const formatted = Math.abs(value).toLocaleString("en-PK");
+  if (value > 0) return `+${formatted}`;
+  if (value < 0) return `−${formatted}`;
+  return formatted;
+}
+
+function formatSignedPercent(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const pct = value * 100;
+  const sign = pct > 0 ? "+" : pct < 0 ? "−" : "";
+  return `${sign}${Math.abs(pct).toFixed(1)}%`;
+}
+
+function deltaToneClass(absolute: number | null, positiveIsGood = true): string {
+  if (absolute == null || absolute === 0) return "bg-[#E7EEF7] text-[#1F3F66]";
+  const good = positiveIsGood ? absolute > 0 : absolute < 0;
+  return good ? "bg-[#E7F4EA] text-[#2E6A41]" : "bg-[#FBEEDE] text-[#7A4A12]";
+}
+
+function TrendCard({
+  label,
+  current,
+  delta,
+  basisLabel,
+  unit,
+}: {
+  label: string;
+  current: number;
+  delta: Delta;
+  basisLabel: string;
+  unit?: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
+      <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/55">{label}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-[#1F1918] tabular-nums">
+        {Number.isFinite(current) ? current.toLocaleString("en-PK") : "—"}
+        {unit ? <span className="ml-1 text-sm font-normal text-[#3B2F2F]/60">{unit}</span> : null}
+      </p>
+      <div className="mt-2 flex items-center gap-2">
+        <span
+          className={[
+            "inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+            deltaToneClass(delta.absolute),
+          ].join(" ")}
+        >
+          {formatSignedNumber(delta.absolute)} ({formatSignedPercent(delta.percent)})
+        </span>
+        <span className="text-[10px] text-[#3B2F2F]/55">{basisLabel}</span>
+      </div>
+    </article>
+  );
+}
+
+function GscDeltaGrid({ deltas }: { deltas: GscDeltaSet[] }) {
+  if (deltas.length === 0) {
+    return <p className="text-xs text-[#3B2F2F]/65">No history yet — first snapshot is the baseline.</p>;
+  }
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {deltas.map((d) => (
+        <div key={d.basis} className="rounded-2xl border border-[#3B2F2F]/10 bg-white/90 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/55">
+            vs {d.basis === "previous" ? "previous" : d.basis} {d.comparedAt ? `(${d.comparedAt})` : ""}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <TrendCard label="Clicks" current={d.clicks.current} delta={d.clicks} basisLabel={`vs ${d.basis}`} />
+            <TrendCard label="Impressions" current={d.impressions.current} delta={d.impressions} basisLabel={`vs ${d.basis}`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Ga4DeltaGrid({ deltas }: { deltas: Ga4DeltaSet[] }) {
+  if (deltas.length === 0) {
+    return <p className="text-xs text-[#3B2F2F]/65">No history yet — first snapshot is the baseline.</p>;
+  }
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {deltas.map((d) => (
+        <div key={d.basis} className="rounded-2xl border border-[#3B2F2F]/10 bg-white/90 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/55">
+            vs {d.basis === "previous" ? "previous" : d.basis} {d.comparedAt ? `(${d.comparedAt})` : ""}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <TrendCard label="Sessions" current={d.sessions.current} delta={d.sessions} basisLabel={`vs ${d.basis}`} />
+            <TrendCard label="Users" current={d.totalUsers.current} delta={d.totalUsers} basisLabel={`vs ${d.basis}`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function scoreClass(score: number): string {
+  if (score >= 90) return "bg-[#E7F4EA] text-[#2E6A41]";
+  if (score >= 75) return "bg-[#E7EEF7] text-[#1F3F66]";
+  if (score >= 60) return "bg-[#FBEEDE] text-[#7A4A12]";
+  return "bg-[#F8E8EA] text-[#8A2F40]";
+}
+
+function HealthPillarCard({ pillar }: { pillar: SeoHealthPillar }) {
+  return (
+    <article className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-[#1F1918]">{pillar.name}</p>
+          <p className="mt-0.5 text-xs text-[#3B2F2F]/60">Weight {(pillar.weight * 100).toFixed(0)}%</p>
+        </div>
+        <span
+          className={[
+            "inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums",
+            scoreClass(pillar.score),
+          ].join(" ")}
+        >
+          {pillar.score}
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-[#3B2F2F]/72">{pillar.derivation}</p>
+      {pillar.topFindings.length > 0 ? (
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-[#3B2F2F]/72">
+          {pillar.topFindings.map((f, i) => (
+            <li key={i}>{f}</li>
+          ))}
+        </ul>
+      ) : null}
+    </article>
+  );
+}
+
+function LinkSuggestionsList({ suggestions }: { suggestions: LinkSuggestion[] }) {
+  if (suggestions.length === 0) {
+    return <p className="mt-3 text-xs text-[#3B2F2F]/65">No suggestions above the confidence threshold.</p>;
+  }
+  return (
+    <ul className="mt-3 space-y-2">
+      {suggestions.map((s, idx) => (
+        <li
+          key={`${s.from.slug}-${s.to.slug}-${idx}`}
+          className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="text-sm text-[#1F1918]">
+              <span className="font-medium">{s.from.title}</span>
+              <span className="px-1.5 text-[#3B2F2F]/45">→</span>
+              <span className="font-medium">{s.to.title}</span>
+              <span className="ml-1 rounded-full bg-[#EEE4DB] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[#3B2F2F]/70">
+                {s.to.kind}
+              </span>
+            </p>
+            <span className="inline-flex rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#3B2F2F]/70">
+              Confidence {(s.confidence * 100).toFixed(0)}%
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-[#3B2F2F]/72">
+            Suggested anchor: <span className="font-medium text-[#1F1918]">{s.anchorSuggestion}</span>
+          </p>
+          <p className="mt-0.5 text-xs text-[#3B2F2F]/65">{s.reason}</p>
+          {s.sharedKeywords.length > 0 ? (
+            <p className="mt-0.5 text-xs text-[#3B2F2F]/60">Shared: {s.sharedKeywords.join(", ")}</p>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default async function SeoIntelligencePage() {
   if (!isAdminAuthConfigured()) {
     return (
@@ -321,6 +495,130 @@ export default async function SeoIntelligencePage() {
               )}
             </article>
           </div>
+        </section>
+
+        {/* SEO Health Score — composite, deterministic, derivation-explained */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-[#1F1918]">SEO health score</h2>
+              <p className="mt-1 text-xs text-[#3B2F2F]/65">
+                Composite of 5 pillars derived from real repo data. Every pillar shows its derivation — no opaque
+                scoring.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums ${scoreClass(report.health.overall)}`}>
+                {report.health.overall} / 100
+              </span>
+              <span className="rounded-full bg-[#EEE4DB] px-2.5 py-1 text-xs font-medium text-[#2E2323]">
+                Grade {report.health.grade}
+              </span>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+            {report.health.pillars.map((p) => (
+              <HealthPillarCard key={p.name} pillar={p} />
+            ))}
+          </div>
+        </section>
+
+        {/* Snapshot trends — previous, 7d, 30d deltas */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <h2 className="text-base font-semibold text-[#1F1918]">Snapshot trends</h2>
+          <p className="mt-1 text-xs text-[#3B2F2F]/65">
+            Differences between the current snapshot and the closest historical snapshot on or before each basis date.
+            Missing comparisons show &ldquo;—&rdquo; — never estimated.
+          </p>
+
+          <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Search Console — clicks &amp; impressions</h3>
+          <div className="mt-3">
+            {report.snapshotHistory.gsc.available ? (
+              <GscDeltaGrid deltas={report.snapshotHistory.gsc.deltas} />
+            ) : (
+              <p className="text-xs text-[#3B2F2F]/65">
+                No Search Console snapshot available — connect GSC and let the cron run.
+              </p>
+            )}
+          </div>
+
+          <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">GA4 — sessions &amp; users</h3>
+          <div className="mt-3">
+            {report.snapshotHistory.ga4.available ? (
+              <Ga4DeltaGrid deltas={report.snapshotHistory.ga4.deltas} />
+            ) : (
+              <p className="text-xs text-[#3B2F2F]/65">
+                No GA4 snapshot available — connect GA4 Data API and let the cron run.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Internal-link suggestions — Phase 4 */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <h2 className="text-base font-semibold text-[#1F1918]">Internal-link suggestions</h2>
+          <p className="mt-1 text-xs text-[#3B2F2F]/65">
+            Deterministic Jaccard overlap on blog keywords + same-category in-stock products. Suggestions exclude
+            self-links and any link already wired in body copy.
+          </p>
+
+          <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Blog ↔ blog opportunities</h3>
+          <LinkSuggestionsList suggestions={report.linkSuggestions.blogToBlog} />
+
+          <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Blog → product opportunities</h3>
+          <LinkSuggestionsList suggestions={report.linkSuggestions.blogToProduct} />
+
+          {report.linkSuggestions.skipped.length > 0 ? (
+            <>
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Skipped</h3>
+              <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-[#3B2F2F]/65">
+                {report.linkSuggestions.skipped.map((s) => (
+                  <li key={s.slug}>
+                    <span className="text-[#1F1918]">{s.slug}</span> — {s.reason}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </section>
+
+        {/* Schema coverage — Phase 3 */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <h2 className="text-base font-semibold text-[#1F1918]">Schema.org coverage</h2>
+          <p className="mt-1 text-xs text-[#3B2F2F]/65">
+            Audits the data feeding lib/json-ld.ts. Sitewide schemas are emitted unconditionally:{" "}
+            <span className="font-medium text-[#1F1918]">{report.schemaCoverage.sitewideSchemas.join(", ")}</span>.
+          </p>
+
+          <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Products (with diagnostics)</h3>
+          <details className="mt-3 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
+            <summary className="cursor-pointer text-sm font-medium text-[#1F1918]">
+              {report.schemaCoverage.productReports.filter((r) => r.diagnostics.length > 0).length} of{" "}
+              {report.schemaCoverage.productReports.length} products flagged
+            </summary>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              {report.schemaCoverage.productReports
+                .filter((r) => r.diagnostics.length > 0)
+                .map((r) => (
+                  <SubjectCard key={r.subject.slug} report={r} />
+                ))}
+            </div>
+          </details>
+
+          <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Blog posts (with diagnostics)</h3>
+          <details className="mt-3 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
+            <summary className="cursor-pointer text-sm font-medium text-[#1F1918]">
+              {report.schemaCoverage.blogReports.filter((r) => r.diagnostics.length > 0).length} of{" "}
+              {report.schemaCoverage.blogReports.length} blog posts flagged
+            </summary>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              {report.schemaCoverage.blogReports
+                .filter((r) => r.diagnostics.length > 0)
+                .map((r) => (
+                  <SubjectCard key={r.subject.slug} report={r} />
+                ))}
+            </div>
+          </details>
         </section>
 
         {/* Search Console insights — real snapshot data */}
@@ -548,7 +846,7 @@ export default async function SeoIntelligencePage() {
         <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
           <h2 className="text-base font-semibold text-[#1F1918]">Pinterest readiness</h2>
           <p className="mt-1 text-xs text-[#3B2F2F]/65">
-            Image dimensions read directly from /public via sharp. Pin verdict matches Pinterest's published ratio
+            Image dimensions read directly from /public via sharp. Pin verdict matches Pinterest&rsquo;s published ratio
             guidance (2:3 ideal).
           </p>
           {report.pinterest.globalDiagnostics.length > 0 ? (

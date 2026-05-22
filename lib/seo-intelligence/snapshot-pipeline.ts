@@ -8,6 +8,7 @@
 import { fetchTopPagePaths, getGa4ConnectionState } from "@/lib/providers/ga4";
 import { fetchTopQueries, getSearchConsoleConnectionState } from "@/lib/providers/search-console";
 
+import { logSeo } from "@/lib/seo-intelligence/logger";
 import {
   pruneOldGa4Snapshots,
   pruneOldGscSnapshots,
@@ -177,17 +178,29 @@ export async function runSnapshotPipeline(): Promise<SnapshotRunSummary> {
   const windowStart = isoDateNDaysAgo(WINDOW_DAYS);
   const windowEnd = isoDateNDaysAgo(1);
 
+  logSeo("SNAPSHOT_PIPELINE_START", { windowStart, windowEnd });
+
   const [gsc, ga4] = await Promise.all([runGscLeg(windowStart, windowEnd), runGa4Leg(windowStart, windowEnd)]);
   const warnings = buildWarnings(gsc, ga4);
+  const status = summariseStatus(gsc, ga4, warnings);
+  const finishedAt = new Date().toISOString();
+
+  logSeo("SNAPSHOT_PIPELINE_DONE", {
+    status,
+    gscOk: gsc.ok,
+    ga4Ok: ga4.ok,
+    warningCount: warnings.length,
+    elapsedMs: new Date(finishedAt).getTime() - new Date(startedAt).getTime(),
+  });
 
   return {
     startedAt,
-    finishedAt: new Date().toISOString(),
+    finishedAt,
     windowStart,
     windowEnd,
     gsc,
     ga4,
     warnings,
-    status: summariseStatus(gsc, ga4, warnings),
+    status,
   };
 }
