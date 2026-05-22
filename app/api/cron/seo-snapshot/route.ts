@@ -1,48 +1,269 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { logSystemAudit } from "@/lib/admin-audit";
-import { isAuthorizedCronRequest } from "@/lib/cron-auth";
+import { getCronAuthDebug, isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { captureServerError } from "@/lib/error-observability";
-import { runSnapshotPipeline } from "@/lib/seo-intelligence/snapshot-pipeline";
+import { getGa4ConnectionState } from "@/lib/providers/ga4";
+import { getSearchConsoleConnectionState } from "@/lib/providers/search-console";
+import {
+  runSnapshotPipeline,
+  type ProviderOutcome,
+  type SnapshotRunSummary,
+} from "@/lib/seo-intelligence/snapshot-pipeline";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  if (!isAuthorizedCronRequest(request)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized cron request" }, { status: 401 });
+type ProviderEnvValidation = {
+  configured: boolean;
+  missing: string[];
+};
+
+type SeoSnapshotEnvValidation = {
+  gsc: ProviderEnvValidation;
+  ga4: ProviderEnvValidation;
+  supabase: ProviderEnvValidation;
+};
+
+function sanitizeSafeMessage(message: string): string {
+  let s = message.trim();
+  s = s.replace(/-----BEGIN[\s\S]*?-----END[^-]*-----/gi, "[redacted]");
+  s = s.replace(/\b(private[_\s-]?key|client_email|Bearer\s+)\S+/gi, "[redacted]");
+  if (s.length > 500) {
+    s = `${s.slice(0, 497)}...`;
+  }
+  return s;
+}
+
+function safeErrorMessage(err: unknown): string {
+  return sanitizeSafeMessage(err instanceof Error ? err.message : "Unknown error");
+}
+
+function buildEnvValidation(): SeoSnapshotEnvValidation {
+  const gscState = getSearchConsoleConnectionState();
+  const ga4State = getGa4ConnectionState();
+  const hasSupabase = Boolean(getSupabaseAdminClient());
+
+  return {
+    gsc: {
+      configured: gscState.connected,
+      missing: gscState.connected ? [] : gscState.missingEnv,
+    },
+    ga4: {
+      configured: ga4State.connected,
+      missing: ga4State.connected ? [] : ga4State.missingEnv,
+    },
+    supabase: {
+      configured: hasSupabase,
+      missing: hasSupabase ? [] : ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+    },
+  };
+}
+
+function isSupabaseInsertFailure(outcome: ProviderOutcome): boolean {
+  if (outcome.ok || outcome.skipped) return false;
+  return /Failed to upsert|Persist failed|Supabase admin client is not configured/i.test(outcome.reason);
+}
+
+function logProviderFailures(summary: SnapshotRunSummary, envValidation: SeoSnapshotEnvValidation): void {
+  if (!summary.gsc.ok && !summary.gsc.skipped) {
+    const reason = sanitizeSafeMessage(summary.gsc.reason);
+    if (isSupabaseInsertFailure(summary.gsc)) {
+      console.error("SEO_SNAPSHOT_SUPABASE_INSERT_FAILED", { provider: "gsc", reason });
+    } else if (envValidation.gsc.missing.length > 0) {
+      console.error("SEO_SNAPSHOT_ENV_VALIDATION_FAILED", {
+        provider: "gsc",
+        missing: envValidation.gsc.missing,
+      });
+    } else {
+      console.error("SEO_SNAPSHOT_GSC_FAILED", { reason });
+    }
   }
 
-  if (!getSupabaseAdminClient()) {
-    return NextResponse.json(
-      { ok: false, error: "Supabase not configured — snapshot pipeline requires persistence." },
-      { status: 503 },
-    );
+  if (!summary.ga4.ok && !summary.ga4.skipped) {
+    const reason = sanitizeSafeMessage(summary.ga4.reason);
+    if (isSupabaseInsertFailure(summary.ga4)) {
+      console.error("SEO_SNAPSHOT_SUPABASE_INSERT_FAILED", { provider: "ga4", reason });
+    } else if (envValidation.ga4.missing.length > 0) {
+      console.error("SEO_SNAPSHOT_ENV_VALIDATION_FAILED", {
+        provider: "ga4",
+        missing: envValidation.ga4.missing,
+      });
+    } else {
+      console.error("SEO_SNAPSHOT_GA4_FAILED", { reason });
+    }
   }
+}
 
-  let summary;
+function cronOk(summary: SnapshotRunSummary): boolean {
+  return summary.status === "ok" || summary.status === "completed_with_warnings" || summary.status === "skipped";
+}
+
+export async function GET(request: NextRequest) {
+  console.error("SEO_SNAPSHOT_CRON_START");
+
   try {
-    summary = await runSnapshotPipeline();
-  } catch (err) {
-    captureServerError("api_cron_seo_snapshot_failed", err);
+    const authDebug = getCronAuthDebug(request);
+
+    if (request.nextUrl.searchParams.get("debug_auth") === "1") {
+      return NextResponse.json({
+        ok: false,
+        status: "auth_debug",
+        authorized: isAuthorizedCronRequest(request),
+        authDebug,
+      });
+    }
+
+    const cronSecret = process.env.CRON_SECRET?.trim();
+    if (!cronSecret) {
+      console.error("SEO_SNAPSHOT_ENV_VALIDATION_FAILED", { missing: ["CRON_SECRET"] });
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "configuration_error",
+          error: "CRON_SECRET is not configured.",
+          missingEnv: ["CRON_SECRET"],
+          authDebug,
+        },
+        { status: 503 },
+      );
+    }
+
+    if (!isAuthorizedCronRequest(request)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "unauthorized",
+          error: "Unauthorized cron request.",
+          authDebug,
+        },
+        { status: 401 },
+      );
+    }
+
+    const envValidation = buildEnvValidation();
+
+    if (envValidation.gsc.missing.length > 0 || envValidation.ga4.missing.length > 0) {
+      console.error("SEO_SNAPSHOT_ENV_VALIDATION_FAILED", {
+        gscMissing: envValidation.gsc.missing,
+        ga4Missing: envValidation.ga4.missing,
+      });
+    }
+
+    if (!envValidation.supabase.configured) {
+      console.error("SEO_SNAPSHOT_ENV_VALIDATION_FAILED", {
+        missing: envValidation.supabase.missing,
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "configuration_error",
+          error: "Supabase is not configured — snapshot persistence requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+          missingEnv: envValidation.supabase.missing,
+          envValidation,
+        },
+        { status: 503 },
+      );
+    }
+
+    let summary: SnapshotRunSummary;
+    try {
+      summary = await runSnapshotPipeline();
+    } catch (err) {
+      const reason = safeErrorMessage(err);
+      captureServerError("api_cron_seo_snapshot_failed", err);
+      if (/supabase|upsert|persist/i.test(reason)) {
+        console.error("SEO_SNAPSHOT_SUPABASE_INSERT_FAILED", { reason });
+      } else if (/ga4/i.test(reason)) {
+        console.error("SEO_SNAPSHOT_GA4_FAILED", { reason });
+      } else if (/gsc|search console/i.test(reason)) {
+        console.error("SEO_SNAPSHOT_GSC_FAILED", { reason });
+      } else {
+        console.error("SEO_SNAPSHOT_GSC_FAILED", { reason });
+      }
+      await logSystemAudit({
+        action: "seo_snapshot_run",
+        metadata: { status: "error", reason },
+      }).catch(() => {});
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "pipeline_error",
+          error: reason,
+          envValidation,
+        },
+        { status: 500 },
+      );
+    }
+
+    logProviderFailures(summary, envValidation);
+
+    const supabaseInsertErrors: Array<{ provider: "gsc" | "ga4"; message: string }> = [];
+    if (!summary.gsc.ok && isSupabaseInsertFailure(summary.gsc)) {
+      supabaseInsertErrors.push({
+        provider: "gsc",
+        message: sanitizeSafeMessage(summary.gsc.reason),
+      });
+    }
+    if (!summary.ga4.ok && isSupabaseInsertFailure(summary.ga4)) {
+      supabaseInsertErrors.push({
+        provider: "ga4",
+        message: sanitizeSafeMessage(summary.ga4.reason),
+      });
+    }
+
     await logSystemAudit({
       action: "seo_snapshot_run",
-      metadata: { status: "error", reason: err instanceof Error ? err.message : "Unknown pipeline error" },
-    }).catch(() => {});
-    return NextResponse.json({ ok: false, error: "Snapshot pipeline crashed" }, { status: 500 });
-  }
+      metadata: {
+        status: summary.status,
+        warnings: summary.warnings,
+        windowStart: summary.windowStart,
+        windowEnd: summary.windowEnd,
+        gsc: summary.gsc,
+        ga4: summary.ga4,
+        envValidation: {
+          gscMissing: envValidation.gsc.missing,
+          ga4Missing: envValidation.ga4.missing,
+        },
+      },
+    }).catch((auditErr) => {
+      console.error("SEO_SNAPSHOT audit log failed (non-fatal)", safeErrorMessage(auditErr));
+    });
 
-  await logSystemAudit({
-    action: "seo_snapshot_run",
-    metadata: {
+    console.error("SEO_SNAPSHOT_SUCCESS", {
       status: summary.status,
-      warnings: summary.warnings,
-      windowStart: summary.windowStart,
-      windowEnd: summary.windowEnd,
-      gsc: summary.gsc,
-      ga4: summary.ga4,
-    },
-  }).catch(() => {});
+      gscOk: summary.gsc.ok,
+      ga4Ok: summary.ga4.ok,
+      warningCount: summary.warnings.length,
+    });
 
-  return NextResponse.json({ ok: true, ...summary }, { status: 200 });
+    return NextResponse.json(
+      {
+        ok: cronOk(summary),
+        emailNotification: { sent: false, skipped: true, reason: "SEO snapshot cron does not send email." },
+        envValidation,
+        supabaseInsertErrors,
+        ...summary,
+      },
+      { status: 200 },
+    );
+  } catch (err) {
+    const reason = safeErrorMessage(err);
+    captureServerError("api_cron_seo_snapshot_unhandled", err);
+    if (/supabase|upsert|persist/i.test(reason)) {
+      console.error("SEO_SNAPSHOT_SUPABASE_INSERT_FAILED", { reason, phase: "unhandled_handler" });
+    } else if (/ga4/i.test(reason)) {
+      console.error("SEO_SNAPSHOT_GA4_FAILED", { reason, phase: "unhandled_handler" });
+    } else {
+      console.error("SEO_SNAPSHOT_GSC_FAILED", { reason, phase: "unhandled_handler" });
+    }
+    return NextResponse.json(
+      {
+        ok: false,
+        status: "unhandled_error",
+        error: reason,
+      },
+      { status: 500 },
+    );
+  }
 }
