@@ -32,6 +32,11 @@ export async function generateMetadata({
   const canonical = `${siteUrl}/blog/${post.slug}`;
   const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
   const socialTitle = `${post.title} | Little Smiles`;
+  // Same precedence as the on-page hero + JSON-LD: reviewer override →
+  // anchor product → null (in which case we let Next fall through to the
+  // site-level OG default). Propagating this here keeps the social-share
+  // thumbnail identical to what the article renders.
+  const heroImagePath = resolveHeroImagePath(post);
 
   return {
     title: post.title,
@@ -53,11 +58,13 @@ export async function generateMetadata({
       publishedTime: publishedIso,
       modifiedTime: publishedIso,
       authors: ["Little Smiles"],
+      ...(heroImagePath ? { images: [heroImagePath] } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: socialTitle,
       description: post.description,
+      ...(heroImagePath ? { images: [heroImagePath] } : {}),
     },
   };
 }

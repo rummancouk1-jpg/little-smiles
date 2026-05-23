@@ -88,14 +88,17 @@ function PipelineRow({
   );
 }
 
+function ga4StatusLevel(hint: DataPipelineHealth["ga4"]["statusHint"]): ReadinessLevel {
+  if (hint === "connected_with_data") return "ready";
+  if (hint === "not_configured" || hint === "auth_failed" || hint === "property_access_failed") {
+    return "missing";
+  }
+  // connected_reporting_delay / no_snapshot_yet / supabase_insert_failed
+  return "warning";
+}
+
 function DataPipelineHealthPanel({ health }: { health: DataPipelineHealth }) {
-  const ga4State: ReadinessLevel = !health.ga4.envConfigured
-    ? "missing"
-    : health.ga4.lastErrorSummary
-      ? "warning"
-      : health.ga4.latestSnapshotAt
-        ? "ready"
-        : "warning";
+  const ga4State: ReadinessLevel = ga4StatusLevel(health.ga4.statusHint);
 
   const gscState: ReadinessLevel =
     health.gsc.status === "connected"
@@ -143,6 +146,7 @@ function DataPipelineHealthPanel({ health }: { health: DataPipelineHealth }) {
           }
         />
         <PipelineRow label="GA4 latest snapshot" state={ga4State} value={ga4LatestText} />
+        <PipelineRow label="GA4 status" state={ga4State} value={health.ga4.statusDetail} />
         {health.ga4.lastErrorSummary ? (
           <PipelineRow label="GA4 last error" state="warning" value={health.ga4.lastErrorSummary} />
         ) : null}
@@ -265,8 +269,8 @@ export default async function ReadinessAdminPage() {
         <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
           <h2 className="text-base font-semibold text-[#1F1918]">SEO snapshot freshness</h2>
           <p className="mt-1 text-xs text-[#3B2F2F]/65">
-            Latest row from each snapshot table. Independent of the cron audit — answers "do we have usable data?"
-            instead of "did the cron try?".
+            Latest row from each snapshot table. Independent of the cron audit — answers &ldquo;do we have usable data?&rdquo;
+            instead of &ldquo;did the cron try?&rdquo;.
           </p>
           <ul className="mt-4 space-y-3">
             {report.snapshotFreshness.map((snap) => (

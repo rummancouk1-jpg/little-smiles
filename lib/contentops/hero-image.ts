@@ -254,14 +254,83 @@ export async function buildHeroImageWorkflow(draft: Draft): Promise<HeroImageWor
 }
 
 /**
- * Whitelist guard for the hero-image API. Only allows paths that resolve
- * to a real product image already on disk. Rejects anything else to
- * prevent path traversal / arbitrary URL writes.
+ * Synchronous shape/safety check shared by the catalog check and the
+ * filesystem check. Catches the obvious bad inputs (traversal, scheme,
+ * absurd length) before any disk hit.
  */
-export function isAllowedHeroImagePath(candidate: string): boolean {
+function passesShapeGuard(candidate: string): boolean {
   if (typeof candidate !== "string" || candidate.length === 0) return false;
   if (candidate.length > 256) return false;
   if (!candidate.startsWith("/")) return false;
+  if (candidate.startsWith("//")) return false;
   if (candidate.includes("..")) return false;
+  if (candidate.includes("\0")) return false;
+  return true;
+}
+
+/**
+ * Allowed image extensions for reviewer-uploaded heroes. Conservative on
+ * purpose — anything not on this list (videos, SVGs, raw text) is rejected
+ * even if the file exists. Matches what Next/Image happily renders.
+ */
+const ALLOWED_HERO_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+
+function hasAllowedExtension(candidate: string): boolean {
+  const lower = candidate.toLowerCase();
+  for (const ext of ALLOWED_HERO_EXTENSIONS) {
+    if (lower.endsWith(ext)) return true;
+  }
+  return false;
+}
+
+/**
+ * Catalog-only synchronous check. Kept for callers that want to confirm
+ * a path is a known product image without touching disk.
+ */
+export function isAllowedHeroImagePath(candidate: string): boolean {
+  if (!passesShapeGuard(candidate)) return false;
   return products.some((p) => p.image === candidate);
+}
+
+/**
+ * Full hero-image acceptance check used by the admin POST route.
+ * Accepts either:
+ *   1. a known catalog product image (synchronous), OR
+ *   2. any other `/...` path under `public/` that actually exists on disk
+ *      AND carries an allowed image extension.
+ *
+ * Option 2 unlocks the manual reviewer-approved image flow (e.g. an admin
+ * drops an externally-produced AI image into `public/uploads/blog/foo.jpg`
+ * and selects it from the dashboard). We deliberately do NOT allow
+ * absolute http(s) URLs — every hero must live in our own asset tree so
+ * it survives third-party outages and Next/Image can optimise it.
+ */
+export async function resolveHeroImagePathAcceptance(
+  candidate: string,
+): Promise<{ ok: true; reason: "catalog" | "uploaded" } | { ok: false; error: string }> {
+  if (!passesShapeGuard(candidate)) {
+    return { ok: false, error: "Path failed shape guard (must start with '/', no '..', no scheme)." };
+  }
+  if (products.some((p) => p.image === candidate)) {
+    return { ok: true, reason: "catalog" };
+  }
+  if (!hasAllowedExtension(candidate)) {
+    return {
+      ok: false,
+      error: `Extension not allowed. Use one of: ${Array.from(ALLOWED_HERO_EXTENSIONS).join(", ")}.`,
+    };
+  }
+  const absolute = resolvePublicPath(candidate);
+  try {
+    const stat = await fs.stat(absolute);
+    if (!stat.isFile()) {
+      return { ok: false, error: `Path exists but is not a regular file: public${candidate}.` };
+    }
+    return { ok: true, reason: "uploaded" };
+  } catch {
+    return {
+      ok: false,
+      error: `No file at public${candidate}. Drop an approved image into public/... first, then enter the path.`,
+    };
+  }
 }

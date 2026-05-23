@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { logAdminAudit } from "@/lib/admin-audit";
 import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
 import { updateDraftHeroImage } from "@/lib/contentops/drafts-store";
-import { isAllowedHeroImagePath } from "@/lib/contentops/hero-image";
+import { resolveHeroImagePathAcceptance } from "@/lib/contentops/hero-image";
 import { captureServerError } from "@/lib/error-observability";
 
 type RouteProps = {
@@ -32,19 +33,30 @@ export async function POST(request: Request, { params }: RouteProps) {
   const next: string | null =
     raw === null || raw === undefined ? null : typeof raw === "string" ? raw.trim() : "";
 
-  if (next !== null && next.length > 0 && !isAllowedHeroImagePath(next)) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          "Hero image path is not allowed. Must be one of the catalog product image paths in lib/products.ts.",
-      },
-      { status: 400 },
-    );
+  let acceptanceReason: "catalog" | "uploaded" | null = null;
+  if (next !== null && next.length > 0) {
+    const acceptance = await resolveHeroImagePathAcceptance(next);
+    if (!acceptance.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Hero image path rejected: ${acceptance.error}`,
+        },
+        { status: 400 },
+      );
+    }
+    acceptanceReason = acceptance.reason;
   }
 
   try {
-    const draft = await updateDraftHeroImage(id, next === null || next.length === 0 ? null : next);
+    const finalPath = next === null || next.length === 0 ? null : next;
+    const draft = await updateDraftHeroImage(id, finalPath);
+    await logAdminAudit(request, {
+      action: "contentops_hero_image_change",
+      targetType: "contentops_draft",
+      targetId: draft.id,
+      metadata: { slug: draft.slug, heroImagePath: finalPath, acceptance: acceptanceReason },
+    }).catch(() => {});
     return NextResponse.json({ ok: true, draft });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to update hero image";

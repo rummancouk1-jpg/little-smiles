@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 
+import { PublishSafetyPill } from "@/components/contentops/publish-safety-card";
 import { validateDraft, type DraftBadge } from "@/lib/contentops/draft-validation";
 import {
   DRAFT_STATUSES,
@@ -12,6 +13,11 @@ import {
   type DraftStatus,
   type DraftStatusCounts,
 } from "@/lib/contentops/drafts-store";
+import {
+  deriveHandoffLabels,
+  type HandoffLabel,
+} from "@/lib/contentops/handoff-labels";
+import { computePublishSafetyScore } from "@/lib/contentops/publish-score";
 
 type DraftQueueProps = {
   /** Visible drafts after applying the activeStatus filter. */
@@ -56,6 +62,13 @@ function badgeToneClass(severity: DraftBadge["severity"]): string {
   return "bg-[#E7F4EA] text-[#2E6A41]";
 }
 
+function handoffToneClass(tone: HandoffLabel["tone"]): string {
+  if (tone === "positive") return "bg-[#E7F4EA] text-[#2E6A41]";
+  if (tone === "warning") return "bg-[#FBEEDE] text-[#7A4A12]";
+  if (tone === "critical") return "bg-[#F8E8EA] text-[#8A2F40]";
+  return "bg-[#E7EEF7] text-[#1F3F66]";
+}
+
 export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref }: DraftQueueProps) {
   const pillClass = (status: DraftStatus | "all") =>
     [
@@ -95,6 +108,11 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
         <div className="grid gap-3">
           {drafts.map((draft) => {
             const validation = validateDraft(draft);
+            const safetyScore = computePublishSafetyScore(draft, { validation });
+            const handoff = deriveHandoffLabels({
+              verdict: safetyScore.verdict,
+              badges: validation.badges,
+            });
             return (
               <article
                 key={draft.id}
@@ -130,6 +148,19 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
+                  <PublishSafetyPill score={safetyScore} />
+                  {handoff.map((label) => (
+                    <span
+                      key={`h-${label.key}`}
+                      className={[
+                        "inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium",
+                        handoffToneClass(label.tone),
+                      ].join(" ")}
+                      title={label.detail}
+                    >
+                      {label.label}
+                    </span>
+                  ))}
                   {validation.badges.map((badge) => (
                     <span
                       key={badge.key}
@@ -151,6 +182,14 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
                   >
                     Review draft
                   </Link>
+                  {validation.badges.some((b) => b.severity === "warning" || b.severity === "critical") ? (
+                    <Link
+                      href={`${detailHref(draft.id)}/improve`}
+                      className="rounded-full border border-[#7A4A12]/30 bg-[#FBEEDE] px-3.5 py-1.5 text-xs font-medium text-[#7A4A12] hover:bg-[#F4E2C9]"
+                    >
+                      Improve →
+                    </Link>
+                  ) : null}
                   {draft.status === "approved" ? (
                     <Link
                       href={`${detailHref(draft.id)}/prepare-publish`}

@@ -17,6 +17,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 import { type DraftBadge } from "@/lib/contentops/draft-validation";
+import type { PublishSafetyVerdict } from "@/lib/contentops/publish-score";
 import type { Conflict, PublishPreparation } from "@/lib/contentops/publish-types";
 
 type Props = {
@@ -32,6 +33,8 @@ type Props = {
   };
   /** Auto-resolved fallback (anchor product) — used when the draft has no override. */
   fallbackHeroImagePath: string | null;
+  /** Unified readiness verdict — drives the summary pill so the panel agrees with the banner. */
+  readinessVerdict: PublishSafetyVerdict;
 };
 
 function formatDateTime(value: string): string {
@@ -195,7 +198,7 @@ function ConflictItem({ conflict }: { conflict: Conflict }) {
 }
 
 export function PublishControlPanel(props: Props) {
-  const { preparation, validation, fallbackHeroImagePath } = props;
+  const { preparation, validation, fallbackHeroImagePath, readinessVerdict } = props;
   const post = preparation.insertionPreview;
   const heroEffective = post.heroImage || fallbackHeroImagePath;
   const checklist = buildChecklist(props);
@@ -228,10 +231,25 @@ export function PublishControlPanel(props: Props) {
               <span
                 className={[
                   "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide",
-                  preparation.ready ? "bg-[#E7F4EA] text-[#2E6A41]" : "bg-[#FBEEDE] text-[#7A4A12]",
+                  readinessVerdict === "ready"
+                    ? "bg-[#E7F4EA] text-[#2E6A41]"
+                    : readinessVerdict === "needs_review"
+                      ? "bg-[#FBEEDE] text-[#7A4A12]"
+                      : "bg-[#F8E8EA] text-[#8A2F40]",
                 ].join(" ")}
+                title={
+                  readinessVerdict === "ready"
+                    ? "All critical checks passed."
+                    : readinessVerdict === "needs_review"
+                      ? "Score is acceptable but warnings exist — fix soft warnings before publishing."
+                      : "Blocking issues present — fix before publishing."
+                }
               >
-                {preparation.ready ? "Ready to publish" : "Not ready"}
+                {readinessVerdict === "ready"
+                  ? "Ready"
+                  : readinessVerdict === "needs_review"
+                    ? "Needs Review"
+                    : "Do Not Publish Yet"}
               </span>
               <span className="inline-flex rounded-full bg-[#EEE4DB] px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-[#2E2323]">
                 {preparation.draft.status.replace("_", " ")}

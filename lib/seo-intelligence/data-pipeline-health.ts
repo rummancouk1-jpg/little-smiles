@@ -17,6 +17,29 @@ import {
 } from "@/lib/seo-intelligence/snapshots-store";
 import { getSupabaseAdminClient, getSupabaseRuntimeChecks } from "@/lib/supabase-admin";
 
+/**
+ * Operator-facing summary the readiness page renders next to the GA4 row
+ * so a brand-new property that returns 0 rows is not mistaken for a
+ * broken integration.
+ *
+ *   - "connected_with_data"            — auth OK and the last snapshot had rows
+ *   - "connected_reporting_delay"      — auth OK but the last snapshot had 0 rows;
+ *                                        standard GA4 reports lag Realtime by 24-48h
+ *   - "auth_failed"                    — last cron error pointed at auth
+ *   - "property_access_failed"         — last cron error pointed at property/measurement id
+ *   - "supabase_insert_failed"         — last cron error pointed at persistence
+ *   - "not_configured"                 — env not set
+ *   - "no_snapshot_yet"                — env set but no snapshot row exists
+ */
+export type Ga4StatusHint =
+  | "connected_with_data"
+  | "connected_reporting_delay"
+  | "auth_failed"
+  | "property_access_failed"
+  | "supabase_insert_failed"
+  | "not_configured"
+  | "no_snapshot_yet";
+
 export type DataPipelineHealth = {
   generatedAt: string;
   ga4: {
@@ -30,6 +53,10 @@ export type DataPipelineHealth = {
     rowCount: number | null;
     /** Sanitised summary of the most recent cron error for GA4, if any. */
     lastErrorSummary: string | null;
+    /** Operator-facing classifier — drives the readiness banner copy. */
+    statusHint: Ga4StatusHint;
+    /** Human-readable explanation matching `statusHint`. */
+    statusDetail: string;
   };
   gsc: {
     envConfigured: boolean;
@@ -104,6 +131,74 @@ function shortPropertyHint(): string | null {
   return `…${id.slice(-4)}`;
 }
 
+/**
+ * Pull the most recent GA4 leg failure code from the cron audit row so the
+ * status hint can branch on `auth_failed` vs `property_access_failed` vs
+ * `supabase_insert_failed`. Returns null when the last run succeeded.
+ */
+function extractGa4FailureCode(audit: AuditRow | null): string | null {
+  if (!audit) return null;
+  const meta = audit.metadata;
+  if (!meta || typeof meta !== "object") return null;
+  const ga4 = (meta as Record<string, unknown>).ga4;
+  if (!ga4 || typeof ga4 !== "object") return null;
+  const ok = (ga4 as Record<string, unknown>).ok;
+  if (ok === true) return null;
+  const code = (ga4 as Record<string, unknown>).code;
+  return typeof code === "string" ? code : null;
+}
+
+function classifyGa4Status(input: {
+  envConfigured: boolean;
+  latestSnapshotAt: string | null;
+  rowCount: number | null;
+  lastFailureCode: string | null;
+  lastErrorSummary: string | null;
+}): { hint: Ga4StatusHint; detail: string } {
+  if (!input.envConfigured) {
+    return {
+      hint: "not_configured",
+      detail: "GA4 env vars not set. Configure GA4_PROPERTY_ID plus OAuth or service account credentials.",
+    };
+  }
+  const code = input.lastFailureCode ?? "";
+  if (code === "auth_failed" || code === "key_parse_failed") {
+    return {
+      hint: "auth_failed",
+      detail: input.lastErrorSummary ?? "Last cron run failed GA4 authentication.",
+    };
+  }
+  if (code === "property_access_failed" || code === "api_disabled") {
+    return {
+      hint: "property_access_failed",
+      detail: input.lastErrorSummary ?? "Last cron run could not access the GA4 property.",
+    };
+  }
+  if (/supabase|persist|upsert/i.test(input.lastErrorSummary ?? "")) {
+    return {
+      hint: "supabase_insert_failed",
+      detail: input.lastErrorSummary ?? "GA4 fetch succeeded but Supabase persist failed.",
+    };
+  }
+  if (!input.latestSnapshotAt) {
+    return {
+      hint: "no_snapshot_yet",
+      detail: "GA4 env is set but no snapshot row exists yet. Trigger the cron or wait for the scheduled run.",
+    };
+  }
+  if ((input.rowCount ?? 0) === 0) {
+    return {
+      hint: "connected_reporting_delay",
+      detail:
+        "GA4 connected via OAuth and snapshot insert succeeded; standard GA4 reporting rows are currently 0. Realtime usually shows live traffic; standard reports lag 24–48h on a new property.",
+    };
+  }
+  return {
+    hint: "connected_with_data",
+    detail: `GA4 connected and last snapshot has ${input.rowCount ?? 0} rows.`,
+  };
+}
+
 export async function buildDataPipelineHealth(): Promise<DataPipelineHealth> {
   const ga4State = getGa4ConnectionState();
   const gscState = getSearchConsoleConnectionState();
@@ -123,6 +218,16 @@ export async function buildDataPipelineHealth(): Promise<DataPipelineHealth> {
         : null
       : null;
 
+  const lastErrorSummary = extractGa4ErrorSummary(lastCron);
+  const lastFailureCode = extractGa4FailureCode(lastCron);
+  const ga4Status = classifyGa4Status({
+    envConfigured: ga4State.connected,
+    latestSnapshotAt: ga4Snap?.createdAt ?? null,
+    rowCount: ga4Snap?.rowCount ?? null,
+    lastFailureCode,
+    lastErrorSummary,
+  });
+
   return {
     generatedAt: new Date().toISOString(),
     ga4: {
@@ -132,7 +237,9 @@ export async function buildDataPipelineHealth(): Promise<DataPipelineHealth> {
       propertyIdHint: ga4State.connected ? shortPropertyHint() : null,
       latestSnapshotAt: ga4Snap?.createdAt ?? null,
       rowCount: ga4Snap?.rowCount ?? null,
-      lastErrorSummary: extractGa4ErrorSummary(lastCron),
+      lastErrorSummary,
+      statusHint: ga4Status.hint,
+      statusDetail: ga4Status.detail,
     },
     gsc: {
       envConfigured: gscState.connected,

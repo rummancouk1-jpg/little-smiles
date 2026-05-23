@@ -109,11 +109,20 @@ function cronOk(summary: SnapshotRunSummary): boolean {
   return summary.status === "ok" || summary.status === "completed_with_warnings" || summary.status === "skipped";
 }
 
+function classifyTrigger(request: NextRequest): "scheduled_cron" | "manual" {
+  // Vercel sets x-vercel-cron when the scheduler invokes the route. Any
+  // other source — operator browser, curl, integration test — counts as
+  // a manual trigger for the audit row.
+  if (request.headers.get("x-vercel-cron")) return "scheduled_cron";
+  return "manual";
+}
+
 export async function GET(request: NextRequest) {
   console.error("SEO_SNAPSHOT_CRON_START");
 
   try {
     const authDebug = getCronAuthDebug(request);
+    const triggerKind = classifyTrigger(request);
 
     if (request.nextUrl.searchParams.get("debug_auth") === "1") {
       return NextResponse.json({
@@ -151,12 +160,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Protected GA4-only diagnostic mode. Bypasses GSC, the audit log
-    // write, and the regular response shape so an operator can answer
-    // "is GA4 actually returning data, and does Supabase accept it?" in
-    // one HTTP call. Never echoes secrets back.
+    // Protected GA4-only diagnostic mode. Bypasses GSC and the regular
+    // response shape so an operator can answer "is GA4 actually
+    // returning data, and does Supabase accept it?" in one HTTP call.
+    // Writes a small audit row (no secrets) so operators can see who
+    // ran the debug and what the classifier returned.
     if (request.nextUrl.searchParams.get("debug") === "ga4") {
       const ga4Diag = await runGa4DiagnosticOnly();
+      await logSystemAudit({
+        action: "ga4_debug_run",
+        metadata: {
+          ok: ga4Diag.ok,
+          likelyCause: ga4Diag.likelyCause,
+          rowsReturned: ga4Diag.ga4.rowsReturned,
+          snapshotInserted: ga4Diag.ga4.snapshotInserted,
+          authMode: ga4Diag.ga4.authMode,
+          failureCode: ga4Diag.ga4.failureCode,
+          smokeWindows: ga4Diag.ga4.smokeWindows.map((w) => ({
+            label: w.label,
+            ok: w.ok,
+            rows: w.rowsReturned,
+          })),
+        },
+      }).catch(() => {});
       return NextResponse.json(ga4Diag, { status: ga4Diag.ok ? 200 : 200 });
     }
 
@@ -202,7 +228,8 @@ export async function GET(request: NextRequest) {
       }
       await logSystemAudit({
         action: "seo_snapshot_run",
-        metadata: { status: "error", reason },
+        actorLabel: triggerKind === "manual" ? "manual_trigger" : "system_cron",
+        metadata: { status: "error", reason, triggerKind },
       }).catch(() => {});
       return NextResponse.json(
         {
@@ -233,8 +260,10 @@ export async function GET(request: NextRequest) {
 
     await logSystemAudit({
       action: "seo_snapshot_run",
+      actorLabel: triggerKind === "manual" ? "manual_trigger" : "system_cron",
       metadata: {
         status: summary.status,
+        triggerKind,
         warnings: summary.warnings,
         windowStart: summary.windowStart,
         windowEnd: summary.windowEnd,
@@ -287,13 +316,52 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * Operator-readable classifier the debug endpoint and the readiness
+ * dashboard branch on. Distinguishes the five real outcomes the system
+ * actually sees in production:
+ *
+ *   - ga4_working                          — at least one window returned rows
+ *   - reporting_delay_or_no_historical_rows — auth + property OK but every
+ *                                              window has zero rows
+ *   - property_has_no_data                 — same as above but the 90-day
+ *                                              window is also empty (very
+ *                                              likely a brand-new property)
+ *   - wrong_measurement_id                 — property access failed at SDK
+ *   - auth_failed                          — SDK auth failure
+ *   - env_missing                          — env vars not set
+ *   - supabase_insert_failed               — fetch OK, persistence failed
+ *   - unknown                              — none of the above
+ */
+type Ga4LikelyCause =
+  | "ga4_working"
+  | "reporting_delay_or_no_historical_rows"
+  | "property_has_no_data"
+  | "wrong_measurement_id"
+  | "auth_failed"
+  | "env_missing"
+  | "supabase_insert_failed"
+  | "unknown";
+
+type Ga4SmokeWindowResult = {
+  label: "primary_28d" | "smoke_7d" | "smoke_30d" | "smoke_90d";
+  startDate: string;
+  endDate: string;
+  ok: boolean;
+  rowsReturned: number | null;
+  failureCode: string | null;
+  reason: string | null;
+};
+
 type Ga4DiagnosticResponse = {
   ok: boolean;
+  likelyCause: Ga4LikelyCause;
   ga4: {
     envConfigured: boolean;
     propertyIdPresent: boolean;
     authMode: Ga4AuthMode | null;
     authOk: boolean | null;
+    /** Rows from the primary 28-day window — the one the cron also writes. */
     rowsReturned: number | null;
     snapshotInserted: boolean;
     latestSnapshotAt: string | null;
@@ -301,6 +369,10 @@ type Ga4DiagnosticResponse = {
     reason: string | null;
     /** Structured SDK error fields (includes nested `cause` when present). */
     errorFields?: Ga4SafeErrorFields;
+    /** Primary window the snapshot was taken against. */
+    primaryWindow: { startDate: string; endDate: string };
+    /** Lightweight follow-up smoke queries — each one is independent. */
+    smokeWindows: Ga4SmokeWindowResult[];
   };
   warnings: string[];
 };
@@ -311,6 +383,34 @@ function isoDateNDaysAgo(n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+async function runSmokeWindow(
+  label: Ga4SmokeWindowResult["label"],
+  startDate: string,
+  endDate: string,
+): Promise<Ga4SmokeWindowResult> {
+  const result = await fetchTopPagePaths({ startDate, endDate, limit: 5 });
+  if (!result.ok) {
+    return {
+      label,
+      startDate,
+      endDate,
+      ok: false,
+      rowsReturned: null,
+      failureCode: result.code,
+      reason: sanitizeSafeMessage(result.reason),
+    };
+  }
+  return {
+    label,
+    startDate,
+    endDate,
+    ok: true,
+    rowsReturned: result.window.rows.length,
+    failureCode: null,
+    reason: null,
+  };
+}
+
 async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
   const warnings: string[] = [];
   const state = getGa4ConnectionState();
@@ -318,6 +418,7 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
   if (!state.connected) {
     return {
       ok: false,
+      likelyCause: "env_missing",
       ga4: {
         envConfigured: false,
         propertyIdPresent: Boolean(process.env.GA4_PROPERTY_ID?.trim()),
@@ -328,6 +429,8 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
         latestSnapshotAt: null,
         failureCode: "env_missing",
         reason: sanitizeSafeMessage(state.reason),
+        primaryWindow: { startDate: "", endDate: "" },
+        smokeWindows: [],
       },
       warnings: [`Missing env: ${state.missingEnv.join(", ")}`],
     };
@@ -344,8 +447,15 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
         : fetchResult.code === "property_access_failed" || fetchResult.code === "api_disabled"
           ? true
           : null;
+    const likelyCause: Ga4LikelyCause =
+      fetchResult.code === "auth_failed" || fetchResult.code === "key_parse_failed"
+        ? "auth_failed"
+        : fetchResult.code === "property_access_failed" || fetchResult.code === "api_disabled"
+          ? "wrong_measurement_id"
+          : "unknown";
     return {
       ok: false,
+      likelyCause,
       ga4: {
         envConfigured: true,
         propertyIdPresent: true,
@@ -357,6 +467,8 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
         failureCode: fetchResult.code,
         reason: sanitizeSafeMessage(fetchResult.reason),
         errorFields: fetchResult.safeFields,
+        primaryWindow: { startDate: windowStart, endDate: windowEnd },
+        smokeWindows: [],
       },
       warnings,
     };
@@ -364,10 +476,22 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
 
   const rowsReturned = fetchResult.window.rows.length;
   if (rowsReturned === 0) {
-    warnings.push("GA4 returned 0 rows for the window — auth + property are working but the window has no traffic.");
+    warnings.push(
+      "GA4 returned 0 rows for the primary 28-day window — auth + property are working. Standard reports have a 24-48h delay; smoke queries below check wider/narrower windows.",
+    );
   }
 
+  // Independent smoke queries — each surfaces row counts for a different
+  // window so the operator can disambiguate "delay vs no data" without
+  // waiting for the next cron tick. Limited to 5 rows for cheap-ness.
+  const smokeWindows = await Promise.all([
+    runSmokeWindow("smoke_7d", isoDateNDaysAgo(7), isoDateNDaysAgo(1)),
+    runSmokeWindow("smoke_30d", isoDateNDaysAgo(30), isoDateNDaysAgo(1)),
+    runSmokeWindow("smoke_90d", isoDateNDaysAgo(90), isoDateNDaysAgo(1)),
+  ]);
+
   let snapshotInserted = false;
+  let supabaseFailed = false;
   let latestSnapshotAt: string | null = null;
   try {
     const stored = await upsertGa4Snapshot(fetchResult.window);
@@ -375,6 +499,7 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
     latestSnapshotAt = stored.createdAt;
     await pruneOldGa4Snapshots().catch(() => 0);
   } catch (err) {
+    supabaseFailed = true;
     warnings.push(`Supabase upsert failed: ${sanitizeSafeMessage(err instanceof Error ? err.message : "unknown")}`);
   }
 
@@ -385,8 +510,24 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
     latestSnapshotAt = latest?.createdAt ?? null;
   }
 
+  const anySmokeHasRows = smokeWindows.some((w) => w.ok && (w.rowsReturned ?? 0) > 0);
+  const ninetyDay = smokeWindows.find((w) => w.label === "smoke_90d");
+  const ninetyDayHasRows = Boolean(ninetyDay?.ok && (ninetyDay?.rowsReturned ?? 0) > 0);
+
+  let likelyCause: Ga4LikelyCause;
+  if (supabaseFailed) {
+    likelyCause = "supabase_insert_failed";
+  } else if (rowsReturned > 0 || anySmokeHasRows) {
+    likelyCause = "ga4_working";
+  } else if (ninetyDay?.ok && !ninetyDayHasRows) {
+    likelyCause = "property_has_no_data";
+  } else {
+    likelyCause = "reporting_delay_or_no_historical_rows";
+  }
+
   return {
-    ok: snapshotInserted && rowsReturned > 0,
+    ok: snapshotInserted && (rowsReturned > 0 || anySmokeHasRows),
+    likelyCause,
     ga4: {
       envConfigured: true,
       propertyIdPresent: true,
@@ -397,6 +538,8 @@ async function runGa4DiagnosticOnly(): Promise<Ga4DiagnosticResponse> {
       latestSnapshotAt,
       failureCode: null,
       reason: null,
+      primaryWindow: { startDate: windowStart, endDate: windowEnd },
+      smokeWindows,
     },
     warnings,
   };

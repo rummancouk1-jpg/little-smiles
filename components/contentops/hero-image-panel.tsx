@@ -171,6 +171,8 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
         )}
       </div>
 
+      <ManualPathInput pending={isPending && selectionTarget !== null} onSubmit={submit} />
+
       <div className="mt-6 rounded-2xl border border-dashed border-[#3B2F2F]/14 bg-[#FBF7F3] p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -200,8 +202,74 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
             Generate with AI (off)
           </button>
         </div>
+        <p className="mt-3 rounded-xl border border-[#7A4A12]/20 bg-[#FBF5EA] px-3 py-2 text-[11px] leading-relaxed text-[#5E4A1C]">
+          <span className="font-semibold uppercase tracking-wide">Safety:</span> AI image generation
+          is disabled unless explicitly configured. An admin must approve any generated or uploaded
+          image before publishing.
+        </p>
       </div>
     </section>
+  );
+}
+
+function ManualPathInput({
+  pending,
+  onSubmit,
+}: {
+  pending: boolean;
+  onSubmit: (heroImagePath: string) => void;
+}) {
+  const [value, setValue] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const submit = () => {
+    setLocalError(null);
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setLocalError("Enter a path that starts with '/' (e.g. /uploads/blog/hero.jpg).");
+      return;
+    }
+    if (!trimmed.startsWith("/")) {
+      setLocalError("Path must start with '/'. External URLs are not accepted — drop the file into public/ first.");
+      return;
+    }
+    onSubmit(trimmed);
+  };
+
+  return (
+    <div className="mt-6 rounded-2xl border border-[#3B2F2F]/10 bg-white p-4">
+      <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+        Manual image path (admin-approved)
+      </p>
+      <p className="mt-1 text-xs text-[#3B2F2F]/65">
+        Use this only for an image you have placed under <code className="font-mono">public/</code> and
+        have explicitly approved (e.g. a reviewer-curated stock photo, or a generated image you have
+        downloaded, reviewed, and committed). Server validates the path exists and rejects external
+        URLs.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="/uploads/blog/your-image.jpg"
+          spellCheck={false}
+          className="flex-1 min-w-[220px] rounded-full border border-[#3B2F2F]/14 bg-[#FDF8F4] px-3.5 py-1.5 font-mono text-xs text-[#1F1918] placeholder:text-[#3B2F2F]/35 focus:outline-none focus:ring-2 focus:ring-[#7A4A12]/30"
+          aria-label="Approved hero image path under public/"
+        />
+        <button
+          type="button"
+          onClick={submit}
+          disabled={pending}
+          className="rounded-full bg-[#2F2624] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC] hover:opacity-90 disabled:opacity-50"
+        >
+          {pending ? "Saving…" : "Use this path"}
+        </button>
+      </div>
+      {localError ? (
+        <p className="mt-2 text-[11px] text-[#8A2F40]">{localError}</p>
+      ) : null}
+    </div>
   );
 }
 

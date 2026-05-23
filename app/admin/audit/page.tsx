@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -150,21 +150,25 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
               <p className="mt-1 text-xs text-[#3B2F2F]/65">Signed in as {adminSession.actorLabel}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">Audit Logs</h1>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/admin/orders"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
-              >
-                Orders Console
-              </Link>
-              <Link
-                href="/admin/order-intents"
-                className="rounded-full border border-[#3B2F2F]/14 bg-[#EFE7DF] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E9DFD6]"
-              >
-                Intent Review
-              </Link>
-              <AdminLogoutButton />
-            </div>
+            <AdminSectionNav
+              active="audit"
+              extraActions={
+                <>
+                  <Link
+                    href="/admin/orders"
+                    className="rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]"
+                  >
+                    Orders Console
+                  </Link>
+                  <Link
+                    href="/admin/order-intents"
+                    className="rounded-full border border-[#3B2F2F]/14 bg-[#EFE7DF] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E9DFD6]"
+                  >
+                    Intent Review
+                  </Link>
+                </>
+              }
+            />
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">

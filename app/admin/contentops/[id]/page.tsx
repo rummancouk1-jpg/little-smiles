@@ -5,13 +5,17 @@ import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { DraftActions } from "@/components/contentops/draft-actions";
 import { DraftDetail } from "@/components/contentops/draft-detail";
 import { HeroImagePanel } from "@/components/contentops/hero-image-panel";
+import { ImagePromptsPanel } from "@/components/contentops/image-prompts-panel";
 import { PublishReadinessBanner } from "@/components/contentops/publish-readiness-banner";
+import { PublishSafetyCard } from "@/components/contentops/publish-safety-card";
 import { WebsitePreview } from "@/components/contentops/website-preview";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { validateDraft } from "@/lib/contentops/draft-validation";
 import { getDraftById } from "@/lib/contentops/drafts-store";
 import { buildHeroImageWorkflow } from "@/lib/contentops/hero-image";
+import { buildDraftImagePrompts } from "@/lib/contentops/image-prompts";
+import { computePublishSafetyScore } from "@/lib/contentops/publish-score";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -50,6 +54,8 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
 
   const heroWorkflow = await buildHeroImageWorkflow(draft);
   const validation = validateDraft(draft);
+  const safetyScore = computePublishSafetyScore(draft, { validation });
+  const imagePrompts = buildDraftImagePrompts(draft);
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -75,6 +81,12 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
                   >
                     Back to queue
                   </Link>
+                  <Link
+                    href={`/admin/contentops/${draft.id}/improve`}
+                    className="rounded-full border border-[#7A4A12]/30 bg-[#FBEEDE] px-3.5 py-1.5 text-xs font-medium text-[#7A4A12] hover:bg-[#F4E2C9]"
+                  >
+                    Improve draft →
+                  </Link>
                   {draft.status === "approved" ? (
                     <Link
                       href={`/admin/contentops/${draft.id}/prepare-publish`}
@@ -89,11 +101,19 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           </div>
         </header>
 
-        <PublishReadinessBanner badges={validation.badges} />
+        <PublishReadinessBanner
+          verdict={safetyScore.verdict}
+          badges={validation.badges}
+          improveHref={`/admin/contentops/${draft.id}/improve`}
+        />
+
+        <PublishSafetyCard score={safetyScore} />
 
         <DraftDetail draft={draft} />
 
         <HeroImagePanel draftId={draft.id} workflow={heroWorkflow} />
+
+        <ImagePromptsPanel prompts={imagePrompts} draftId={draft.id} draftSlug={draft.slug} />
 
         <WebsitePreview
           post={

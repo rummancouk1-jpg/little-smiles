@@ -4,13 +4,16 @@ import { notFound, redirect } from "next/navigation";
 import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { PublishControlPanel } from "@/components/contentops/publish-control-panel";
 import { PublishReadinessBanner } from "@/components/contentops/publish-readiness-banner";
+import { PublishSafetyCard } from "@/components/contentops/publish-safety-card";
 import { littleSmilesPublishAdapter } from "@/lib/blog-publish-adapter";
+import { logSystemAudit } from "@/lib/admin-audit";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { validateDraft } from "@/lib/contentops/draft-validation";
 import { getDraftById } from "@/lib/contentops/drafts-store";
 import { buildHeroImageWorkflow } from "@/lib/contentops/hero-image";
 import { preparePublish } from "@/lib/contentops/publish-prep";
+import { computePublishSafetyScore } from "@/lib/contentops/publish-score";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -86,6 +89,22 @@ export default async function PreparePublishPage({ params }: PageProps) {
 
   const validation = validateDraft(draft);
   const heroWorkflow = await buildHeroImageWorkflow(draft);
+  const safetyScore = computePublishSafetyScore(draft, {
+    validation,
+    publishPrepConflictCodes: preparation?.conflicts.map((c) => c.code) ?? [],
+  });
+
+  await logSystemAudit({
+    action: "prepare_publish_opened",
+    actorLabel: adminSession.actorLabel,
+    targetType: "contentops_draft",
+    targetId: draft.id,
+    metadata: {
+      slug: draft.slug,
+      verdict: safetyScore.verdict,
+      score: safetyScore.score,
+    },
+  }).catch(() => {});
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -118,13 +137,17 @@ export default async function PreparePublishPage({ params }: PageProps) {
         </header>
 
         <PublishReadinessBanner
+          verdict={safetyScore.verdict}
           badges={validation.badges}
+          improveHref={`/admin/contentops/${draft.id}/improve`}
           publishWarnings={(preparation?.conflicts ?? []).map((c) => ({
             code: c.code,
             message: c.message,
             severity: c.severity,
           }))}
         />
+
+        <PublishSafetyCard score={safetyScore} />
 
         {prepError ? (
           <article className="rounded-3xl border border-[#8A2F40]/20 bg-[#FBEEF1] p-5 text-sm text-[#5E1C29] sm:p-6">
@@ -144,6 +167,7 @@ export default async function PreparePublishPage({ params }: PageProps) {
               publishReady: validation.publishReady,
             }}
             fallbackHeroImagePath={heroWorkflow.autoResolvedPath}
+            readinessVerdict={safetyScore.verdict}
           />
         ) : null}
       </section>

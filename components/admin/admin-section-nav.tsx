@@ -7,7 +7,13 @@ import Link from "next/link";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 
-export type AdminSection = "seo" | "readiness" | "contentops" | "notifications";
+export type AdminSection =
+  | "seo"
+  | "readiness"
+  | "contentops"
+  | "notifications"
+  | "report"
+  | "audit";
 
 type NavEntry = {
   key: AdminSection;
@@ -20,6 +26,8 @@ const ENTRIES: NavEntry[] = [
   { key: "readiness", label: "Readiness", href: "/admin/readiness" },
   { key: "contentops", label: "ContentOps", href: "/admin/contentops" },
   { key: "notifications", label: "Notifications", href: "/admin/notifications" },
+  { key: "report", label: "Report", href: "/admin/report" },
+  { key: "audit", label: "Audit", href: "/admin/audit" },
 ];
 
 type Props = {

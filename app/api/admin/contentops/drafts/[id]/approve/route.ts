@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { logAdminAudit } from "@/lib/admin-audit";
 import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
 import { approveDraft } from "@/lib/contentops/drafts-store";
 import { captureServerError } from "@/lib/error-observability";
@@ -17,6 +18,12 @@ export async function POST(request: Request, { params }: RouteProps) {
 
   try {
     const draft = await approveDraft(id);
+    await logAdminAudit(request, {
+      action: "contentops_draft_approve",
+      targetType: "contentops_draft",
+      targetId: draft.id,
+      metadata: { slug: draft.slug, status: draft.status },
+    }).catch(() => {});
     return NextResponse.json({ ok: true, draft });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to approve draft";

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AdminSectionNav } from "@/components/admin/admin-section-nav";
+import { CopyTextButton } from "@/components/admin/copy-text-button";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import { listDraftSlugIndex, type DraftStatus } from "@/lib/contentops/drafts-store";
@@ -11,6 +12,10 @@ import {
   type Severity,
   type SubjectReport,
 } from "@/lib/seo-intelligence";
+import {
+  buildContentCalendarReport,
+  type ContentCalendarIdea,
+} from "@/lib/seo-intelligence/content-calendar";
 import type { LinkSuggestion } from "@/lib/seo-intelligence/link-suggestions";
 import type { PinterestSubjectReport } from "@/lib/seo-intelligence/pinterest-readiness";
 import type { SeoHealthPillar } from "@/lib/seo-intelligence/seo-health";
@@ -394,39 +399,87 @@ function HealthPillarCard({ pillar }: { pillar: SeoHealthPillar }) {
   );
 }
 
-function LinkSuggestionsList({ suggestions }: { suggestions: LinkSuggestion[] }) {
+function LinkSuggestionsList({
+  suggestions,
+  draftIndex,
+}: {
+  suggestions: LinkSuggestion[];
+  draftIndex?: Map<string, { id: string; status: DraftStatus }>;
+}) {
   if (suggestions.length === 0) {
     return <p className="mt-3 text-xs text-[#3B2F2F]/65">No suggestions above the confidence threshold.</p>;
   }
   return (
     <ul className="mt-3 space-y-2">
-      {suggestions.map((s, idx) => (
-        <li
-          key={`${s.from.slug}-${s.to.slug}-${idx}`}
-          className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <p className="text-sm text-[#1F1918]">
-              <span className="font-medium">{s.from.title}</span>
-              <span className="px-1.5 text-[#3B2F2F]/45">→</span>
-              <span className="font-medium">{s.to.title}</span>
-              <span className="ml-1 rounded-full bg-[#EEE4DB] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[#3B2F2F]/70">
-                {s.to.kind}
+      {suggestions.map((s, idx) => {
+        const fromDraft = draftIndex?.get(s.from.slug);
+        return (
+          <li
+            key={`${s.from.slug}-${s.to.slug}-${idx}`}
+            className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <p className="text-sm text-[#1F1918]">
+                <span className="font-medium">{s.from.title}</span>
+                <span className="px-1.5 text-[#3B2F2F]/45">→</span>
+                <span className="font-medium">{s.to.title}</span>
+                <span className="ml-1 rounded-full bg-[#EEE4DB] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[#3B2F2F]/70">
+                  {s.to.kind}
+                </span>
+              </p>
+              <span className="inline-flex rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#3B2F2F]/70">
+                Confidence {(s.confidence * 100).toFixed(0)}%
               </span>
+            </div>
+            <p className="mt-1 text-xs text-[#3B2F2F]/72">
+              Suggested anchor: <span className="font-medium text-[#1F1918]">{s.anchorSuggestion}</span>
             </p>
-            <span className="inline-flex rounded-full bg-white px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#3B2F2F]/70">
-              Confidence {(s.confidence * 100).toFixed(0)}%
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-[#3B2F2F]/72">
-            Suggested anchor: <span className="font-medium text-[#1F1918]">{s.anchorSuggestion}</span>
-          </p>
-          <p className="mt-0.5 text-xs text-[#3B2F2F]/65">{s.reason}</p>
-          {s.sharedKeywords.length > 0 ? (
-            <p className="mt-0.5 text-xs text-[#3B2F2F]/60">Shared: {s.sharedKeywords.join(", ")}</p>
-          ) : null}
-        </li>
-      ))}
+            {s.placementSectionHeading ? (
+              <p className="mt-0.5 text-xs text-[#3B2F2F]/72">
+                Placement: after section <span className="font-medium text-[#1F1918]">&ldquo;{s.placementSectionHeading}&rdquo;</span>
+              </p>
+            ) : null}
+            <p className="mt-1 rounded-xl bg-white px-3 py-2 text-xs italic text-[#3B2F2F]/82">
+              &ldquo;{s.suggestedSentence}&rdquo;
+            </p>
+            <p className="mt-1 text-xs text-[#3B2F2F]/65">{s.reason}</p>
+            {s.sharedKeywords.length > 0 ? (
+              <p className="mt-0.5 text-xs text-[#3B2F2F]/60">Shared: {s.sharedKeywords.join(", ")}</p>
+            ) : null}
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {fromDraft ? (
+                <Link
+                  href={`/admin/contentops/${fromDraft.id}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-[#2F2624]/10 bg-white px-2.5 py-1 text-[11px] font-medium text-[#2F2624] hover:bg-[#F2EAE4]"
+                >
+                  Open in ContentOps →
+                </Link>
+              ) : (
+                <Link
+                  href={`/blog/${s.from.slug}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-[#3B2F2F]/12 bg-white px-2.5 py-1 text-[11px] text-[#3B2F2F]/72 hover:bg-[#F2EAE4]"
+                >
+                  View live post →
+                </Link>
+              )}
+              <CopyTextButton
+                text={s.suggestedSentence}
+                label="Copy sentence"
+                auditAction="link_suggestion_copied"
+                auditMetadata={{ variant: "sentence", from: s.from.slug, toKind: s.to.kind, to: s.to.slug }}
+                className="inline-flex items-center gap-1 rounded-full border border-[#3B2F2F]/12 bg-white px-2.5 py-1 text-[11px] font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+              />
+              <CopyTextButton
+                text={s.instructionText}
+                label="Copy instruction"
+                auditAction="link_suggestion_copied"
+                auditMetadata={{ variant: "instruction", from: s.from.slug, toKind: s.to.kind, to: s.to.slug }}
+                className="inline-flex items-center gap-1 rounded-full border border-[#3B2F2F]/12 bg-white px-2.5 py-1 text-[11px] font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+              />
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -452,6 +505,7 @@ export default async function SeoIntelligencePage() {
     buildSeoIntelligenceReport(),
     listDraftSlugIndex().catch(() => new Map<string, { id: string; status: DraftStatus }>()),
   ]);
+  const calendar = buildContentCalendarReport();
 
   return (
     <main className="min-h-screen bg-[#FDF8F4] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -593,10 +647,10 @@ export default async function SeoIntelligencePage() {
           </p>
 
           <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Blog ↔ blog opportunities</h3>
-          <LinkSuggestionsList suggestions={report.linkSuggestions.blogToBlog} />
+          <LinkSuggestionsList suggestions={report.linkSuggestions.blogToBlog} draftIndex={draftSlugIndex} />
 
           <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Blog → product opportunities</h3>
-          <LinkSuggestionsList suggestions={report.linkSuggestions.blogToProduct} />
+          <LinkSuggestionsList suggestions={report.linkSuggestions.blogToProduct} draftIndex={draftSlugIndex} />
 
           {report.linkSuggestions.skipped.length > 0 ? (
             <>
@@ -716,19 +770,54 @@ export default async function SeoIntelligencePage() {
             <>
               <p className="mt-3 text-xs text-[#3B2F2F]/65">
                 Window {report.snapshotInsights.ga4.snapshot.windowStart} → {report.snapshotInsights.ga4.snapshot.windowEnd} ·
-                {" "}{formatNumber(report.snapshotInsights.ga4.totals.sessions)} sessions · {formatNumber(report.snapshotInsights.ga4.totals.totalUsers)} users ·
+                {" "}{formatNumber(report.snapshotInsights.ga4.totals.sessions)} total sessions · {formatNumber(report.snapshotInsights.ga4.totals.totalUsers)} total users ·
                 {" "}{report.snapshotInsights.ga4.snapshot.rowCount} page-path rows
               </p>
+              <p className="mt-2 rounded-2xl border border-[#1F3F66]/15 bg-[#EAF1F8] px-3 py-2 text-xs text-[#1F3F66]">
+                {report.snapshotInsights.ga4.adminExclusionNote}
+              </p>
+              <dl className="mt-2 grid gap-2 text-xs text-[#3B2F2F]/72 sm:grid-cols-3">
+                <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+                  <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">Public traffic</dt>
+                  <dd className="mt-0.5 text-sm font-semibold text-[#1F1918] tabular-nums">
+                    {formatNumber(report.snapshotInsights.ga4.publicTotals.sessions)} sessions ·{" "}
+                    {formatNumber(report.snapshotInsights.ga4.publicTotals.totalUsers)} users
+                  </dd>
+                  <dd className="mt-0.5 text-[11px] text-[#3B2F2F]/60">
+                    {report.snapshotInsights.ga4.publicTotals.rowCount} page-path row(s)
+                  </dd>
+                </div>
+                <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+                  <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">Admin/internal traffic</dt>
+                  <dd className="mt-0.5 text-sm font-semibold text-[#1F1918] tabular-nums">
+                    {formatNumber(report.snapshotInsights.ga4.adminTotals.sessions)} sessions ·{" "}
+                    {formatNumber(report.snapshotInsights.ga4.adminTotals.totalUsers)} users
+                  </dd>
+                  <dd className="mt-0.5 text-[11px] text-[#3B2F2F]/60">
+                    {report.snapshotInsights.ga4.adminTotals.rowCount} page-path row(s)
+                  </dd>
+                </div>
+                <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+                  <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">All rows (raw)</dt>
+                  <dd className="mt-0.5 text-sm font-semibold text-[#1F1918] tabular-nums">
+                    {formatNumber(report.snapshotInsights.ga4.totals.sessions)} sessions ·{" "}
+                    {formatNumber(report.snapshotInsights.ga4.totals.totalUsers)} users
+                  </dd>
+                  <dd className="mt-0.5 text-[11px] text-[#3B2F2F]/60">
+                    {report.snapshotInsights.ga4.snapshot.rowCount} page-path row(s)
+                  </dd>
+                </div>
+              </dl>
 
-              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top pages by sessions</h3>
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top pages by sessions (public)</h3>
               <Ga4PageTable rows={report.snapshotInsights.ga4.topBySessions} columns={["sessions", "users", "engagement", "bounce"]} />
 
-              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top pages by engagement</h3>
-              <p className="text-xs text-[#3B2F2F]/60">Filter: sessions ≥ 10. Sort: avg session duration desc.</p>
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">Top pages by engagement (public)</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Filter: sessions ≥ 10 · admin paths excluded. Sort: avg session duration desc.</p>
               <Ga4PageTable rows={report.snapshotInsights.ga4.topByEngagement} columns={["sessions", "engagement", "bounce"]} />
 
-              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">High-bounce with meaningful traffic</h3>
-              <p className="text-xs text-[#3B2F2F]/60">Filter: sessions ≥ 20 AND bounce ≥ 70%.</p>
+              <h3 className="mt-5 text-sm font-semibold text-[#1F1918]">High-bounce with traffic (public)</h3>
+              <p className="text-xs text-[#3B2F2F]/60">Filter: sessions ≥ 20 AND bounce ≥ 70% · admin paths excluded.</p>
               <Ga4PageTable rows={report.snapshotInsights.ga4.highBounceWithTraffic} columns={["sessions", "bounce", "engagement"]} />
             </>
           )}
@@ -971,7 +1060,119 @@ export default async function SeoIntelligencePage() {
             </div>
           </details>
         </section>
+
+        {/* Content calendar — Phase 5 */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-[#1F1918]">Content calendar</h2>
+              <p className="mt-1 text-xs text-[#3B2F2F]/65">{calendar.caveat}</p>
+            </div>
+            <div className="text-right text-[11px] text-[#3B2F2F]/60">
+              <p>{calendar.stats.totalIdeas} idea(s)</p>
+              <p>{calendar.stats.highPriority} high priority</p>
+            </div>
+          </div>
+          <dl className="mt-3 grid gap-2 sm:grid-cols-4">
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-2">
+              <dt className="text-[10px] uppercase tracking-wide text-[#3B2F2F]/55">Cluster coverage</dt>
+              <dd className="mt-0.5 text-base font-semibold text-[#1F1918] tabular-nums">{calendar.stats.byKind.cluster_coverage}</dd>
+            </div>
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-2">
+              <dt className="text-[10px] uppercase tracking-wide text-[#3B2F2F]/55">Product support</dt>
+              <dd className="mt-0.5 text-base font-semibold text-[#1F1918] tabular-nums">{calendar.stats.byKind.product_support}</dd>
+            </div>
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-2">
+              <dt className="text-[10px] uppercase tracking-wide text-[#3B2F2F]/55">Internal linking</dt>
+              <dd className="mt-0.5 text-base font-semibold text-[#1F1918] tabular-nums">{calendar.stats.byKind.internal_linking}</dd>
+            </div>
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-2">
+              <dt className="text-[10px] uppercase tracking-wide text-[#3B2F2F]/55">Thin content expansion</dt>
+              <dd className="mt-0.5 text-base font-semibold text-[#1F1918] tabular-nums">{calendar.stats.byKind.thin_content_expansion}</dd>
+            </div>
+          </dl>
+          <ContentCalendarList ideas={calendar.ideas} />
+        </section>
       </section>
     </main>
+  );
+}
+
+function ContentCalendarList({ ideas }: { ideas: ContentCalendarIdea[] }) {
+  if (ideas.length === 0) {
+    return <p className="mt-3 text-xs text-[#3B2F2F]/65">No new ideas — every active category already has coverage.</p>;
+  }
+  return (
+    <ul className="mt-3 grid gap-3 lg:grid-cols-2">
+      {ideas.map((idea) => {
+        const priorityTone =
+          idea.priority === "high"
+            ? "bg-[#FBEEDE] text-[#7A4A12]"
+            : idea.priority === "medium"
+              ? "bg-[#E7EEF7] text-[#1F3F66]"
+              : "bg-[#EEE4DB] text-[#2E2323]";
+        return (
+          <li key={idea.id} className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-semibold text-[#1F1918]">{idea.suggestedTitle}</p>
+              <span className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${priorityTone}`}>
+                {idea.priority}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-[#3B2F2F]/65">
+              {idea.targetCategory} · {idea.searchIntent.replace("_", " ")} ·{" "}
+              <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-medium text-[#3B2F2F]/70">
+                {idea.kindLabel}
+              </span>
+            </p>
+            <p className="mt-2 text-xs font-medium text-[#1F1918]">{idea.whyItMatters}</p>
+            <p className="mt-1 text-xs text-[#3B2F2F]/72">{idea.reason}</p>
+
+            <details className="mt-2 rounded-xl border border-[#3B2F2F]/10 bg-white p-2">
+              <summary className="cursor-pointer text-[11px] font-medium text-[#2E2323]">
+                Suggested outline ({idea.suggestedOutline.length} sections)
+              </summary>
+              <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-xs text-[#3B2F2F]/82">
+                {idea.suggestedOutline.map((h, hi) => (
+                  <li key={hi}>{h}</li>
+                ))}
+              </ol>
+            </details>
+
+            <details className="mt-2 rounded-xl border border-[#3B2F2F]/10 bg-white p-2">
+              <summary className="cursor-pointer text-[11px] font-medium text-[#2E2323]">
+                Suggested FAQs ({idea.suggestedFaqs.length})
+              </summary>
+              <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-[#3B2F2F]/82">
+                {idea.suggestedFaqs.map((q, qi) => (
+                  <li key={qi}>{q}</li>
+                ))}
+              </ul>
+            </details>
+
+            <p className="mt-2 text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">Suggested internal links</p>
+            <ul className="mt-1 list-disc pl-5 text-xs text-[#3B2F2F]/82">
+              {idea.suggestedInternalLinks.map((href) => (
+                <li key={href} className="font-mono">{href}</li>
+              ))}
+            </ul>
+
+            {idea.suggestedProductCta ? (
+              <p className="mt-2 text-xs text-[#3B2F2F]/82">
+                Suggested CTA product:{" "}
+                <span className="font-medium text-[#1F1918]">{idea.suggestedProductCta.name}</span>
+                <span className="ml-1 font-mono text-[#3B2F2F]/65">/shop/{idea.suggestedProductCta.slug}</span>
+              </p>
+            ) : null}
+
+            {idea.refreshTargetSlug ? (
+              <p className="mt-2 text-[11px] text-[#3B2F2F]/65">
+                Refresh target: <span className="font-mono text-[#1F1918]">/blog/{idea.refreshTargetSlug}</span>
+              </p>
+            ) : null}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
