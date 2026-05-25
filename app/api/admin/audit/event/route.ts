@@ -17,6 +17,8 @@ const ALLOWED_ACTIONS = new Set<string>([
   "link_suggestion_copied",
   "ga4_debug_run",
   "seo_cron_triggered_manual",
+  "keyword_brief_copied",
+  "keyword_opportunities_opened",
 ]);
 
 const MAX_TARGET_LEN = 80;

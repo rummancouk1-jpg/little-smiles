@@ -11,6 +11,7 @@ import { validateDraft } from "@/lib/contentops/draft-validation";
 import { computePublishSafetyScore } from "@/lib/contentops/publish-score";
 import { buildSeoIntelligenceReport } from "@/lib/seo-intelligence";
 import { buildContentCalendarReport } from "@/lib/seo-intelligence/content-calendar";
+import { buildKeywordOpportunityReport } from "@/lib/seo-intelligence/keyword-opportunities";
 import {
   buildDataConfidenceReport,
   type ConfidenceLabel,
@@ -113,12 +114,13 @@ export default async function ClientReportPage() {
     redirect("/admin/login?next=%2Fadmin%2Freport");
   }
 
-  const [seo, pipeline, draftCounts, approvedDrafts, calendar] = await Promise.all([
+  const [seo, pipeline, draftCounts, approvedDrafts, calendar, keywordOpps] = await Promise.all([
     buildSeoIntelligenceReport(),
     buildDataPipelineHealth(),
     countDraftsByStatus().catch(() => null),
     listDrafts("approved").catch(() => []),
     Promise.resolve(buildContentCalendarReport()),
+    buildKeywordOpportunityReport().catch(() => null),
   ]);
 
   const confidence = buildDataConfidenceReport({
@@ -138,6 +140,16 @@ export default async function ClientReportPage() {
   const thinContentCount = seo.contentDecay.blogReports.filter((r) =>
     r.diagnostics.some((d) => d.severity === "warning" || d.severity === "critical"),
   ).length;
+  // Image readiness summary across published blog posts. "Ready" = vertical
+  // or square pin verdict; everything else (horizontal, missing, unreadable)
+  // is flagged. Deterministic — re-uses the Pinterest readiness engine.
+  const pinReadyVerdicts = new Set(["vertical_ideal", "square"]);
+  const blogImageRows = seo.pinterest.blogReports;
+  const blogImagesReady = blogImageRows.filter((r) => pinReadyVerdicts.has(r.image.verdict)).length;
+  const blogImagesNotReady = blogImageRows.length - blogImagesReady;
+  const keywordOppHigh = keywordOpps?.stats.byPriority.high ?? 0;
+  const keywordOppIdeas = keywordOpps?.stats.byStatus.idea ?? 0;
+  const keywordOppTotal = keywordOpps?.stats.totalIdeas ?? 0;
   const internalLinkOps =
     seo.linkSuggestions.blogToBlog.length + seo.linkSuggestions.blogToProduct.length;
   const schemaIssues =
@@ -221,6 +233,16 @@ export default async function ClientReportPage() {
       `${calendar.stats.highPriority} high-priority article idea(s) waiting in the content calendar.`,
     );
   }
+  if (keywordOppTotal > 0) {
+    executiveSummaryLines.push(
+      `${keywordOppTotal} keyword opportunit${keywordOppTotal === 1 ? "y" : "ies"} surfaced from local data (${keywordOppHigh} high priority).`,
+    );
+  }
+  if (blogImageRows.length > 0) {
+    executiveSummaryLines.push(
+      `Image readiness: ${blogImagesReady}/${blogImageRows.length} published post(s) carry a Pinterest-ready (vertical or square) hero.`,
+    );
+  }
 
   await logSystemAudit({
     action: "client_report_viewed",
@@ -274,6 +296,8 @@ export default async function ClientReportPage() {
     `- Internal-link opportunities: ${internalLinkOps}`,
     `- Schema issues (blog+product): ${schemaIssues}`,
     `- Product SEO issues: ${productSeoIssues}`,
+    `- Keyword opportunities (local data only): ${keywordOppTotal} total · ${keywordOppHigh} high priority · ${keywordOppIdeas} idea-stage`,
+    `- Image readiness (Pinterest verdict on blog heroes): ${blogImagesReady} ready / ${blogImagesNotReady} need attention (of ${blogImageRows.length})`,
     ``,
     `Top recommended next actions (${Math.min(nextBestActions.actions.length, 5)} of ${nextBestActions.totalAvailable})`,
     `----------------------------`,
@@ -469,6 +493,73 @@ export default async function ClientReportPage() {
               ) : null}
             </ul>
           )}
+        </section>
+
+        {/* 5b. Keyword opportunities + image readiness (Phase 4 additions) */}
+        <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
+            5b · Keyword opportunities + image readiness
+          </p>
+          <p className="mt-2 text-sm text-[#1F1918]">
+            Lightweight v1 surfaces derived from local data — no external keyword volume or scraped
+            third-party metrics.
+          </p>
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+              <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">
+                Keyword opportunities
+              </dt>
+              <dd className="mt-0.5 text-xl font-semibold text-[#1F1918] tabular-nums">
+                {keywordOppTotal}
+              </dd>
+              <p className="mt-1 text-[11px] text-[#3B2F2F]/65">
+                {keywordOppHigh} high priority · {keywordOppIdeas} idea-stage
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+              <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">Content gaps</dt>
+              <dd className="mt-0.5 text-xl font-semibold text-[#1F1918] tabular-nums">
+                {keywordOpps?.stats.bySource.content_gap ?? 0}
+              </dd>
+              <p className="mt-1 text-[11px] text-[#3B2F2F]/65">
+                Featured/best-seller products without supporting articles.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+              <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">
+                Image readiness
+              </dt>
+              <dd className="mt-0.5 text-xl font-semibold text-[#1F1918] tabular-nums">
+                {blogImagesReady}/{blogImageRows.length}
+              </dd>
+              <p className="mt-1 text-[11px] text-[#3B2F2F]/65">
+                Posts with a Pinterest-ready (vertical or square) hero.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-3">
+              <dt className="text-[11px] uppercase tracking-wide text-[#3B2F2F]/55">
+                Images needing attention
+              </dt>
+              <dd className="mt-0.5 text-xl font-semibold text-[#1F1918] tabular-nums">
+                {blogImagesNotReady}
+              </dd>
+              <p className="mt-1 text-[11px] text-[#3B2F2F]/65">
+                Horizontal, missing, or unreadable hero images.
+              </p>
+            </div>
+          </dl>
+          <p className="mt-3 text-[11px] text-[#3B2F2F]/65">
+            Keyword Opportunities v1 uses local site data only. Advanced keyword research can be
+            connected later.
+          </p>
+          <div className="mt-3">
+            <Link
+              href="/admin/keywords"
+              className="inline-flex rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4]"
+            >
+              Open keyword opportunities →
+            </Link>
+          </div>
         </section>
 
         {/* 6. Top recommended actions */}

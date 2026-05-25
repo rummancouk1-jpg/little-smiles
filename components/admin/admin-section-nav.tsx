@@ -9,6 +9,7 @@ import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
 
 export type AdminSection =
   | "seo"
+  | "keywords"
   | "readiness"
   | "contentops"
   | "notifications"
@@ -23,8 +24,9 @@ type NavEntry = {
 
 const ENTRIES: NavEntry[] = [
   { key: "seo", label: "SEO Intelligence", href: "/admin/seo" },
-  { key: "readiness", label: "Readiness", href: "/admin/readiness" },
+  { key: "keywords", label: "Keywords", href: "/admin/keywords" },
   { key: "contentops", label: "ContentOps", href: "/admin/contentops" },
+  { key: "readiness", label: "Readiness", href: "/admin/readiness" },
   { key: "notifications", label: "Notifications", href: "/admin/notifications" },
   { key: "report", label: "Report", href: "/admin/report" },
   { key: "audit", label: "Audit", href: "/admin/audit" },

@@ -17,6 +17,11 @@ import sharp from "sharp";
 
 import { getBlogAnchorProduct } from "@/lib/blog";
 import { type Draft } from "@/lib/contentops/drafts-store";
+import {
+  buildLifestyleCandidatesForDraft,
+  LIFESTYLE_ROOT_DIR,
+  type LifestyleImageCandidate,
+} from "@/lib/contentops/lifestyle-images";
 import { products, type Product } from "@/lib/products";
 
 const PINTEREST_IDEAL_RATIO = 2 / 3;
@@ -55,6 +60,15 @@ export type AiImageProviderState =
   | { configured: false; reason: string }
   | { configured: true; provider: string };
 
+export type LifestyleCandidatesBundle = {
+  matched: LifestyleImageCandidate[];
+  fallback: LifestyleImageCandidate[];
+  manifestSize: number;
+  missingFiles: string[];
+  /** The directory under public/ the reviewer should drop new files into. */
+  rootDir: string;
+};
+
 export type HeroImageWorkflow = {
   /** The path actually consumed by JSON-LD / on-page hero today. */
   effectivePath: string | null;
@@ -63,7 +77,10 @@ export type HeroImageWorkflow = {
   /** The auto-resolved path before any reviewer override is applied. */
   autoResolvedPath: string | null;
   effectiveMetrics: HeroImageMetrics | null;
+  /** Product/catalog candidates — same shape as before. */
   suggestions: HeroImageCandidate[];
+  /** Blog Lifestyle Image Library candidates (admin-curated, non-product). */
+  lifestyle: LifestyleCandidatesBundle;
   aiProvider: AiImageProviderState;
 };
 
@@ -243,12 +260,21 @@ export async function buildHeroImageWorkflow(draft: Draft): Promise<HeroImageWor
 
   const effectiveMetrics = effectivePath ? await readMetrics(effectivePath) : null;
 
+  // Lifestyle library — admin-curated, separate bucket from product
+  // candidates. Same propagation pipeline; the existing acceptance route
+  // already accepts paths under public/ that exist on disk.
+  const lifestyleBundle = await buildLifestyleCandidatesForDraft(post);
+
   return {
     effectivePath,
     isOverride,
     autoResolvedPath,
     effectiveMetrics,
     suggestions,
+    lifestyle: {
+      ...lifestyleBundle,
+      rootDir: LIFESTYLE_ROOT_DIR,
+    },
     aiProvider: getAiImageProviderState(),
   };
 }

@@ -73,6 +73,12 @@ export const MODULES: ModuleCatalogEntry[] = [
     description: "Future article ideas derived from weak product clusters, internal-link gaps, thin posts, and product CTA opportunities. No fake search volume.",
   },
   {
+    key: "keyword_opportunities_v1",
+    name: "Keyword opportunities (v1)",
+    group: "Insights",
+    description: "Keyword-shaped opportunities derived strictly from local data — clusters, content gaps, thin posts, internal-link gaps. Includes a copyable content brief per row. No external keyword volume, CPC, or difficulty is consulted.",
+  },
+  {
     key: "snapshot_insights",
     name: "GA4 + GSC snapshot insights",
     group: "Insights",
@@ -125,6 +131,12 @@ export const MODULES: ModuleCatalogEntry[] = [
     name: "Hero image selection",
     group: "ContentOps",
     description: "Anchor product auto-resolve + per-draft override. Falls back gracefully when no product is in the category.",
+  },
+  {
+    key: "blog_lifestyle_library",
+    name: "Blog lifestyle image library",
+    group: "ContentOps",
+    description: "Admin-curated non-product hero candidates under public/uploads/blog/lifestyle/. Matched per draft by category + keywords + title terms, with a generic fallback bucket. No scraping, no AI generation.",
   },
   {
     key: "prepare_publish",

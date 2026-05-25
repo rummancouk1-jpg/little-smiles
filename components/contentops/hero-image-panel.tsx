@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import type { HeroImageCandidate, HeroImageMetrics, HeroImageWorkflow } from "@/lib/contentops/hero-image";
+import type { LifestyleImageCandidate } from "@/lib/contentops/lifestyle-images";
 
 type Props = {
   draftId: string;
@@ -146,7 +147,7 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
       <div className="mt-6">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
-            Select image ({workflow.suggestions.length} catalog candidates)
+            Product image candidates ({workflow.suggestions.length})
           </p>
           <p className="text-[11px] text-[#3B2F2F]/55">
             Pinterest ideal: 2:3 vertical, ≥ 1000px wide
@@ -170,6 +171,14 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
           </ul>
         )}
       </div>
+
+      <LifestyleCandidates
+        bundle={workflow.lifestyle}
+        currentPath={workflow.effectivePath}
+        pending={isPending}
+        pendingTarget={selectionTarget}
+        onSelect={(path) => submit(path)}
+      />
 
       <ManualPathInput pending={isPending && selectionTarget !== null} onSubmit={submit} />
 
@@ -333,5 +342,203 @@ function CandidateCard({
         </button>
       </div>
     </li>
+  );
+}
+
+function lifestyleVerdictTone(verdict: "vertical_ideal" | "square" | "horizontal_or_small" | "unreadable"): string {
+  if (verdict === "vertical_ideal") return "bg-[#E7F4EA] text-[#2E6A41]";
+  if (verdict === "square") return "bg-[#E7EEF7] text-[#1F3F66]";
+  if (verdict === "horizontal_or_small") return "bg-[#FBEEDE] text-[#7A4A12]";
+  return "bg-[#F8E8EA] text-[#8A2F40]";
+}
+
+function lifestyleVerdictLabel(verdict: "vertical_ideal" | "square" | "horizontal_or_small" | "unreadable"): string {
+  if (verdict === "vertical_ideal") return "Vertical (ideal)";
+  if (verdict === "square") return "Square";
+  if (verdict === "horizontal_or_small") return "Horizontal / small";
+  return "Unreadable";
+}
+
+function LifestyleCard({
+  candidate,
+  isCurrent,
+  pending,
+  onSelect,
+}: {
+  candidate: LifestyleImageCandidate;
+  isCurrent: boolean;
+  pending: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <li
+      className={[
+        "rounded-2xl border bg-white p-3 text-xs",
+        isCurrent ? "border-[#2E6A41]/40 bg-[#EAF5EE]" : "border-[#3B2F2F]/10",
+      ].join(" ")}
+    >
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
+        <Image
+          src={candidate.filePath}
+          alt={`Lifestyle hero candidate: ${candidate.title}`}
+          fill
+          sizes="(min-width: 1024px) 240px, (min-width: 640px) 50vw, 100vw"
+          className="object-cover"
+          unoptimized
+        />
+      </div>
+      <p className="mt-2 font-medium text-[#1F1918]">{candidate.title}</p>
+      <p className="mt-0.5 text-[#3B2F2F]/65">Use case: {candidate.useCase}</p>
+      <p className="mt-0.5 font-mono text-[10px] text-[#3B2F2F]/55 break-all">{candidate.filePath}</p>
+      {candidate.tags.length > 0 ? (
+        <p className="mt-1 flex flex-wrap gap-1">
+          {candidate.tags.slice(0, 6).map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex rounded-full bg-[#EEE4DB] px-2 py-0.5 text-[10px] font-medium text-[#2E2323]"
+            >
+              {tag}
+            </span>
+          ))}
+        </p>
+      ) : null}
+      <p className="mt-2">
+        <span
+          className={[
+            "mr-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+            lifestyleVerdictTone(candidate.metrics.verdict),
+          ].join(" ")}
+        >
+          {lifestyleVerdictLabel(candidate.metrics.verdict)}
+        </span>
+        {candidate.matchScore > 0 ? (
+          <span className="inline-flex rounded-full bg-[#E7EEF7] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#1F3F66]">
+            Match {candidate.matchScore}
+          </span>
+        ) : (
+          <span className="inline-flex rounded-full bg-[#EEE4DB] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#2E2323]">
+            Generic fallback
+          </span>
+        )}
+      </p>
+      <p className="mt-1 text-[10px] text-[#3B2F2F]/65">{candidate.matchReason}</p>
+      <div className="mt-3 flex items-center justify-between">
+        <p className="text-[10px] text-[#3B2F2F]/55">{candidate.metrics.note}</p>
+        <button
+          type="button"
+          onClick={onSelect}
+          disabled={pending || isCurrent}
+          className={[
+            "rounded-full px-3 py-1 text-[11px] font-medium",
+            isCurrent
+              ? "border border-[#2E6A41]/30 bg-white text-[#2E6A41]"
+              : "bg-[#2F2624] text-[#F6F1EC] hover:opacity-90",
+            pending || isCurrent ? "opacity-70" : "",
+          ].join(" ")}
+        >
+          {isCurrent ? "Selected" : pending ? "Saving…" : "Use this image"}
+        </button>
+      </div>
+    </li>
+  );
+}
+
+function LifestyleCandidates({
+  bundle,
+  currentPath,
+  pending,
+  pendingTarget,
+  onSelect,
+}: {
+  bundle: HeroImageWorkflow["lifestyle"];
+  currentPath: string | null;
+  pending: boolean;
+  pendingTarget: string | null;
+  onSelect: (path: string) => void;
+}) {
+  const hasAny = bundle.matched.length + bundle.fallback.length > 0;
+
+  return (
+    <section className="mt-6 rounded-2xl border border-[#3B2F2F]/10 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+            Blog lifestyle library
+          </p>
+          <p className="mt-1 text-xs text-[#3B2F2F]/65">
+            Non-product hero candidates. Curated manually — no scraping, no AI generation. Images
+            live under <code className="font-mono">public{bundle.rootDir}</code>.
+          </p>
+        </div>
+        <span className="inline-flex rounded-full bg-[#EEE4DB] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-[#2E2323]">
+          {bundle.manifestSize === 0
+            ? "Library empty"
+            : `${bundle.matched.length + bundle.fallback.length} / ${bundle.manifestSize} available`}
+        </span>
+      </div>
+
+      {bundle.manifestSize === 0 ? (
+        <p className="mt-3 rounded-xl border border-dashed border-[#3B2F2F]/14 bg-[#FBF7F3] p-3 text-[11px] leading-relaxed text-[#3B2F2F]/72">
+          The lifestyle manifest is empty. To add a candidate: drop an approved image into{" "}
+          <code className="font-mono">public{bundle.rootDir}</code>, then append an entry to{" "}
+          <code className="font-mono">lib/contentops/lifestyle-images.ts</code> with a title,
+          tags, and a one-sentence use case. The reviewer will see it here on the next refresh.
+        </p>
+      ) : !hasAny ? (
+        <p className="mt-3 rounded-xl border border-[#8A6A2F]/20 bg-[#FBF5EA] p-3 text-[11px] leading-relaxed text-[#5E4A1C]">
+          The lifestyle manifest has {bundle.manifestSize} entr{bundle.manifestSize === 1 ? "y" : "ies"}, but none resolve to a real file on disk. Missing:{" "}
+          {bundle.missingFiles.slice(0, 5).join(", ")}
+          {bundle.missingFiles.length > 5 ? "…" : ""}
+        </p>
+      ) : (
+        <>
+          {bundle.matched.length > 0 ? (
+            <>
+              <p className="mt-3 text-[11px] font-medium uppercase tracking-wide text-[#3B2F2F]/55">
+                Matched to this draft ({bundle.matched.length})
+              </p>
+              <ul className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {bundle.matched.map((candidate) => (
+                  <LifestyleCard
+                    key={candidate.filePath}
+                    candidate={candidate}
+                    isCurrent={currentPath === candidate.filePath}
+                    pending={pending && pendingTarget === candidate.filePath}
+                    onSelect={() => onSelect(candidate.filePath)}
+                  />
+                ))}
+              </ul>
+            </>
+          ) : null}
+
+          {bundle.fallback.length > 0 ? (
+            <>
+              <p className="mt-4 text-[11px] font-medium uppercase tracking-wide text-[#3B2F2F]/55">
+                Generic fallbacks ({bundle.fallback.length})
+              </p>
+              <ul className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {bundle.fallback.map((candidate) => (
+                  <LifestyleCard
+                    key={candidate.filePath}
+                    candidate={candidate}
+                    isCurrent={currentPath === candidate.filePath}
+                    pending={pending && pendingTarget === candidate.filePath}
+                    onSelect={() => onSelect(candidate.filePath)}
+                  />
+                ))}
+              </ul>
+            </>
+          ) : null}
+
+          {bundle.missingFiles.length > 0 ? (
+            <p className="mt-3 text-[10px] text-[#3B2F2F]/55">
+              Note: {bundle.missingFiles.length} manifest entr
+              {bundle.missingFiles.length === 1 ? "y is" : "ies are"} pointing at missing files and
+              have been hidden.
+            </p>
+          ) : null}
+        </>
+      )}
+    </section>
   );
 }
