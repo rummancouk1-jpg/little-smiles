@@ -363,23 +363,24 @@ export function PublishControlPanel(props: Props) {
           Manual publish mode
         </p>
         <p className="mt-2 text-sm text-[#1F1918]">
-          Publishing is intentionally human-in-the-loop right now: copy the BlogPost object below into{" "}
-          <code className="font-mono">lib/blog.ts</code>, commit, and deploy. The blog appears publicly
-          on the next deploy.
+          Publishing stays human-in-the-loop. Once you&apos;re happy with this draft, hand the
+          summary below to a developer — they paste the post into{" "}
+          <code className="font-mono">lib/blog.ts</code> and deploy. The blog goes live on the next
+          deploy.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
             disabled
             aria-disabled="true"
-            title="Coming later — manual mode keeps a human reviewing the diff before each deploy."
+            title="Off on purpose — a developer reviews and deploys every post by hand so nothing goes live by accident."
             className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#3B2F2F]/45"
           >
             One-click publish (coming later)
           </button>
           <span className="text-[11px] text-[#1E5A37]/85">
-            Why disabled: every published post lands in source control. One-click would skip the
-            commit-review step that protects against accidental deploys.
+            Off on purpose: a developer reviews and deploys every post by hand so nothing goes live
+            by accident.
           </span>
         </div>
       </section>

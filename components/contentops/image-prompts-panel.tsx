@@ -83,13 +83,13 @@ export function ImagePromptsPanel({ prompts, draftId, draftSlug }: Props) {
 
       <p className="mt-3 text-[11px] text-[#3B2F2F]/65">
         {prompts.generationAvailable
-          ? "Assisted generation is enabled but stays a manual per-draft action — it never runs in the cron path."
-          : `Assisted generation is disabled. ${prompts.generationDisabledReason}`}
+          ? "Assisted generation is on but only runs when you click — never automatically."
+          : "Assisted generation is off in this build. Copy a prompt above and paste it into the AI tool of your choice."}
       </p>
       <p className="mt-2 rounded-xl border border-[#7A4A12]/20 bg-[#FBF5EA] px-3 py-2 text-[11px] leading-relaxed text-[#5E4A1C]">
         <span className="font-semibold uppercase tracking-wide">Safety:</span> AI image generation
-        is disabled unless explicitly configured. An admin must approve any generated or uploaded
-        image before publishing.
+        is off unless explicitly turned on. You (the admin) must approve any generated or uploaded
+        image before it goes live.
       </p>
     </article>
   );

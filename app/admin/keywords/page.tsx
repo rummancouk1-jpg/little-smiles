@@ -232,7 +232,7 @@ function OpportunityRow({ op }: { op: KeywordOpportunity }) {
           ) : null}
         </div>
 
-        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+        <div className="flex flex-col items-stretch gap-2 sm:max-w-[220px] sm:items-end">
           <CopyTextButton
             text={brief}
             label="Copy content brief"
@@ -249,10 +249,14 @@ function OpportunityRow({ op }: { op: KeywordOpportunity }) {
             disabled
             aria-disabled="true"
             className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#3B2F2F]/45"
-            title="Disabled — there is no draft-creation API in this build. Copy the brief above and start a draft through the existing ContentOps pipeline."
+            title="Off in this build. Copy the brief above and start the draft through the normal ContentOps flow."
           >
             Create draft from keyword (off)
           </button>
+          <p className="text-[10px] leading-snug text-[#3B2F2F]/55 sm:text-right">
+            Off in this build. Copy the brief above and start the draft through the normal
+            ContentOps flow.
+          </p>
         </div>
       </div>
 

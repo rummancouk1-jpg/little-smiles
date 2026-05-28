@@ -200,8 +200,8 @@ export function DraftDetail({ draft }: DraftDetailProps) {
           <strong>{validation.internalLinkCount}</strong> internal link references
         </p>
         <p className="mt-1 text-[#3B2F2F]/60">
-          Body content is rendered in the Website preview section below — that view mirrors the public blog
-          page&apos;s typography exactly.
+          Scroll down to the Website preview to see how this draft will look on the public blog
+          page.
         </p>
       </section>
 

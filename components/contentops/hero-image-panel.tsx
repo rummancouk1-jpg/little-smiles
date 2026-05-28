@@ -232,7 +232,7 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
 
       <div className="mt-6 rounded-2xl border border-dashed border-[#3B2F2F]/14 bg-[#FBF7F3] p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
               AI image generation
             </p>
@@ -240,13 +240,13 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
               {ai.configured ? (
                 <>Provider configured: <span className="font-mono">{ai.provider}</span></>
               ) : (
-                <>Not configured.</>
+                <>Off in this build.</>
               )}
             </p>
             <p className="mt-1 text-xs text-[#3B2F2F]/65">
               {ai.configured
-                ? "Generation UI will appear here once the provider is wired. No external calls happen automatically."
-                : ai.reason}
+                ? "Generation stays a manual click — no external calls happen automatically."
+                : "No image generator is wired up. To add one, a developer would need to enable it. Until then, use the product catalog, the lifestyle library, or the manual approved path above."}
             </p>
           </div>
           <button
@@ -254,15 +254,15 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
             disabled
             aria-disabled="true"
             className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#3B2F2F]/45"
-            title="Disabled — no provider call wired in production."
+            title="Off in this build. Pick from the product catalog, the lifestyle library, or enter a manual approved path above."
           >
             Generate with AI (off)
           </button>
         </div>
         <p className="mt-3 rounded-xl border border-[#7A4A12]/20 bg-[#FBF5EA] px-3 py-2 text-[11px] leading-relaxed text-[#5E4A1C]">
           <span className="font-semibold uppercase tracking-wide">Safety:</span> AI image generation
-          is disabled unless explicitly configured. An admin must approve any generated or uploaded
-          image before publishing.
+          is off unless explicitly turned on. You (the admin) must approve any generated or uploaded
+          image before it goes live.
         </p>
       </div>
     </section>

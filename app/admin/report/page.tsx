@@ -329,8 +329,9 @@ export default async function ClientReportPage() {
                 Client report
               </h1>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">
-                Generated {formatDateTime(seo.generatedAt)}. Every figure derives from the live repo + Supabase
-                snapshot — no estimates, no scraped third-party data.
+                Generated {formatDateTime(seo.generatedAt)}. Every figure comes from your own site
+                or the latest Google Analytics / Search Console snapshot — no estimates, no scraped
+                third-party data.
               </p>
             </div>
             <AdminSectionNav active="report" />

@@ -25,7 +25,7 @@ export function DraftImprovementPanel({
   draftTitle,
   draftRelatedCategory,
 }: Props) {
-  const { validation, weaknesses, recommendation, aiGenerationAvailable, aiGenerationDisabledReason } = report;
+  const { validation, weaknesses, recommendation, aiGenerationAvailable } = report;
 
   return (
     <section className="space-y-6">
@@ -49,7 +49,9 @@ export function DraftImprovementPanel({
                 : "bg-[#FBEEDE] text-[#7A4A12]",
             ].join(" ")}
           >
-            {weaknesses.length === 0 ? "No improvements needed" : `${weaknesses.length} weakness(es)`}
+            {weaknesses.length === 0
+              ? "No improvements needed"
+              : `${weaknesses.length} ${weaknesses.length === 1 ? "weakness" : "weaknesses"}`}
           </span>
         </header>
       </article>
@@ -226,21 +228,27 @@ export function DraftImprovementPanel({
       <article className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
         <h3 className="text-base font-semibold text-[#1F1918]">Assisted draft improvement</h3>
         <p className="mt-2 text-xs text-[#3B2F2F]/72">
-          The button below is intentionally inert in this build. AI-assisted rewriting will only run when both
-          ANTHROPIC_API_KEY and CONTENTOPS_IMPROVE_ENABLED=1 are configured, and even then it stays a manual,
-          per-draft action — never automatic, never in the cron path.
+          The button below is off in this build. AI-assisted rewriting is only available when a developer
+          explicitly turns it on, and even then it runs only when you click — never automatically.
         </p>
         <button
           type="button"
           disabled={!aiGenerationAvailable}
           aria-disabled={!aiGenerationAvailable}
           className="mt-3 rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#3B2F2F]/45 hover:bg-white"
-          title={aiGenerationDisabledReason ?? "AI-assisted improvement"}
+          title={
+            aiGenerationAvailable
+              ? "AI-assisted improvement is available. Click to generate a draft you can review and edit."
+              : "Off in this build. Use the copy-to-clipboard briefs above to hand off to a writer or AI tool of your choice."
+          }
         >
-          {aiGenerationAvailable ? "Generate improved draft (manual review)" : "Generate improved draft (disabled)"}
+          {aiGenerationAvailable ? "Generate improved draft (manual review)" : "Generate improved draft (off)"}
         </button>
-        {aiGenerationDisabledReason ? (
-          <p className="mt-2 text-[11px] text-[#3B2F2F]/55">{aiGenerationDisabledReason}</p>
+        {!aiGenerationAvailable ? (
+          <p className="mt-2 text-[11px] text-[#3B2F2F]/55">
+            Off in this build. Use the copy-to-clipboard briefs above to hand off to a writer or
+            paste into an AI tool of your choice.
+          </p>
         ) : null}
       </article>
     </section>

@@ -71,7 +71,8 @@ export default async function ImproveDraftPage({ params }: PageProps) {
                 Improve draft
               </h1>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">
-                Deterministic recommendations derived from real repo data — no external calls, no fake metrics.
+                Recommendations are computed from this site&apos;s own catalog, blog, and link graph —
+                no AI calls, no third-party metrics, no estimates.
               </p>
             </div>
             <AdminSectionNav

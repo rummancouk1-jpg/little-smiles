@@ -149,6 +149,10 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B2F2F]/50">Private Admin</p>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">Signed in as {adminSession.actorLabel}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">Audit Logs</h1>
+              <p className="mt-1 text-xs text-[#3B2F2F]/65">
+                A timestamped trail of every admin action — useful for spotting unexpected activity
+                or tracing what changed. Read-only.
+              </p>
             </div>
             <AdminSectionNav
               active="audit"

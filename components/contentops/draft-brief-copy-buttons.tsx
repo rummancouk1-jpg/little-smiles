@@ -1,8 +1,8 @@
 "use client";
 
 // Client-side copy buttons for the Improve Draft page. Lets a non-technical
-// reviewer hand a fully-formed brief to a writer or to an external LLM
-// without re-typing the deterministic data we've already computed.
+// reviewer hand a fully-formed brief to a writer or to an AI tool of their
+// choice without re-typing the data we've already computed.
 //
 // No AI calls run from here — these are pure clipboard writes. Each copy
 // fires a fire-and-forget POST to /api/admin/audit/event so the audit log
@@ -226,8 +226,8 @@ export function DraftBriefCopyButtons(props: Props) {
     <article className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
       <h3 className="text-base font-semibold text-[#1F1918]">Copy-to-clipboard brief</h3>
       <p className="mt-1 text-xs text-[#3B2F2F]/65">
-        Hand off to a writer or paste into an external LLM. No AI runs from here — these buttons just format the
-        deterministic data above into plain-text briefs.
+        Hand off to a writer or paste into an AI tool of your choice. No AI runs from here — these
+        buttons just format the recommendations above into plain-text briefs.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {buttons.map((b) => (

@@ -71,8 +71,8 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
                 ContentOps drafts
               </h1>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">
-                Review, validate, and publish AI-prepared blog drafts. Status badges below mirror the SEO
-                Intelligence thresholds — green here means green there.
+                Review, edit, and approve blog drafts before they go live. The badges below use the
+                same rules as the SEO Intelligence page — green here means green there.
               </p>
             </div>
             <AdminSectionNav

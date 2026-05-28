@@ -216,7 +216,8 @@ export default async function ReadinessAdminPage() {
                 Production Readiness
               </h1>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">
-                Generated {formatDateTime(report.generatedAt)} — config-level checks only, no external calls.
+                Generated {formatDateTime(report.generatedAt)} — shows which integrations are wired
+                up. This is a developer / operator check; the editorial reviewer can skip it.
               </p>
             </div>
             <AdminSectionNav active="readiness" />

@@ -519,8 +519,8 @@ export default async function SeoIntelligencePage() {
                 SEO Intelligence
               </h1>
               <p className="mt-1 text-xs text-[#3B2F2F]/65">
-                Generated {formatDateTime(report.generatedAt)} — every signal derives from real repo data or local
-                images. No external calls.
+                Generated {formatDateTime(report.generatedAt)} — every signal here is computed from
+                your own site (catalog, blog, images). No third-party scraping or made-up numbers.
               </p>
             </div>
             <AdminSectionNav active="seo" />
