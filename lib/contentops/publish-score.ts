@@ -179,6 +179,7 @@ export function computePublishSafetyScore(
   const score = Math.round((earned / totalWeight) * 100);
 
   const hasHardFailure = checks.some((c) => !c.passed && c.hard);
+  const hasSoftFailure = checks.some((c) => !c.passed && !c.hard);
   let verdict: PublishSafetyVerdict;
   if (hasHardFailure || score < 60) verdict = "do_not_publish_yet";
   else if (score < 85) verdict = "needs_review";
@@ -186,10 +187,12 @@ export function computePublishSafetyScore(
 
   const headline =
     verdict === "ready"
-      ? `Ready (${score}/100) — all critical checks passed.`
+      ? hasSoftFailure
+        ? `Ready (${score}/100) — technically publishable, but metadata should be reviewed.`
+        : `Ready (${score}/100) — all required checks passed.`
       : verdict === "needs_review"
-        ? `Needs Review (${score}/100) — fix soft warnings before publishing.`
-        : `Do Not Publish Yet (${score}/100) — critical issues present.`;
+        ? `Needs Review (${score}/100) — not blocked, but improving this draft is recommended.`
+        : `Do Not Publish Yet (${score}/100) — missing required image, schema, or content.`;
 
   return { verdict, score, checks, headline };
 }

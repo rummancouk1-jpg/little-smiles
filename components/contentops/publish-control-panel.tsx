@@ -239,10 +239,10 @@ export function PublishControlPanel(props: Props) {
                 ].join(" ")}
                 title={
                   readinessVerdict === "ready"
-                    ? "All critical checks passed."
+                    ? "All required checks passed."
                     : readinessVerdict === "needs_review"
-                      ? "Score is acceptable but warnings exist — fix soft warnings before publishing."
-                      : "Blocking issues present — fix before publishing."
+                      ? "Not blocked, but improving this draft is recommended before publishing."
+                      : "Do not publish yet — required image, schema, or content is missing."
                 }
               >
                 {readinessVerdict === "ready"

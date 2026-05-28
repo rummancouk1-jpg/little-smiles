@@ -52,22 +52,35 @@ function paletteFor(verdict: PublishSafetyVerdict): { container: string; label: 
   };
 }
 
-function verdictHeadline(verdict: PublishSafetyVerdict): { title: string; subtitle: string } {
+function verdictHeadline(
+  verdict: PublishSafetyVerdict,
+  hasOpenWarnings: boolean,
+): { title: string; subtitle: string } {
   if (verdict === "ready") {
+    if (hasOpenWarnings) {
+      // Don't claim "all checks passed" while warnings are still listed below —
+      // it reads as a contradiction. Acknowledge the green light + the caveat.
+      return {
+        title: "Ready",
+        subtitle:
+          "Technically publishable — required checks pass, but soft warnings remain. Reviewing them is recommended.",
+      };
+    }
     return {
       title: "Ready",
-      subtitle: "All critical checks passed. Safe to prepare publish.",
+      subtitle: "All required checks passed. Safe to prepare publish.",
     };
   }
   if (verdict === "needs_review") {
     return {
       title: "Needs Review",
-      subtitle: "Score is acceptable but warnings exist — fix soft warnings before publishing.",
+      subtitle: "Not blocked, but improving this draft is recommended before publishing.",
     };
   }
   return {
     title: "Do Not Publish Yet",
-    subtitle: "Blocking issues present. Prepare publish stays available but please fix the rows below first.",
+    subtitle:
+      "Do not publish yet — required image, schema, or content is missing. Fix the rows below first.",
   };
 }
 
@@ -87,8 +100,9 @@ export function PublishReadinessBanner({
   const surfaced = badges.filter(isSurfacedBadge);
   const errors = publishWarnings.filter((w) => w.severity === "error");
   const warnings = publishWarnings.filter((w) => w.severity === "warning");
+  const hasOpenWarnings = surfaced.length > 0 || warnings.length > 0;
   const palette = paletteFor(verdict);
-  const headline = verdictHeadline(verdict);
+  const headline = verdictHeadline(verdict, hasOpenWarnings);
   const handoff = deriveHandoffLabels({ verdict, badges });
 
   return (

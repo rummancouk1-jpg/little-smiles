@@ -10,7 +10,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import type { HeroImageCandidate, HeroImageMetrics, HeroImageWorkflow } from "@/lib/contentops/hero-image";
+import type {
+  HeroImageCandidate,
+  HeroImageMetrics,
+  HeroImageSource,
+  HeroImageWorkflow,
+} from "@/lib/contentops/hero-image";
 import type { LifestyleImageCandidate } from "@/lib/contentops/lifestyle-images";
 
 type Props = {
@@ -31,6 +36,42 @@ function verdictLabel(verdict: HeroImageMetrics["verdict"]): string {
   if (verdict === "horizontal_or_small") return "Horizontal / small";
   if (verdict === "missing") return "File missing";
   return "Unreadable";
+}
+
+function sourceLabel(source: HeroImageSource): { label: string; detail: string; tone: string } {
+  if (source === "product_catalog") {
+    return {
+      label: "Product catalog",
+      detail: "Reviewer-picked image from the product catalog.",
+      tone: "bg-[#E7EEF7] text-[#1F3F66]",
+    };
+  }
+  if (source === "lifestyle_library") {
+    return {
+      label: "Blog lifestyle library",
+      detail: "Reviewer-picked image from the curated lifestyle library.",
+      tone: "bg-[#E7F4EA] text-[#2E6A41]",
+    };
+  }
+  if (source === "manual_approved") {
+    return {
+      label: "Manual approved path",
+      detail: "Reviewer-entered image path under /public — admin-approved.",
+      tone: "bg-[#EEE4DB] text-[#2E2323]",
+    };
+  }
+  if (source === "auto_resolved_fallback") {
+    return {
+      label: "Auto-resolved fallback",
+      detail: "No reviewer override yet — using the anchor product image for this category.",
+      tone: "bg-[#FBEEDE] text-[#7A4A12]",
+    };
+  }
+  return {
+    label: "No image yet",
+    detail: "No reviewer pick and no anchor product — pick a candidate below.",
+    tone: "bg-[#F8E8EA] text-[#8A2F40]",
+  };
 }
 
 export function HeroImagePanel({ draftId, workflow }: Props) {
@@ -71,18 +112,25 @@ export function HeroImagePanel({ draftId, workflow }: Props) {
   return (
     <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-5 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#3B2F2F]/55">
             Hero image
           </p>
-          <p className="mt-1 text-xs text-[#3B2F2F]/65">
-            Current image is{" "}
-            {workflow.isOverride ? (
-              <span className="font-medium text-[#1F1918]">reviewer-selected</span>
-            ) : (
-              <span className="font-medium text-[#1F1918]">auto-resolved from catalog</span>
-            )}
-            . Selecting a candidate stores it on the draft and is consumed by JSON-LD and the on-page hero.
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span
+              className={[
+                "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium",
+                sourceLabel(workflow.effectiveSource).tone,
+              ].join(" ")}
+              title={sourceLabel(workflow.effectiveSource).detail}
+            >
+              Source: {sourceLabel(workflow.effectiveSource).label}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-[#3B2F2F]/65">
+            {sourceLabel(workflow.effectiveSource).detail} The selected image propagates to the
+            draft review, prepare-publish JSON, the live blog page, BlogPosting JSON-LD, and the
+            OpenGraph / Twitter card.
           </p>
         </div>
         {workflow.isOverride ? (
@@ -251,11 +299,32 @@ function ManualPathInput({
         Manual image path (admin-approved)
       </p>
       <p className="mt-1 text-xs text-[#3B2F2F]/65">
-        Use this only for an image you have placed under <code className="font-mono">public/</code> and
-        have explicitly approved (e.g. a reviewer-curated stock photo, or a generated image you have
-        downloaded, reviewed, and committed). Server validates the path exists and rejects external
-        URLs.
+        Reach for this when the catalog and lifestyle library don&apos;t fit and you have a curated
+        image ready to publish.
       </p>
+      <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-[#3B2F2F]/72">
+        <li className="flex items-start gap-2">
+          <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#3B2F2F]/55" />
+          <span>
+            Only paths under <code className="font-mono">/public</code> are accepted (must start
+            with <code className="font-mono">/</code>).
+          </span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#3B2F2F]/55" />
+          <span>
+            External URLs (<code className="font-mono">http://</code>,{" "}
+            <code className="font-mono">https://</code>) are rejected by the server.
+          </span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#3B2F2F]/55" />
+          <span>
+            The admin (you) must visually approve the image — nothing here generates or fetches
+            images on its own.
+          </span>
+        </li>
+      </ul>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <input
           type="text"
@@ -263,7 +332,8 @@ function ManualPathInput({
           onChange={(e) => setValue(e.target.value)}
           placeholder="/uploads/blog/your-image.jpg"
           spellCheck={false}
-          className="flex-1 min-w-[220px] rounded-full border border-[#3B2F2F]/14 bg-[#FDF8F4] px-3.5 py-1.5 font-mono text-xs text-[#1F1918] placeholder:text-[#3B2F2F]/35 focus:outline-none focus:ring-2 focus:ring-[#7A4A12]/30"
+          inputMode="url"
+          className="w-full min-w-0 flex-1 rounded-full border border-[#3B2F2F]/14 bg-[#FDF8F4] px-3.5 py-2 font-mono text-xs text-[#1F1918] placeholder:text-[#3B2F2F]/35 focus:outline-none focus:ring-2 focus:ring-[#7A4A12]/30 sm:w-auto"
           aria-label="Approved hero image path under public/"
         />
         <button
@@ -478,12 +548,15 @@ function LifestyleCandidates({
       </div>
 
       {bundle.manifestSize === 0 ? (
-        <p className="mt-3 rounded-xl border border-dashed border-[#3B2F2F]/14 bg-[#FBF7F3] p-3 text-[11px] leading-relaxed text-[#3B2F2F]/72">
-          The lifestyle manifest is empty. To add a candidate: drop an approved image into{" "}
-          <code className="font-mono">public{bundle.rootDir}</code>, then append an entry to{" "}
-          <code className="font-mono">lib/contentops/lifestyle-images.ts</code> with a title,
-          tags, and a one-sentence use case. The reviewer will see it here on the next refresh.
-        </p>
+        <div className="mt-3 rounded-xl border border-dashed border-[#3B2F2F]/14 bg-[#FBF7F3] p-3 text-[11px] leading-relaxed text-[#3B2F2F]/72">
+          <p className="font-medium text-[#1F1918]">No approved lifestyle images yet.</p>
+          <p className="mt-1">
+            Add curated images to <code className="font-mono">/public{bundle.rootDir}</code> and
+            register them in{" "}
+            <code className="font-mono">lib/contentops/lifestyle-images.ts</code> with a title,
+            tags, and a one-sentence use case. The reviewer will see them here on the next refresh.
+          </p>
+        </div>
       ) : !hasAny ? (
         <p className="mt-3 rounded-xl border border-[#8A6A2F]/20 bg-[#FBF5EA] p-3 text-[11px] leading-relaxed text-[#5E4A1C]">
           The lifestyle manifest has {bundle.manifestSize} entr{bundle.manifestSize === 1 ? "y" : "ies"}, but none resolve to a real file on disk. Missing:{" "}

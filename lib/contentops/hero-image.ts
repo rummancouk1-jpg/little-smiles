@@ -69,11 +69,25 @@ export type LifestyleCandidatesBundle = {
   rootDir: string;
 };
 
+/**
+ * Where the effective hero image came from. Drives the human-readable
+ * source label in the Hero panel so the reviewer can see, at a glance,
+ * whether the image is reviewer-picked or just the auto-resolved fallback.
+ */
+export type HeroImageSource =
+  | "product_catalog"
+  | "lifestyle_library"
+  | "manual_approved"
+  | "auto_resolved_fallback"
+  | "none";
+
 export type HeroImageWorkflow = {
   /** The path actually consumed by JSON-LD / on-page hero today. */
   effectivePath: string | null;
   /** True when the reviewer explicitly chose a path (vs. auto-resolved). */
   isOverride: boolean;
+  /** Classified source of the effective image — see HeroImageSource for the labels. */
+  effectiveSource: HeroImageSource;
   /** The auto-resolved path before any reviewer override is applied. */
   autoResolvedPath: string | null;
   effectiveMetrics: HeroImageMetrics | null;
@@ -265,9 +279,22 @@ export async function buildHeroImageWorkflow(draft: Draft): Promise<HeroImageWor
   // already accepts paths under public/ that exist on disk.
   const lifestyleBundle = await buildLifestyleCandidatesForDraft(post);
 
+  // Classify where the effective image is coming from. The reviewer needs
+  // this to know whether the post is using their pick, a curated lifestyle
+  // shot, an uploaded admin-approved image, or the auto-resolved product
+  // fallback — they're four different editorial situations.
+  const effectiveSource: HeroImageSource = (() => {
+    if (!effectivePath) return "none";
+    if (!overridePath) return "auto_resolved_fallback";
+    if (products.some((p) => p.image === overridePath)) return "product_catalog";
+    if (overridePath.startsWith(LIFESTYLE_ROOT_DIR)) return "lifestyle_library";
+    return "manual_approved";
+  })();
+
   return {
     effectivePath,
     isOverride,
+    effectiveSource,
     autoResolvedPath,
     effectiveMetrics,
     suggestions,
