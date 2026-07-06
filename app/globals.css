@@ -611,3 +611,38 @@
     background-size: 4px 4px, 100% 100%;
   }
 }
+/* ==================================================================
+   Dark Spotlight hero — cinematic, dark-mode only. Motion is SLOW and
+   deliberate (a film push-in), and every animation is fully disabled
+   under prefers-reduced-motion (users get the static spotlit shot).
+   ================================================================== */
+.spotlight-glow {
+  background: radial-gradient(
+    circle at 50% 46%,
+    rgba(201, 154, 82, 0.42) 0%,
+    rgba(201, 154, 82, 0.2) 26%,
+    rgba(201, 154, 82, 0.07) 46%,
+    transparent 68%
+  );
+}
+
+@keyframes spotlightBreathe {
+  0%, 100% { opacity: 0.78; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.055); }
+}
+@keyframes spotlightGlowIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes spotlightSettle {
+  from { opacity: 0; transform: translateY(20px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spotlight-breathe { animation: spotlightBreathe 5.5s ease-in-out infinite; }
+  .spotlight-glow-in { animation: spotlightGlowIn 1.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .spotlight-settle { animation: spotlightSettle 1.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .spotlight-settle-late { animation: spotlightSettle 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
+  .spotlight-parallax { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+}
