@@ -646,3 +646,60 @@
   .spotlight-settle-late { animation: spotlightSettle 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
   .spotlight-parallax { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
 }
+
+/* ==================================================================
+   Living Cream light hero — soft blush/brass/cream clouds drifting slowly
+   behind the collage. Softer & slower than the dark Spotlight (dust in a
+   sunbeam). All drift is CSS and fully disabled under reduced-motion.
+   ================================================================== */
+.living-cloud {
+  border-radius: 9999px;
+}
+.living-cloud-blush {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(232, 180, 184, 0.34) 0%,
+    rgba(232, 180, 184, 0.1) 42%,
+    transparent 68%
+  );
+}
+.living-cloud-brass {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(176, 134, 65, 0.22) 0%,
+    rgba(176, 134, 65, 0.07) 44%,
+    transparent 68%
+  );
+}
+.living-cloud-cream {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(249, 240, 232, 0.62) 0%,
+    rgba(249, 240, 232, 0.16) 46%,
+    transparent 70%
+  );
+}
+
+@keyframes livingCloudIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes livingDriftA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(5%, -4%, 0) scale(1.1); }
+}
+@keyframes livingDriftB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.06); }
+  50% { transform: translate3d(-6%, 5%, 0) scale(1); }
+}
+@keyframes livingDriftC {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(4%, 5%, 0) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .living-clouds-in { animation: livingCloudIn 1.6s ease-out both; }
+  .living-drift-a { animation: livingDriftA 11s ease-in-out infinite; }
+  .living-drift-b { animation: livingDriftB 13s ease-in-out infinite; }
+  .living-drift-c { animation: livingDriftC 9.5s ease-in-out infinite; }
+}

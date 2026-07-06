@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type MouseEvent } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { type MouseEvent } from "react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { BadgeCheck, Feather, Sun } from "lucide-react";
 
 import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
@@ -49,8 +56,10 @@ function ProductCard({
   imageWrapClassName,
   priority,
   delay,
-  parallaxX = 0,
-  parallaxY = 0,
+  springX,
+  springY,
+  depthX,
+  depthY,
 }: {
   src: string;
   alt: string;
@@ -58,10 +67,16 @@ function ProductCard({
   imageWrapClassName?: string;
   priority?: boolean;
   delay: number;
-  parallaxX?: number;
-  parallaxY?: number;
+  springX: MotionValue<number>;
+  springY: MotionValue<number>;
+  depthX: number;
+  depthY: number;
 }) {
   const reduce = useReducedMotion();
+  // Depth-layered parallax: each card scales the shared pointer spring by its
+  // own depth, so the foreground card travels more than the background.
+  const x = useTransform(springX, (v) => v * depthX);
+  const y = useTransform(springY, (v) => v * depthY);
 
   return (
     <motion.div
@@ -77,7 +92,7 @@ function ProductCard({
         "shadow-[0_36px_78px_-34px_rgba(45,35,32,0.34)]",
         className
       )}
-      style={{ x: parallaxX, y: parallaxY }}
+      style={{ x, y }}
     >
       <motion.div
         animate={reduce ? { y: 0 } : { y: [0, -3, 0] }}
@@ -109,7 +124,13 @@ function ProductCard({
 
 export function HeroSection() {
   const reduce = useReducedMotion();
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  // Shared pointer springs — a soft, slow lag so the collage drifts, not jumps.
+  // Calmer than the dark hero: low stiffness, no overshoot.
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const springConfig = { stiffness: 45, damping: 20, mass: 0.7 };
+  const springX = useSpring(pointerX, springConfig);
+  const springY = useSpring(pointerY, springConfig);
   const baseTransition = {
     duration: reduce ? 0 : motionDuration.slow,
     ease: premiumEase,
@@ -119,22 +140,27 @@ export function HeroSection() {
   const handleCollagePointerMove = (event: MouseEvent<HTMLDivElement>) => {
     if (reduce) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-    setParallax({ x, y });
+    pointerX.set(((event.clientX - rect.left) / rect.width - 0.5) * 2);
+    pointerY.set(((event.clientY - rect.top) / rect.height - 0.5) * 2);
   };
 
   const handleCollagePointerLeave = () => {
-    if (reduce) return;
-    setParallax({ x: 0, y: 0 });
+    pointerX.set(0);
+    pointerY.set(0);
   };
 
   return (
     <section className="relative overflow-hidden bg-transparent">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.48]" aria-hidden>
-        <div className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-atmosphere-mist/72 blur-3xl" />
-        <div className="absolute -right-24 top-24 h-[380px] w-[380px] rounded-full bg-atmosphere-haze/64 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[280px] w-[280px] rounded-full bg-atmosphere-veil/70 blur-3xl" />
+      {/* Living Cream: soft blush + brass + cream clouds drifting slowly behind
+          everything — what makes the flat cream feel alive and luminous. Fully
+          static under reduced-motion (the drift is CSS, gated by media query). */}
+      <div
+        className="living-clouds-in pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden
+      >
+        <div className="living-cloud living-cloud-blush living-drift-a absolute -left-[12%] top-[-10%] h-[42vh] max-h-[460px] w-[42vh] max-w-[460px] blur-2xl sm:blur-3xl" />
+        <div className="living-cloud living-cloud-brass living-drift-b absolute -right-[8%] top-[8%] h-[38vh] max-h-[430px] w-[38vh] max-w-[430px] blur-2xl sm:blur-3xl" />
+        <div className="living-cloud living-cloud-cream living-drift-c absolute -bottom-[12%] left-[26%] h-[36vh] max-h-[400px] w-[36vh] max-w-[400px] blur-2xl sm:blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 sm:pb-18 sm:pt-9 lg:px-8 lg:pb-24 lg:pt-12">
@@ -264,8 +290,10 @@ export function HeroSection() {
                 imageWrapClassName={collageCards[0].imageWrapClassName}
                 priority
                 delay={0.12}
-                parallaxX={reduce ? 0 : parallax.x * -2.7}
-                parallaxY={reduce ? 0 : parallax.y * -3}
+                springX={springX}
+                springY={springY}
+                depthX={-9}
+                depthY={-8}
               />
               <ProductCard
                 src={collageCards[1].src}
@@ -273,8 +301,10 @@ export function HeroSection() {
                 className={cn(collageCards[1].className, "z-[5] luxe-sheen")}
                 imageWrapClassName={collageCards[1].imageWrapClassName}
                 delay={0.2}
-                parallaxX={reduce ? 0 : parallax.x * 2.6}
-                parallaxY={reduce ? 0 : parallax.y * 2.9}
+                springX={springX}
+                springY={springY}
+                depthX={24}
+                depthY={20}
               />
               <ProductCard
                 src={collageCards[2].src}
@@ -282,8 +312,10 @@ export function HeroSection() {
                 className={cn(collageCards[2].className, "z-[4] luxe-sheen")}
                 imageWrapClassName={collageCards[2].imageWrapClassName}
                 delay={0.28}
-                parallaxX={reduce ? 0 : parallax.x * -1.9}
-                parallaxY={reduce ? 0 : parallax.y * 2.2}
+                springX={springX}
+                springY={springY}
+                depthX={-15}
+                depthY={13}
               />
             </div>
           </div>
