@@ -192,7 +192,7 @@ export function HeroSection() {
               <Button
                 asChild
                 size="lg"
-                className="h-12 w-full rounded-full border-transparent bg-accent-brass px-9 text-base font-medium text-accent-brass-ink shadow-[0_14px_34px_-18px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-brass/90 hover:shadow-[0_20px_40px_-20px_rgba(47,38,36,0.68)] sm:w-auto"
+                className="h-12 w-full rounded-full border-transparent bg-accent-brass px-9 text-base font-medium text-accent-brass-ink shadow-cta transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-brass/90 hover:shadow-cta-hover sm:w-auto"
               >
                 <Link href="/shop">Shop Collection</Link>
               </Button>

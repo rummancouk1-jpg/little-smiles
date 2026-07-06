@@ -43,7 +43,7 @@ const infoChips = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ink-base/8 bg-surface-footer/90 backdrop-blur-sm">
+    <footer className="border-t border-ink-base/8 bg-surface-card/90 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pt-12 pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))] sm:px-6 sm:pt-14 lg:px-8 lg:gap-12 lg:pt-16">
         <div className="flex flex-wrap gap-2.5 text-xs text-ink-base/70 sm:gap-2">
           {infoChips.map((chip) => (

@@ -48,7 +48,7 @@ export function Navbar() {
         "sticky top-0 z-50 border-b border-transparent transition-[background-color,box-shadow,border-color] duration-300",
         "bg-surface-page/72 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl",
         isScrolled &&
-          "border-ink-base/12 bg-surface-page/88 shadow-[0_20px_44px_-26px_rgba(59,47,47,0.4)]"
+          "border-ink-base/12 bg-surface-page/88 shadow-nav"
       )}
     >
       <div className="mx-auto flex h-18 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-6 lg:gap-4 lg:px-8">

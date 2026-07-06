@@ -106,7 +106,6 @@
   --color-surface-panel: var(--surface-panel);
   --color-surface-well: var(--surface-well);
   --color-surface-hover: var(--surface-hover);
-  --color-surface-footer: var(--surface-footer);
   --color-surface-callout: var(--surface-callout);
   --color-surface-hover-soft: var(--surface-hover-soft);
   --color-surface-hover-strong: var(--surface-hover-strong);
@@ -143,15 +142,14 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  /* NOTE (Direction C): --primary / --secondary are still the default
-     shadcn neutral OKLCH values. A LATER step will repoint these at the
-     brand tokens below (--ink-walnut fill, --ink-foreground text, etc.).
-     Left unchanged this session so nothing shifts visually. */
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  /* Warm taupe/beige — visible hovers for secondary + ghost on grain backgrounds */
-  --secondary: oklch(0.94 0.014 55);
-  --secondary-foreground: oklch(0.24 0.02 35);
+  /* Step 4 hygiene: repointed off raw neutral OKLCH onto the brand tokens, so
+     default button/badge variants resolve to brand ink instead of neutral gray.
+     Invisible on customer surfaces — every consumer already overrides these
+     (default badges use bg-ink-walnut; link/secondary variants are unused). */
+  --primary: var(--ink-walnut);
+  --primary-foreground: var(--ink-foreground);
+  --secondary: var(--surface-hover);
+  --secondary-foreground: var(--ink-walnut);
   --muted: oklch(0.936 0.012 55);
   --muted-foreground: oklch(0.45 0.02 35);
   --accent: oklch(0.94 0.014 55);
@@ -228,7 +226,6 @@
   --surface-panel: #fbf7f3; /* raised panels. Absorbs: #FBF7F3. */
   --surface-well: #f7f0ea;  /* product image well. Absorbs: #F7F0EA (+ PDP #F5EEE7). */
   --surface-hover: #f2eae4; /* neutral hover fill. Absorbs: #F2EAE4. */
-  --surface-footer: #fcf6f1; /* footer ground. Absorbs: #FCF6F1. (Added in Step 2 — exact value, no fold.) */
   --surface-callout: #f8f2ec; /* blog CTA callout ground. Absorbs: #F8F2EC. (Added in Step 2 — exact value, no fold.) */
   --surface-hover-soft: #f8f4f0; /* remove-button soft hover. Absorbs: #F8F4F0. Exact, NO fold — NOT atmosphere-veil despite ΔE 0.60 (surface role). May adopt --surface-hover at design step. */
   --surface-hover-strong: #ebe3dc;  /* button secondary hover. Absorbs: #EBE3DC. Exact. Interaction ladder step 2 (after --surface-hover). */
@@ -368,6 +365,15 @@
   }
   .shadow-card-lift {
     box-shadow: var(--shadow-card-lift);
+  }
+  .shadow-cta {
+    box-shadow: var(--shadow-cta);
+  }
+  .shadow-cta-hover {
+    box-shadow: var(--shadow-cta-hover);
+  }
+  .shadow-nav {
+    box-shadow: var(--shadow-nav);
   }
 
   /* Consistent vertical rhythm for landing sections. */
