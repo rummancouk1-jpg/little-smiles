@@ -15,8 +15,8 @@ export function TestimonialsSection() {
   return (
     <section className="relative overflow-hidden bg-transparent pb-20 pt-8 sm:pb-24 sm:pt-10 lg:pb-28 lg:pt-12">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -left-12 top-20 h-56 w-56 rounded-full bg-[#ECE4DD]/64 blur-3xl" />
-        <div className="absolute right-0 top-10 h-64 w-64 rounded-full bg-[#F0E8E1]/60 blur-3xl" />
+        <div className="absolute -left-12 top-20 h-56 w-56 rounded-full bg-atmosphere-haze/64 blur-3xl" />
+        <div className="absolute right-0 top-10 h-64 w-64 rounded-full bg-atmosphere-haze/60 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
@@ -28,10 +28,10 @@ export function TestimonialsSection() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="eyebrow">Letters</p>
-          <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-[#1F1918] sm:text-5xl">
+          <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-ink-espresso sm:text-5xl">
             From families across Pakistan
           </h2>
-          <p className="mt-5 text-pretty text-base leading-relaxed text-[#3B2F2F]/68 sm:text-lg">
+          <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
             Photos and a few words sent in from across the country.
           </p>
         </motion.div>
@@ -51,13 +51,13 @@ export function TestimonialsSection() {
                   ease: premiumEase,
                 }}
                 className={cn(
-                  "flex min-w-[84%] snap-start flex-col overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FBF7F3]/95 shadow-card-rest sm:min-w-0",
+                  "flex min-w-[84%] snap-start flex-col overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-panel/95 shadow-card-rest sm:min-w-0",
                   isHero && "lg:col-span-2 lg:grid lg:grid-cols-2 lg:flex-row"
                 )}
               >
                 <div
                   className={cn(
-                    "relative aspect-square overflow-hidden bg-[#F3ECE6]",
+                    "relative aspect-square overflow-hidden bg-atmosphere-mist",
                     isHero && "lg:aspect-auto lg:h-full"
                   )}
                 >
@@ -83,13 +83,13 @@ export function TestimonialsSection() {
                   <p
                     className={cn(
                       isHero
-                        ? "font-heading italic text-xl leading-[1.3] text-[#1F1918] sm:text-[1.35rem] lg:text-[1.5rem]"
-                        : "text-sm leading-relaxed text-[#3B2F2F]/74"
+                        ? "font-heading italic text-xl leading-[1.3] text-ink-espresso sm:text-[1.35rem] lg:text-[1.5rem]"
+                        : "text-sm leading-relaxed text-ink-base/74"
                     )}
                   >
                     &ldquo;{item.quote}&rdquo;
                   </p>
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/58">
+                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-base/58">
                     {item.author} - {item.location}
                   </p>
                 </div>
@@ -106,7 +106,7 @@ export function TestimonialsSection() {
         >
           <Button
             asChild
-            className="h-11 rounded-full bg-[#2F2624] px-7 text-sm font-medium text-[#F6F1EC] shadow-[0_14px_34px_-22px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_18px_40px_-24px_rgba(47,38,36,0.66)]"
+            className="h-11 rounded-full bg-ink-walnut px-7 text-sm font-medium text-ink-foreground shadow-[0_14px_34px_-22px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-ink-espresso hover:shadow-[0_18px_40px_-24px_rgba(47,38,36,0.66)]"
           >
             <Link
               href={`${whatsappBaseUrl}?text=${encodeURIComponent(
@@ -119,10 +119,10 @@ export function TestimonialsSection() {
             </Link>
           </Button>
         </motion.div>
-        <p className="mt-6 text-center text-sm text-[#3B2F2F]/58">
+        <p className="mt-6 text-center text-sm text-ink-base/58">
           <Link
             href="/reviews"
-            className="font-medium text-[#2E2323] underline decoration-[#3B2F2F]/25 underline-offset-4 transition-colors hover:decoration-[#2E2323]/50"
+            className="font-medium text-ink-walnut underline decoration-ink-base/25 underline-offset-4 transition-colors hover:decoration-ink-walnut/50"
           >
             Read more reviews
           </Link>
