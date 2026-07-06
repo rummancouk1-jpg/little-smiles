@@ -105,7 +105,7 @@ export function ContactForm() {
           {...register("name")}
         />
         {errors.name ? (
-          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.name.message}</p>
+          <p className="mt-1 text-xs text-tone-danger">{errors.name.message}</p>
         ) : null}
       </div>
       <div>
@@ -118,7 +118,7 @@ export function ContactForm() {
           {...register("email")}
         />
         {errors.email ? (
-          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.email.message}</p>
+          <p className="mt-1 text-xs text-tone-danger">{errors.email.message}</p>
         ) : null}
       </div>
       <div>
@@ -130,7 +130,7 @@ export function ContactForm() {
           {...register("phone")}
         />
         {errors.phone ? (
-          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.phone.message}</p>
+          <p className="mt-1 text-xs text-tone-danger">{errors.phone.message}</p>
         ) : null}
       </div>
       <div>
@@ -140,7 +140,7 @@ export function ContactForm() {
           {...register("message")}
         />
         {errors.message ? (
-          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.message.message}</p>
+          <p className="mt-1 text-xs text-tone-danger">{errors.message.message}</p>
         ) : null}
       </div>
       <Button
@@ -171,7 +171,7 @@ export function ContactForm() {
           )}
         </div>
       ) : null}
-      {error ? <p className="text-sm text-emphasis-berry-soft">{error}</p> : null}
+      {error ? <p className="text-sm text-tone-danger">{error}</p> : null}
     </form>
   );
 }

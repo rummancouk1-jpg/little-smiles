@@ -100,7 +100,7 @@ export function TrackOrderForm() {
         </button>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-emphasis-berry-soft">{error}</p> : null}
+      {error ? <p className="mt-4 text-sm text-tone-danger">{error}</p> : null}
 
       {result ? (
         <article className="mt-5 rounded-2xl border border-ink-base/10 bg-surface-card p-4">
