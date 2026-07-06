@@ -103,7 +103,7 @@ export default function ReviewsPage() {
         <div className="mx-auto mt-14 flex max-w-lg flex-col items-center gap-4 sm:mt-16">
           <Button
             asChild
-            className="h-11 w-full rounded-full bg-ink-walnut px-8 text-sm font-medium text-ink-foreground sm:w-auto"
+            className="h-11 w-full rounded-full bg-accent-brass px-8 text-sm font-medium text-accent-brass-ink hover:bg-accent-brass/90 sm:w-auto"
           >
             <Link href="/shop">Shop essentials</Link>
           </Button>

@@ -151,7 +151,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </p>
             <Link
               href={post.cta.href}
-              className="mt-3 inline-flex rounded-full bg-ink-walnut px-5 py-2.5 text-sm font-medium text-ink-foreground transition-colors hover:bg-ink-espresso"
+              className="mt-3 inline-flex rounded-full bg-accent-brass px-5 py-2.5 text-sm font-medium text-accent-brass-ink transition-colors hover:bg-accent-brass/90"
             >
               {post.cta.label}
             </Link>

@@ -112,7 +112,7 @@ export function CartPageClient() {
           </p>
           <Button
             asChild
-            className="mt-8 h-12 rounded-full bg-ink-walnut px-8 text-sm font-semibold text-ink-foreground shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)]"
+            className="mt-8 h-12 rounded-full bg-accent-brass px-8 text-sm font-semibold text-accent-brass-ink shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)] hover:bg-accent-brass/90"
           >
             <Link href="/shop">Continue shopping</Link>
           </Button>
