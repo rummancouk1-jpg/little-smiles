@@ -105,6 +105,7 @@
   --color-tone-amber-tint: var(--tone-amber-tint);
   --color-tone-blue: var(--tone-blue);
   --color-tone-blue-tint: var(--tone-blue-tint);
+  --color-tone-availability: var(--tone-availability);
 }
 
 :root {
@@ -216,6 +217,7 @@
   --tone-amber-tint: #fbeede; /* Absorbs: #FBEEDE, #FBF5EA. */
   --tone-blue: #1f3f66;       /* Absorbs: #1F3F66. */
   --tone-blue-tint: #e7eef7;  /* Absorbs: #E7EEF7. */
+  --tone-availability: #6e2d2d; /* availability-label maroon (all stock states). Absorbs: #6E2D2D. Exact, NO fold — distinct from --emphasis-berry* (ΔE 9+). Revisit at accent step. */
 
   /* --- Motion tokens ------------------------------------------------
      Mirror lib/motion.ts so CSS-driven transitions in later steps can
