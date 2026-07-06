@@ -49,7 +49,7 @@ export function ProductGrid({ products }: ProductGridProps) {
         >
           <Card
             className={cn(
-              "flex h-full overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 py-0",
+              "flex h-full overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-card/94 py-0",
               "shadow-card-rest transition-shadow duration-300",
               "hover:shadow-card-lift"
             )}
@@ -57,9 +57,9 @@ export function ProductGrid({ products }: ProductGridProps) {
             <CardContent className="p-0">
               <Link
                 href={`/shop/${product.slug}`}
-                className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/24"
+                className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/24"
               >
-                <div className="relative mx-3.5 mt-3.5 h-52 rounded-3xl bg-[#F7F0EA] p-4 sm:mx-4 sm:mt-4 sm:h-56 sm:p-5">
+                <div className="relative mx-3.5 mt-3.5 h-52 rounded-3xl bg-surface-well p-4 sm:mx-4 sm:mt-4 sm:h-56 sm:p-5">
                   <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.5),transparent_65%)]" />
                   <ProductImage
                     sources={getImageCandidates(product.image)}
@@ -75,41 +75,41 @@ export function ProductGrid({ products }: ProductGridProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
-                  className="w-fit border-[#3B2F2F]/12 bg-white/66 text-[#3B2F2F]/74"
+                  className="w-fit border-ink-base/12 bg-white/66 text-ink-base/74"
                 >
                   {product.category}
                 </Badge>
                 {getDiscountBadgeLabel(product) ? (
-                  <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
+                  <Badge className="border-transparent bg-ink-walnut text-ink-foreground">
                     {getDiscountBadgeLabel(product)}
                   </Badge>
                 ) : null}
               </div>
-              <CardTitle className="pt-1.5 text-[1.24rem] font-semibold leading-[1.15] text-[#241B1B] sm:text-[1.36rem] sm:leading-[1.1]">
+              <CardTitle className="pt-1.5 text-[1.24rem] font-semibold leading-[1.15] text-ink-espresso sm:text-[1.36rem] sm:leading-[1.1]">
                 <Link
                   href={`/shop/${product.slug}`}
-                  className="inline-flex min-h-11 items-center rounded-md hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/24"
+                  className="inline-flex min-h-11 items-center rounded-md hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/24"
                 >
                   {product.name}
                 </Link>
               </CardTitle>
-              <p className="min-h-[2.8rem] pt-1 text-sm leading-relaxed text-[#3B2F2F]/67 sm:min-h-[3.1rem] lg:min-h-[3.6rem]">
+              <p className="min-h-[2.8rem] pt-1 text-sm leading-relaxed text-ink-base/67 sm:min-h-[3.1rem] lg:min-h-[3.6rem]">
                 {product.description}
               </p>
             </CardHeader>
-            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-[#3B2F2F]/8 bg-transparent px-4 py-4 sm:flex-row sm:items-end sm:px-5">
+            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-ink-base/8 bg-transparent px-4 py-4 sm:flex-row sm:items-end sm:px-5">
               <div className="space-y-0.5">
                 <div className="flex items-baseline gap-2.5">
                   <span className="text-lg font-semibold tabular-nums text-ink-strong sm:text-xl">
                     {formatPkr(product.pricePkr)}
                   </span>
                   {getDiscountBadgeLabel(product) ? (
-                    <span className="text-sm tabular-nums text-[#3B2F2F]/52 line-through">
+                    <span className="text-sm tabular-nums text-ink-base/52 line-through">
                       {formatPkr(product.compareAtPricePkr)}
                     </span>
                   ) : null}
                 </div>
-                <p className="text-[11px] font-medium tracking-[0.08em] text-[#6E2D2D] uppercase">
+                <p className="text-[11px] font-medium tracking-[0.08em] text-tone-availability uppercase">
                   {getAvailabilityLabel(product)}
                 </p>
               </div>
@@ -129,7 +129,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                       pricePkr: product.pricePkr,
                     })
                   }
-                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-medium text-ink-muted underline decoration-[#3B2F2F]/22 underline-offset-[5px] transition-[color,text-decoration-color] duration-200 hover:text-ink-strong hover:decoration-[#1F1918]/45"
+                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-medium text-ink-muted underline decoration-ink-base/22 underline-offset-[5px] transition-[color,text-decoration-color] duration-200 hover:text-ink-strong hover:decoration-ink-espresso/45"
                 >
                   Order on WhatsApp
                   <span
