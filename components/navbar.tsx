@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Menu, MessageCircle, ShoppingBag } from "lucide-react";
 
 import { useCart } from "@/components/cart-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -80,9 +81,10 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <ThemeToggle />
           <Link
             href="/cart"
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink-base/14 bg-white/66 text-ink-walnut shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-ink-base/26 hover:bg-surface-hover"
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink-base/14 bg-surface-raised/66 text-ink-walnut shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-ink-base/26 hover:bg-surface-hover"
             aria-label={
               totalQuantity > 0 ? `Cart, ${totalQuantity} items` : "View shopping cart"
             }
@@ -117,6 +119,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle />
           <Link
             href={whatsappBaseUrl}
             target="_blank"
@@ -137,7 +140,7 @@ export function Navbar() {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-11 rounded-full border-ink-base/14 bg-white/66 text-ink-walnut shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[background-color,border-color] duration-200 hover:border-ink-base/24 hover:bg-surface-hover"
+                className="size-11 rounded-full border-ink-base/14 bg-surface-raised/66 text-ink-walnut shadow-[0_10px_28px_-22px_rgba(59,47,47,0.46)] backdrop-blur-sm transition-[background-color,border-color] duration-200 hover:border-ink-base/24 hover:bg-surface-hover"
               >
                 <Menu className="size-[1.1rem]" />
                 <span className="sr-only">Open menu</span>
@@ -208,7 +211,7 @@ export function Navbar() {
                   <Button
                     asChild
                     variant="outline"
-                    className="h-11 w-full rounded-full border-ink-walnut/16 bg-white/62 px-5 text-[0.95rem] font-medium text-ink-walnut"
+                    className="h-11 w-full rounded-full border-ink-walnut/16 bg-surface-raised/62 px-5 text-[0.95rem] font-medium text-ink-walnut"
                   >
                     <Link
                       href={whatsappBaseUrl}

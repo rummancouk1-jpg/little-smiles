@@ -84,7 +84,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
         <button
           type="button"
           onClick={scrollToCategories}
-          className="touch-feedback inline-flex h-9 items-center rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm font-medium text-ink-base/78 sm:hidden"
+          className="touch-feedback inline-flex h-9 items-center rounded-full border border-ink-base/12 bg-surface-raised/62 px-4 text-sm font-medium text-ink-base/78 sm:hidden"
         >
           Jump to Categories
         </button>
@@ -97,7 +97,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
                 event.target.value as "featured" | "price-low" | "price-high" | "discount"
               )
             }
-            className="h-9 rounded-full border border-ink-base/14 bg-white/72 px-3 text-xs font-medium tracking-normal text-ink-walnut outline-none"
+            className="h-9 rounded-full border border-ink-base/14 bg-surface-raised/72 px-3 text-xs font-medium tracking-normal text-ink-walnut outline-none"
           >
             <option value="featured">Best Value</option>
             <option value="price-low">Price: Low to High</option>
@@ -113,7 +113,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
       >
         <TabsTrigger
           value="all"
-          className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:after:opacity-0 data-active:text-ink-foreground data-active:shadow-none"
+          className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-surface-raised/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:after:opacity-0 data-active:text-ink-foreground data-active:shadow-none"
         >
           All ({products.length})
         </TabsTrigger>
@@ -123,7 +123,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
             <TabsTrigger
               key={category}
               value={category}
-              className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:after:opacity-0 data-active:text-ink-foreground data-active:shadow-none"
+              className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-surface-raised/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:after:opacity-0 data-active:text-ink-foreground data-active:shadow-none"
             >
               {category} ({count})
             </TabsTrigger>
@@ -154,7 +154,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
             <button
               type="button"
               onClick={scrollToCategories}
-              className="touch-feedback inline-flex h-10 shrink-0 items-center rounded-full border border-ink-walnut/14 bg-white/70 px-3.5 text-xs font-medium text-ink-walnut transition-[background-color,border-color] duration-200 hover:border-ink-base/28 hover:bg-surface-hover"
+              className="touch-feedback inline-flex h-10 shrink-0 items-center rounded-full border border-ink-walnut/14 bg-surface-raised/70 px-3.5 text-xs font-medium text-ink-walnut transition-[background-color,border-color] duration-200 hover:border-ink-base/28 hover:bg-surface-hover"
             >
               Categories
             </button>
@@ -174,7 +174,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
             <Button
               asChild
               variant="outline"
-              className="h-10 shrink-0 rounded-full border-ink-walnut/16 bg-white/70 px-3 text-[0.65rem] font-semibold text-ink-walnut sm:text-xs"
+              className="h-10 shrink-0 rounded-full border-ink-walnut/16 bg-surface-raised/70 px-3 text-[0.65rem] font-semibold text-ink-walnut sm:text-xs"
             >
               <Link
                 href={whatsappBaseUrl}

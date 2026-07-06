@@ -22,7 +22,7 @@ export default function ContactPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactBreadcrumbLd) }}
       />
       <section className="mx-auto max-w-3xl px-5 sm:px-6 lg:px-8">
-        <article className="rounded-3xl border border-ink-base/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
+        <article className="rounded-3xl border border-ink-base/8 bg-surface-raised/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Contact Little Smiles
           </p>
@@ -50,7 +50,7 @@ export default function ContactPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button
               asChild
-              className="h-11 rounded-full bg-accent-blush px-7 text-sm font-medium text-ink-walnut shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong"
+              className="h-11 rounded-full bg-accent-blush px-7 text-sm font-medium text-accent-blush-ink shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong"
             >
               <Link href={whatsappBaseUrl} target="_blank" rel="noreferrer">
                 WhatsApp Support
@@ -59,7 +59,7 @@ export default function ContactPage() {
             <Button
               asChild
               variant="outline"
-              className="h-11 rounded-full border-ink-walnut/14 bg-white/70 px-7 text-sm font-medium text-ink-walnut"
+              className="h-11 rounded-full border-ink-walnut/14 bg-surface-raised/70 px-7 text-sm font-medium text-ink-walnut"
             >
               <Link href="mailto:littlesmiles.co.uk@gmail.com">
                 littlesmiles.co.uk@gmail.com

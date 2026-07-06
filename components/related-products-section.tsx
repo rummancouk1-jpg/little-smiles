@@ -57,7 +57,7 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
               </p>
             </Link>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-ink-base/12 bg-white/66 text-ink-base/74">
+              <Badge variant="outline" className="border-ink-base/12 bg-surface-raised/66 text-ink-base/74">
                 {item.category}
               </Badge>
               {getDiscountBadgeLabel(item) ? (
@@ -77,7 +77,7 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
               <Button
                 asChild
                 variant="outline"
-                className="h-9 w-full rounded-full border-ink-walnut/14 bg-white/62 text-xs font-medium text-ink-walnut"
+                className="h-9 w-full rounded-full border-ink-walnut/14 bg-surface-raised/62 text-xs font-medium text-ink-walnut"
               >
                 <Link
                   href={getWhatsappOrderLink(item)}

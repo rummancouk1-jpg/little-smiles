@@ -65,7 +65,7 @@ export function TrackOrderForm() {
   };
 
   return (
-    <section className="rounded-3xl border border-ink-base/10 bg-white/90 p-6 sm:p-7">
+    <section className="rounded-3xl border border-ink-base/10 bg-surface-raised/90 p-6 sm:p-7">
       <form onSubmit={submit} className="space-y-4">
         <div className="grid gap-1">
           <label htmlFor="order-ref" className="text-sm font-medium text-ink-walnut">
@@ -76,7 +76,7 @@ export function TrackOrderForm() {
             value={orderRef}
             onChange={(event) => setOrderRef(event.target.value)}
             placeholder="e.g. a1b2c3d4"
-            className="h-11 rounded-2xl border border-ink-base/14 bg-white px-3 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/20"
+            className="h-11 rounded-2xl border border-ink-base/14 bg-surface-raised px-3 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/20"
           />
         </div>
         <div className="grid gap-1">
@@ -88,7 +88,7 @@ export function TrackOrderForm() {
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="03XXXXXXXXX"
-            className="h-11 rounded-2xl border border-ink-base/14 bg-white px-3 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/20"
+            className="h-11 rounded-2xl border border-ink-base/14 bg-surface-raised px-3 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/20"
           />
         </div>
         <button

@@ -21,7 +21,7 @@ export default function TermsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <section className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
-        <article className="rounded-3xl border border-ink-base/8 bg-white/85 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
+        <article className="rounded-3xl border border-ink-base/8 bg-surface-raised/85 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
           <h1 className="text-3xl font-semibold tracking-tight text-ink-walnut sm:text-4xl">
             Terms and Conditions
           </h1>

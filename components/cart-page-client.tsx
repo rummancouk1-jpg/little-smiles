@@ -21,7 +21,7 @@ import { ProductImage } from "@/components/product-image";
 import { cn } from "@/lib/utils";
 
 const fieldClass =
-  "h-11 rounded-2xl border-ink-base/14 bg-white/88 px-4 text-base text-ink-walnut outline-none transition-[border-color,box-shadow] placeholder:text-ink-base/45 focus-visible:border-ink-base/32 focus-visible:ring-2 focus-visible:ring-ink-base/18 lg:text-sm";
+  "h-11 rounded-2xl border-ink-base/14 bg-surface-raised/88 px-4 text-base text-ink-walnut outline-none transition-[border-color,box-shadow] placeholder:text-ink-base/45 focus-visible:border-ink-base/32 focus-visible:ring-2 focus-visible:ring-ink-base/18 lg:text-sm";
 
 function validateCheckoutForm(data: {
   fullName: string;
@@ -37,7 +37,7 @@ function validateCheckoutForm(data: {
 }
 
 const stepperBtnClass =
-  "size-9 shrink-0 rounded-full border-ink-base/24 bg-white/95 text-ink-walnut shadow-sm hover:bg-surface-hover disabled:opacity-40";
+  "size-9 shrink-0 rounded-full border-ink-base/24 bg-surface-raised/95 text-ink-walnut shadow-sm hover:bg-surface-hover disabled:opacity-40";
 
 export function CartPageClient() {
   const { resolvedLines, setQuantity, removeLine, totalQuantity, subtotalPkr } =
@@ -163,7 +163,7 @@ export function CartPageClient() {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-ink-base/12 bg-white/66 px-2.5 py-0.5 text-xs font-medium text-ink-base/74">
+                  <span className="rounded-full border border-ink-base/12 bg-surface-raised/66 px-2.5 py-0.5 text-xs font-medium text-ink-base/74">
                     {product.category}
                   </span>
                   {getDiscountBadgeLabel(product) ? (
@@ -201,7 +201,7 @@ export function CartPageClient() {
                     <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.1em] text-ink-base/58">
                       Quantity
                     </p>
-                    <div className="inline-flex items-center gap-1 rounded-full border border-ink-base/20 bg-white/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                    <div className="inline-flex items-center gap-1 rounded-full border border-ink-base/20 bg-surface-raised/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
                       <Button
                         type="button"
                         variant="outline"
@@ -238,7 +238,7 @@ export function CartPageClient() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-10 w-full rounded-full border-ink-base/36 bg-white/95 text-sm font-semibold text-ink-espresso hover:bg-surface-hover-soft hover:text-ink-espresso dark:text-ink-espresso dark:hover:text-ink-espresso sm:w-auto [&_svg]:text-ink-espresso"
+                  className="h-10 w-full rounded-full border-ink-base/36 bg-surface-raised/95 text-sm font-semibold text-ink-espresso hover:bg-surface-hover-soft hover:text-ink-espresso dark:text-ink-espresso dark:hover:text-ink-espresso sm:w-auto [&_svg]:text-ink-espresso"
                   onClick={() => removeLine(productSlug)}
                 >
                   <Trash2 className="mr-2 size-4" aria-hidden />
@@ -307,7 +307,7 @@ export function CartPageClient() {
         </section>
       ) : null}
 
-      <div className="mt-10 space-y-8 rounded-3xl border border-ink-base/10 bg-white/55 p-6 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.22)] sm:p-8">
+      <div className="mt-10 space-y-8 rounded-3xl border border-ink-base/10 bg-surface-raised/55 p-6 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.22)] sm:p-8">
         <div className="border-b border-ink-base/10 pb-6">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
             Checkout

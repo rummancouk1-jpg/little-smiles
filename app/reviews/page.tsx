@@ -110,7 +110,7 @@ export default function ReviewsPage() {
           <Button
             asChild
             variant="outline"
-            className="h-11 w-full rounded-full border-ink-base/18 bg-white/70 px-8 text-sm font-medium text-ink-walnut sm:w-auto"
+            className="h-11 w-full rounded-full border-ink-base/18 bg-surface-raised/70 px-8 text-sm font-medium text-ink-walnut sm:w-auto"
           >
             <Link
               href={`${whatsappBaseUrl}?text=${encodeURIComponent(

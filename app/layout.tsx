@@ -77,9 +77,18 @@ export default function RootLayout({
   return (
     <html
       lang="en-PK"
+      suppressHydrationWarning
       className={`${bodySans.variable} ${editorialSerif.variable} h-full antialiased`}
     >
       <body className="grain-surface min-h-full flex flex-col">
+        {/* Set the theme before paint (no flash-of-wrong-theme). Stored choice
+            wins; otherwise follow the device's prefers-color-scheme. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();",
+          }}
+        />
         <GoogleAnalytics />
         <script
           type="application/ld+json"

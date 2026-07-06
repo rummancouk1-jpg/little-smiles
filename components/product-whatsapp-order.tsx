@@ -67,7 +67,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Badge
             variant="outline"
-            className="border-ink-base/12 bg-white/65 text-ink-base/74"
+            className="border-ink-base/12 bg-surface-raised/65 text-ink-base/74"
           >
             {product.category}
           </Badge>
@@ -87,7 +87,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {product.longDescription}
         </p>
 
-        <div className="mt-7 rounded-2xl border border-ink-base/10 bg-white/58 p-4 sm:p-5">
+        <div className="mt-7 rounded-2xl border border-ink-base/10 bg-surface-raised/58 p-4 sm:p-5">
           <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
             <p className="text-3xl font-semibold text-ink-walnut sm:text-[2rem]">
               {formatPkr(product.pricePkr)}
@@ -103,7 +103,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           </p>
         </div>
 
-        <div className="mt-8 space-y-4 rounded-2xl border border-ink-base/10 bg-white/55 p-4 sm:p-5">
+        <div className="mt-8 space-y-4 rounded-2xl border border-ink-base/10 bg-surface-raised/55 p-4 sm:p-5">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-ink-base/55">
             Add your details
           </p>
@@ -114,7 +114,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             </label>
             <select
               id="order-qty"
-              className="h-11 w-full max-w-[12rem] rounded-full border border-ink-base/14 bg-white/90 px-4 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-base/25"
+              className="h-11 w-full max-w-[12rem] rounded-full border border-ink-base/14 bg-surface-raised/90 px-4 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-base/25"
               value={safeQty}
               disabled={disabled}
               onChange={(event) =>
@@ -141,7 +141,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 value={variantNote}
                 disabled={disabled}
                 onChange={(event) => setVariantNote(event.target.value)}
-                className="h-11 rounded-full border-ink-base/14 bg-white/90 px-4 text-base lg:text-sm"
+                className="h-11 rounded-full border-ink-base/14 bg-surface-raised/90 px-4 text-base lg:text-sm"
               />
               <p className="text-xs text-ink-base/58">
                 Optional. We confirm before packing.
@@ -160,7 +160,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 value={sizeNote}
                 disabled={disabled}
                 onChange={(event) => setSizeNote(event.target.value)}
-                className="h-11 rounded-full border-ink-base/14 bg-white/90 px-4 text-base lg:text-sm"
+                className="h-11 rounded-full border-ink-base/14 bg-surface-raised/90 px-4 text-base lg:text-sm"
               />
             </div>
           ) : null}
@@ -175,7 +175,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               value={customerNote}
               disabled={disabled}
               onChange={(event) => setCustomerNote(event.target.value)}
-              className="min-h-22 w-full rounded-2xl border border-ink-base/14 bg-white/90 px-4 py-2.5 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-base/25"
+              className="min-h-22 w-full rounded-2xl border border-ink-base/14 bg-surface-raised/90 px-4 py-2.5 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-base/25"
             />
           </div>
 
@@ -230,7 +230,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <Button
                 asChild
                 variant="outline"
-                className="h-12 w-full rounded-full border-ink-walnut/16 bg-white/72 px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
+                className="h-12 w-full rounded-full border-ink-walnut/16 bg-surface-raised/72 px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
               >
                 <Link
                   href={orderHref}
@@ -300,7 +300,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <Button
                 asChild
                 variant="outline"
-                className="h-11 min-h-11 shrink-0 rounded-full border-ink-walnut/16 bg-white/72 px-3 text-xs font-semibold text-ink-walnut"
+                className="h-11 min-h-11 shrink-0 rounded-full border-ink-walnut/16 bg-surface-raised/72 px-3 text-xs font-semibold text-ink-walnut"
               >
                 <Link
                   href={orderHref}

@@ -92,7 +92,7 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
-                  className="w-fit border-ink-base/12 bg-white/66 text-ink-base/74"
+                  className="w-fit border-ink-base/12 bg-surface-raised/66 text-ink-base/74"
                 >
                   {product.category}
                 </Badge>

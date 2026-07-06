@@ -101,7 +101,7 @@ export function ContactForm() {
       <div>
         <Input
           placeholder="Your Name"
-          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-white/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
+          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-surface-raised/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
           {...register("name")}
         />
         {errors.name ? (
@@ -114,7 +114,7 @@ export function ContactForm() {
           inputMode="email"
           autoComplete="email"
           placeholder="Email Address"
-          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-white/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
+          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-surface-raised/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
           {...register("email")}
         />
         {errors.email ? (
@@ -126,7 +126,7 @@ export function ContactForm() {
           placeholder="Phone Number"
           inputMode="tel"
           autoComplete="tel"
-          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-white/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
+          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-surface-raised/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
           {...register("phone")}
         />
         {errors.phone ? (
@@ -136,7 +136,7 @@ export function ContactForm() {
       <div>
         <textarea
           placeholder="How can we help?"
-          className="contact-textarea min-h-28 w-full rounded-2xl border border-ink-walnut/12 bg-white/80 px-3 py-2 text-base leading-relaxed text-ink-walnut caret-ink-walnut outline-none ring-0 placeholder:text-ink-placeholder/65 focus:border-ink-walnut/32 focus:ring-3 focus:ring-ink-walnut/18 lg:text-sm"
+          className="contact-textarea min-h-28 w-full rounded-2xl border border-ink-walnut/12 bg-surface-raised/80 px-3 py-2 text-base leading-relaxed text-ink-walnut caret-ink-walnut outline-none ring-0 placeholder:text-ink-placeholder/65 focus:border-ink-walnut/32 focus:ring-3 focus:ring-ink-walnut/18 lg:text-sm"
           {...register("message")}
         />
         {errors.message ? (
@@ -146,7 +146,7 @@ export function ContactForm() {
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 rounded-full bg-accent-blush px-7 text-sm font-medium text-ink-walnut shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong"
+        className="h-11 rounded-full bg-accent-blush px-7 text-sm font-medium text-accent-blush-ink shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong"
       >
         {isSubmitting ? "Sending..." : "Send Message"}
       </Button>

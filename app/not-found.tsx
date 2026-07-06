@@ -25,7 +25,7 @@ export default function NotFound() {
         <Button asChild className="h-11 rounded-full bg-ink-walnut px-7 text-sm text-ink-foreground">
           <Link href="/shop">Go to shop</Link>
         </Button>
-        <Button asChild variant="outline" className="h-11 rounded-full border-ink-base/18 bg-white/70 px-7 text-sm">
+        <Button asChild variant="outline" className="h-11 rounded-full border-ink-base/18 bg-surface-raised/70 px-7 text-sm">
           <Link href="/">Home</Link>
         </Button>
       </div>

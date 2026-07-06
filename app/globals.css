@@ -93,6 +93,7 @@
   --color-accent-brass-ink: var(--accent-brass-ink);
   --color-accent-blush: var(--accent-blush);
   --color-accent-blush-strong: var(--accent-blush-strong);
+  --color-accent-blush-ink: var(--accent-blush-ink);
   --color-emphasis-berry: var(--emphasis-berry);
   --color-emphasis-berry-deep: var(--emphasis-berry-deep);
   --color-emphasis-berry-soft: var(--emphasis-berry-soft);
@@ -111,6 +112,7 @@
   --color-surface-hover-strong: var(--surface-hover-strong);
   --color-surface-active: var(--surface-active);
   --color-surface-active-strong: var(--surface-active-strong);
+  --color-surface-raised: var(--surface-raised);
 
   /* Ambient / decorative warm tints (blur-blobs, image wells). The ~14
      drifting greige decor hexes collapse into these 4 by lightness under
@@ -213,6 +215,7 @@
   --accent-brass-ink: #332107;    /* dark-brass text ON brass fills (keepsake CTA + pill). AA 4.65:1 on --accent-brass. NOTE: brief suggested ~#3A2A10 (=4.17:1, just under AA 4.5) — deepened to pass the accessibility rule. */
   --accent-blush: #e8b4b8;        /* contact CTA rest. Absorbs: #E8B4B8. Exact, no fold (ΔE 20.9 from berry). *** HIGH-PRIORITY accent-step reconciliation: first color that CONFLICTS with the brass-single-accent thesis — decide blush-as-soft-secondary vs unify-to-brass. *** */
   --accent-blush-strong: #e3a9ae; /* contact CTA hover. Absorbs: #E3A9AE. Exact. Pairs with --accent-blush. */
+  --accent-blush-ink: #2a211c;    /* text ON blush CTAs. Light = ink-walnut (keeps light identical); dark lifts to #3A1E22. */
   --emphasis-berry: #8a2f40;      /* Absorbs: #8A2F40. */
   --emphasis-berry-deep: #5e1c29; /* Absorbs: #5E1C29. (Verify #6E2D2D availability-label folds here in Step 2.) */
   --emphasis-berry-soft: #9a4c5a; /* Absorbs: #9A4C5A. */
@@ -231,6 +234,7 @@
   --surface-hover-strong: #ebe3dc;  /* button secondary hover. Absorbs: #EBE3DC. Exact. Interaction ladder step 2 (after --surface-hover). */
   --surface-active: #e8dfd6;        /* button outline active/pressed. Absorbs: #E8DFD6. Exact. Ladder step 3. */
   --surface-active-strong: #e3d9d0; /* button secondary active/pressed. Absorbs: #E3D9D0. Exact. Ladder step 4. Thinning the ladder deferred to accent step. */
+  --surface-raised: #ffffff;        /* raised white panels (badges/inputs/cards over cream). Light = pure white — IDENTICAL to the prior literal bg-white. Dark inverts to a raised dark card. Replaces literal bg-white so it themes. */
 
   /* Ambient / decorative warm-greige tints — 4-tone lightness ladder.
      Collapses the drifting decor family under Option-A (max ΔE 1.83).
@@ -306,6 +310,122 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ==================================================================
+   DARK MODE — warm brown-black, never pure #000. (dark Move 1)
+   The token spine makes this a pure override: every brand raw token
+   gets a dark counterpart here and all utilities invert automatically.
+   Ground is warm; cards STEP UP in warmth for elevation (mirrors the
+   light-mode raise). Text is warm off-white, not stark white. Accents
+   LIFT (brass glows, blush brightens). All contrast AA-verified.
+   ================================================================== */
+.dark {
+  /* shadcn tokens -> warm (override the neutral OKLCH block above) */
+  --background: #1a1512;
+  --foreground: #f5efe7;
+  --card: #241d18;
+  --card-foreground: #f5efe7;
+  --popover: #241d18;
+  --popover-foreground: #f5efe7;
+  --primary: var(--ink-walnut);
+  --primary-foreground: var(--ink-foreground);
+  --secondary: var(--surface-hover);
+  --secondary-foreground: var(--ink-walnut);
+  --muted: #2c241e;
+  --muted-foreground: #b5a794;
+  --accent: var(--surface-hover);
+  --accent-foreground: #f5efe7;
+  --destructive: #e28a85;
+  --border: rgba(245, 239, 231, 0.14);
+  --input: rgba(245, 239, 231, 0.18);
+  --ring: rgba(245, 239, 231, 0.32);
+
+  /* Ink text -> warm off-white (NOT stark white) */
+  --ink-strong: #f5efe7;
+  --ink-espresso: #f5efe7;
+  --ink-walnut: #f5efe7;      /* primary text; also the primary-button/active-pill FILL (light-on-dark) */
+  --ink-base: #f5efe7;        /* body text at opacity; low-opacity borders become light hairlines */
+  --ink-foreground: #1a1512;  /* text/icons ON light ink fills */
+  --ink-placeholder: #8a7d6e;
+  --ink-body: rgba(245, 239, 231, 0.78);
+  --ink-muted: rgba(245, 239, 231, 0.6);
+  --ink-subtle: rgba(245, 239, 231, 0.48);
+
+  /* Surfaces: warm near-black ground; cards STEP UP in warmth for elevation */
+  --surface-ivory: #1a1512;
+  --surface-page: #1a1512;
+  --surface-grain: #1a1512;
+  --surface-card: #241d18;
+  --surface-panel: #2c241e;
+  --surface-well: #2c241e;
+  --surface-callout: #2c241e;
+  --surface-hover: #2e251f;
+  --surface-hover-soft: #2a231d;
+  --surface-hover-strong: #34291f;
+  --surface-active: #3a2e22;
+  --surface-active-strong: #42352a;
+  --surface-raised: #241d18;  /* migrated bg-white panels -> raised dark card */
+
+  /* Atmosphere: subtle warm lifts just above the ground */
+  --atmosphere-veil: #221a14;
+  --atmosphere-mist: #241c15;
+  --atmosphere-haze: #281f17;
+  --atmosphere-shade: #2c2319;
+
+  /* Accents LIFT (glow on dark) */
+  --accent-brass: #c99a52;
+  --accent-brass-ink: #1a1512;
+  --accent-blush: #efc0c4;
+  --accent-blush-strong: #e9b4b8;
+  --accent-blush-ink: #3a1e22;
+
+  /* Emphasis (berry; dormant on customer surfaces) */
+  --emphasis-berry: #c97a88;
+  --emphasis-berry-deep: #b56472;
+  --emphasis-berry-soft: #cf8f9a;
+  --emphasis-berry-tint: #3a2228;
+
+  /* Semantic tones (meaning-bearing — FLAGGED for review; AA-checked on ground) */
+  --tone-availability: #d98a85; /* stock maroon -> lifted rose (6.83:1) */
+  --tone-trust: #84b593;        /* COD trust sage -> lifted (7.77:1) */
+  --tone-danger: #e28a85;       /* error red -> lifted (7.08:1) */
+  --tone-green: #84b593;
+  --tone-green-deep: #6fa07e;
+  --tone-green-tint: #22322a;
+  --tone-amber: #d0a24e;
+  --tone-amber-deep: #b88a3e;
+  --tone-amber-soft: #c9a366;
+  --tone-amber-tint: #322818;
+  --tone-blue: #7fa8d8;
+  --tone-blue-tint: #1e2c3e;
+}
+
+/* Body grain ground in dark: warm near-black with a faint light grain. */
+.dark .grain-surface {
+  background-color: #1a1512;
+  background-image:
+    radial-gradient(
+      circle at 0 0,
+      rgba(245, 239, 231, 0.035) 0,
+      rgba(245, 239, 231, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(180deg, rgba(245, 239, 231, 0.02) 0%, rgba(26, 21, 18, 0.9) 100%);
+  background-size: 4px 4px, 100% 100%;
+}
+
+/* Form inputs hardcode dark ink in light mode — flip to off-white in dark. */
+.dark .contact-input,
+.dark .contact-textarea {
+  color: #f5efe7;
+  caret-color: #f5efe7;
+  -webkit-text-fill-color: #f5efe7;
+}
+.dark .contact-input::placeholder,
+.dark .contact-textarea::placeholder {
+  color: rgb(181 167 148 / 0.7);
+  -webkit-text-fill-color: rgb(181 167 148 / 0.7);
 }
 
 @layer base {

@@ -220,7 +220,7 @@ export function HeroSection() {
               {trustItems.map(({ label, icon: Icon }) => (
                 <li
                   key={label}
-                  className="inline-flex items-center gap-2.5 rounded-2xl border border-ink-base/8 bg-white/68 px-4 py-2.5 text-sm font-medium text-ink-base/80 shadow-[0_8px_30px_-18px_rgba(59,47,47,0.2)] backdrop-blur-sm"
+                  className="inline-flex items-center gap-2.5 rounded-2xl border border-ink-base/8 bg-surface-raised/68 px-4 py-2.5 text-sm font-medium text-ink-base/80 shadow-[0_8px_30px_-18px_rgba(59,47,47,0.2)] backdrop-blur-sm"
                 >
                   <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-atmosphere-veil to-atmosphere-haze text-ink-base/70 ring-1 ring-ink-base/7">
                     <Icon className="size-4" strokeWidth={1.75} aria-hidden />

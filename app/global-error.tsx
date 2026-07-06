@@ -17,7 +17,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     <html>
       <body className="bg-surface-grain">
         <main className="min-h-screen px-5 py-12 sm:px-6 lg:px-8">
-          <section className="mx-auto max-w-2xl rounded-3xl border border-ink-base/10 bg-white/90 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)]">
+          <section className="mx-auto max-w-2xl rounded-3xl border border-ink-base/10 bg-surface-raised/90 p-7 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)]">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">Little Smiles</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink-espresso">Something went wrong</h1>
             <p className="mt-2 text-sm text-ink-base/72">

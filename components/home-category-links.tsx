@@ -28,7 +28,7 @@ export function HomeCategoryLinks({ products }: HomeCategoryLinksProps) {
   return (
     <section className="relative pb-8 sm:pb-10">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-ink-base/8 bg-white/56 p-4 backdrop-blur-sm sm:p-5">
+        <div className="rounded-3xl border border-ink-base/8 bg-surface-raised/56 p-4 backdrop-blur-sm sm:p-5">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Shop by Category
           </p>
@@ -37,7 +37,7 @@ export function HomeCategoryLinks({ products }: HomeCategoryLinksProps) {
               <Link
                 key={category}
                 href={`/shop?category=${encodeURIComponent(category)}`}
-                className="touch-feedback inline-flex shrink-0 snap-start items-center rounded-full border border-ink-base/12 bg-white/70 px-3.5 py-1.5 text-sm font-medium text-ink-base/78 hover:bg-ink-walnut hover:text-ink-foreground"
+                className="touch-feedback inline-flex shrink-0 snap-start items-center rounded-full border border-ink-base/12 bg-surface-raised/70 px-3.5 py-1.5 text-sm font-medium text-ink-base/78 hover:bg-ink-walnut hover:text-ink-foreground"
               >
                 {category} ({countByCategory[category] ?? 0})
               </Link>

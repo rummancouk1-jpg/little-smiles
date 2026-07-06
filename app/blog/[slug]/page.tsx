@@ -101,7 +101,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <article className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-ink-base/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
+        <div className="rounded-3xl border border-ink-base/8 bg-surface-raised/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
             {post.category}
           </p>
@@ -214,7 +214,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                     <Link
                       href={`/shop/${product.slug}`}
-                      className="mt-3 inline-flex rounded-full border border-ink-walnut/14 bg-white/70 px-3 py-1.5 text-xs font-medium text-ink-walnut transition-[background-color,border-color] duration-200 hover:border-ink-base/28 hover:bg-surface-hover"
+                      className="mt-3 inline-flex rounded-full border border-ink-walnut/14 bg-surface-raised/70 px-3 py-1.5 text-xs font-medium text-ink-walnut transition-[background-color,border-color] duration-200 hover:border-ink-base/28 hover:bg-surface-hover"
                     >
                       View Product
                     </Link>
