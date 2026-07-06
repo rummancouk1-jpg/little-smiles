@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { PakistanServiceNotes } from "@/components/pakistan-service-notes";
+import { Reveal } from "@/components/reveal";
 import { ShopCategoryTabs } from "@/components/shop-category-tabs";
 import { shopPageMetadata } from "@/lib/commercial-seo";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
@@ -58,7 +59,7 @@ export default function ShopPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(shopBreadcrumbLd) }}
       />
       <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Little Smiles
           </p>
@@ -71,7 +72,7 @@ export default function ShopPage() {
             support.
           </p>
           <PakistanServiceNotes variant="panel" className="mx-auto mt-8 max-w-2xl" />
-        </div>
+        </Reveal>
 
         <div className="mt-10 sm:mt-12">
           <Suspense fallback={<ShopCategoryTabsFallback />}>

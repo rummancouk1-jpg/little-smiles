@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/reveal";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { staticPageMetadata } from "@/lib/seo-metadata";
 
@@ -31,9 +32,9 @@ export default function ReturnRefundPolicyPage() {
             can make it right—this policy explains how that works in Pakistan.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Reporting window
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Please message us on{" "}
             <strong className="font-semibold text-ink-walnut">WhatsApp within 48 hours</strong>{" "}
@@ -42,9 +43,9 @@ export default function ReturnRefundPolicyPage() {
             limit our ability to verify with the courier.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Eligible situations
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We prioritize manufacturing defects, shipping damage, or wrong SKU
             shipped versus what you confirmed on WhatsApp. Change-of-mind
@@ -52,18 +53,18 @@ export default function ReturnRefundPolicyPage() {
             campaign—ask before purchase if you need flexibility.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Condition for returns
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Approved returns must be unused, unwashed, with original packaging
             and tags intact—unless the defect makes that impossible (for example,
             a torn seam discovered on inspection).
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Refunds and timing
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Once a return is approved and the item is received back (when a
             return shipment is required), refunds are typically processed within{" "}
@@ -74,9 +75,9 @@ export default function ReturnRefundPolicyPage() {
             a short settlement delay beyond our control.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Non-returnable cases
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Items that show wear, washing, or missing packaging after delivery
             generally cannot be returned unless we approved an exception in

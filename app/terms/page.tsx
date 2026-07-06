@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/reveal";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { staticPageMetadata } from "@/lib/seo-metadata";
 
@@ -32,9 +33,9 @@ export default function TermsPage() {
             moment, plus the shipping and return policies linked in the footer.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Orders and acceptance
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             An order becomes binding when we confirm it on WhatsApp (or another
             official channel we designate) with price and delivery expectations.
@@ -43,9 +44,9 @@ export default function TermsPage() {
             happens.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Pricing and promotions
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Prices on the website reflect current retail unless a time-bound
             discount is shown. We may adjust pricing or offers to reflect supply
@@ -53,9 +54,9 @@ export default function TermsPage() {
             applies to that order.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Product appearance
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We photograph products carefully, but colors and textures can vary
             slightly due to lighting, batch dye, or your screen calibration.
@@ -63,9 +64,9 @@ export default function TermsPage() {
             reference for what you receive.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Limitation
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             To the extent permitted under applicable law in Pakistan, Little
             Smiles is not liable for indirect losses arising from courier delays
@@ -74,9 +75,9 @@ export default function TermsPage() {
             stronger remedy is required by law.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Updates
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We may update these terms to reflect how we operate. Continued use
             of our services after updates constitutes acceptance of the revised

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Reveal } from "@/components/reveal";
 import { faqPageJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { shippingPolicyFaqs } from "@/lib/shipping-faq";
 import { staticPageMetadata } from "@/lib/seo-metadata";
@@ -47,9 +48,9 @@ export default function ShippingPolicyPage() {
             online with your order ID and phone number.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Coverage and dispatch
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We deliver to major cities and many secondary towns nationwide.
             Orders are usually dispatched within{" "}
@@ -62,9 +63,9 @@ export default function ShippingPolicyPage() {
             will receive context on WhatsApp when the batch leaves our side.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Transit time
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             After dispatch, most addresses receive delivery within{" "}
             <strong className="font-semibold text-ink-walnut">
@@ -75,9 +76,9 @@ export default function ShippingPolicyPage() {
             see it on the courier portal.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Communication
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Delivery updates and coordination happen primarily through{" "}
             <strong className="font-semibold text-ink-walnut">WhatsApp</strong>{" "}
@@ -86,9 +87,9 @@ export default function ShippingPolicyPage() {
             address or access.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Delays and exceptions
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             Weather, political closures, courier backlogs, or incorrect addresses
             can delay delivery. If your parcel is outside the usual window,
@@ -96,9 +97,9 @@ export default function ShippingPolicyPage() {
             the courier and reply with the next step.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Frequently asked questions
-          </h2>
+          </Reveal>
           <dl className="mt-6 space-y-6">
             {shippingPolicyFaqs.map((item) => (
               <div key={item.question}>

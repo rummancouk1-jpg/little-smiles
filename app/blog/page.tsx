@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Reveal } from "@/components/reveal";
 import { blogPosts } from "@/lib/blog";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { staticPageMetadata } from "@/lib/seo-metadata";
@@ -28,7 +29,7 @@ export default function BlogPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogIndexBreadcrumbLd) }}
       />
       <section className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
+        <Reveal className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Little Smiles Journal
           </p>
@@ -39,12 +40,14 @@ export default function BlogPage() {
             Practical, premium-first advice for newborn essentials, feeding, and
             everyday baby comfort.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 md:grid-cols-2 lg:grid-cols-3">
-          {sortedPosts.map((post) => (
-            <article
+          {sortedPosts.map((post, index) => (
+            <Reveal
+              as="article"
               key={post.slug}
+              index={index}
               className="flex h-full flex-col rounded-3xl border border-ink-base/9 bg-surface-card/94 p-5 shadow-[0_24px_52px_-34px_rgba(59,47,47,0.36)]"
             >
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-base/56">
@@ -67,7 +70,7 @@ export default function BlogPage() {
               >
                 Read Article
               </Link>
-            </article>
+            </Reveal>
           ))}
         </div>
       </section>

@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/reveal";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { staticPageMetadata } from "@/lib/seo-metadata";
 
@@ -32,9 +33,9 @@ export default function PrivacyPolicyPage() {
             approach unless we agree otherwise in writing.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Information we collect
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             To fulfil orders we typically need your name, WhatsApp number,
             delivery address, and city. If you pay through a method that requires
@@ -47,9 +48,9 @@ export default function PrivacyPolicyPage() {
             full context.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             How we use information
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We use your details exclusively to process orders, arrange courier
             delivery, send WhatsApp updates, and provide customer support. We do
@@ -57,9 +58,9 @@ export default function PrivacyPolicyPage() {
             marketing lists.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Service providers
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We may rely on trusted providers for hosting, analytics, or form
             delivery—each is chosen for reasonable security practices and only
@@ -67,9 +68,9 @@ export default function PrivacyPolicyPage() {
             contact form submission).
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Retention
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             We keep order records long enough to handle returns, accounting, and
             repeat customer care—typically aligned with practical business and
@@ -77,9 +78,9 @@ export default function PrivacyPolicyPage() {
             conversation threads where no open obligation remains.
           </p>
 
-          <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
+          <Reveal as="h2" className="mt-10 text-xl font-semibold tracking-tight text-ink-espresso">
             Contact
-          </h2>
+          </Reveal>
           <p className="mt-3 text-base leading-relaxed text-ink-base/75">
             For privacy-related requests, reach us through the contact options
             listed on our website. We aim to respond within reasonable business
