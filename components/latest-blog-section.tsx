@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { Reveal } from "@/components/reveal";
 import { getBlogAnchorProduct, type BlogPost } from "@/lib/blog";
 
 type LatestBlogSectionProps = {
@@ -13,7 +14,7 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
   return (
     <section className="relative overflow-hidden bg-transparent pb-18 pt-8 sm:pb-22 sm:pt-10 lg:pb-26 lg:pt-12">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <Reveal className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Notes</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink-espresso sm:text-4xl">
@@ -32,14 +33,16 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
               →
             </span>
           </Link>
-        </div>
+        </Reveal>
 
         <div className="mobile-rail mt-8 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-10 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-3">
-          {posts.map((post) => {
+          {posts.map((post, index) => {
             const anchor = getBlogAnchorProduct(post);
             return (
-              <article
+              <Reveal
+                as="article"
                 key={post.slug}
+                index={index}
                 className="group flex min-w-[84%] snap-start flex-col overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-card/94 shadow-card-rest transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-card-lift sm:min-w-0"
               >
                 <Link
@@ -81,7 +84,7 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
                     {post.publishedAt} · {post.readTime}
                   </p>
                 </div>
-              </article>
+              </Reveal>
             );
           })}
         </div>

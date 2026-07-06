@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Reveal } from "@/components/reveal";
 import type { Product } from "@/lib/products";
 
 type HomeCategoryLinksProps = {
@@ -28,7 +29,7 @@ export function HomeCategoryLinks({ products }: HomeCategoryLinksProps) {
   return (
     <section className="relative pb-8 sm:pb-10">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-ink-base/8 bg-surface-raised/56 p-4 backdrop-blur-sm sm:p-5">
+        <Reveal className="rounded-3xl border border-ink-base/8 bg-surface-raised/56 p-4 backdrop-blur-sm sm:p-5">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Shop by Category
           </p>
@@ -43,7 +44,7 @@ export function HomeCategoryLinks({ products }: HomeCategoryLinksProps) {
               </Link>
             ))}
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

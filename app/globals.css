@@ -717,3 +717,33 @@
     animation-iteration-count: infinite;
   }
 }
+
+/* Scroll reveal — the ONE motion used below the heroes (see components/reveal.tsx).
+   Base [data-reveal] is fully visible: the hidden state only exists once JS adds
+   .reveal-armed, so content is never gated on JS. Soft fade + short rise, up
+   only, premiumEase ([0.22,1,0.36,1]) to match the rest of the site's motion. */
+[data-reveal] {
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal].reveal-armed {
+  opacity: 0;
+  transform: translateY(20px);
+}
+[data-reveal].reveal-armed.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Safety net: even if JS armed an element, reduced-motion users see it
+     static and fully visible — no fade, no rise. */
+  [data-reveal] {
+    transition: none;
+  }
+  [data-reveal].reveal-armed {
+    opacity: 1;
+    transform: none;
+  }
+}

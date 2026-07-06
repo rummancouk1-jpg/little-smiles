@@ -1,17 +1,12 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
-import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
+import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/button";
 import { whatsappBaseUrl } from "@/lib/products";
 import { homepageTestimonials } from "@/lib/testimonials";
 import { cn } from "@/lib/utils";
 
 export function TestimonialsSection() {
-  const reduce = useReducedMotion();
-
   return (
     <section className="relative overflow-hidden bg-transparent pb-20 pt-8 sm:pb-24 sm:pt-10 lg:pb-28 lg:pt-12">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
@@ -20,13 +15,7 @@ export function TestimonialsSection() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
-          className="max-w-2xl"
-        >
+        <Reveal className="max-w-2xl">
           <p className="eyebrow">Letters</p>
           <h2 className="mt-4 text-balance text-headline font-semibold text-ink-espresso">
             From families across Pakistan
@@ -34,22 +23,16 @@ export function TestimonialsSection() {
           <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
             Photos and a few words sent in from across the country.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mobile-rail mt-10 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-12 sm:grid sm:snap-none sm:grid-cols-2 sm:items-stretch sm:gap-5 sm:overflow-visible lg:grid-cols-5">
           {homepageTestimonials.map((item, index) => {
             const isHero = index === 0;
             return (
-              <motion.article
+              <Reveal
+                as="article"
                 key={item.id}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{
-                  duration: reduce ? 0 : motionDuration.base,
-                  delay: reduce ? 0 : index * motionStagger,
-                  ease: premiumEase,
-                }}
+                index={index}
                 className={cn(
                   "flex min-w-[84%] snap-start flex-col overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-panel/95 shadow-card-rest sm:min-w-0",
                   isHero && "lg:col-span-2 lg:grid lg:grid-cols-2 lg:flex-row"
@@ -93,17 +76,11 @@ export function TestimonialsSection() {
                     {item.author} - {item.location}
                   </p>
                 </div>
-              </motion.article>
+              </Reveal>
             );
           })}
         </div>
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: reduce ? 0 : motionDuration.base, ease: premiumEase }}
-          className="mt-10 flex justify-center sm:mt-12"
-        >
+        <Reveal className="mt-10 flex justify-center sm:mt-12">
           <Button
             asChild
             className="h-11 rounded-full bg-ink-walnut px-7 text-sm font-medium text-ink-foreground shadow-[0_14px_34px_-22px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-ink-espresso hover:shadow-[0_18px_40px_-24px_rgba(47,38,36,0.66)]"
@@ -118,7 +95,7 @@ export function TestimonialsSection() {
               Share Your Story on WhatsApp
             </Link>
           </Button>
-        </motion.div>
+        </Reveal>
         <p className="mt-6 text-center text-sm text-ink-base/58">
           <Link
             href="/reviews"

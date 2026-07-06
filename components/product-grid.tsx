@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
-import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
+import { Reveal } from "@/components/reveal";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { trackAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
@@ -36,34 +35,20 @@ type ProductGridProps = {
 };
 
 export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
-  const reduce = useReducedMotion();
-
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {products.map((product, index) => {
         const keepsake = product.slug === keepsakeSlug;
         return (
-        <motion.div
-          key={product.slug}
-          initial={reduce ? false : { opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{
-            duration: reduce ? 0 : motionDuration.base,
-            delay: reduce ? 0 : index * motionStagger,
-            ease: premiumEase,
-          }}
-          whileHover={reduce ? undefined : { y: -4 }}
-          className="h-full"
-        >
+        <Reveal key={product.slug} index={index} className="h-full">
           <Card
             className={cn(
               "flex h-full overflow-hidden rounded-3xl bg-surface-card/94 py-0",
               keepsake
                 ? "border-[1.5px] border-accent-brass"
                 : "border border-ink-base/9",
-              "shadow-card-rest transition-shadow duration-300",
-              "hover:shadow-card-lift"
+              "shadow-card-rest transition-[transform,box-shadow] duration-300",
+              "hover:-translate-y-1 hover:shadow-card-lift"
             )}
           >
             <CardContent className="p-0">
@@ -166,7 +151,7 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
               </div>
             </CardFooter>
           </Card>
-        </motion.div>
+        </Reveal>
         );
       })}
     </div>

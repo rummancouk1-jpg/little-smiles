@@ -1,13 +1,8 @@
-"use client";
-
-import { motion, useReducedMotion } from "motion/react";
-
-import { motionDuration, premiumEase } from "@/lib/motion";
 import { ProductGrid } from "@/components/product-grid";
+import { Reveal } from "@/components/reveal";
 import { getFeaturedProducts } from "@/lib/products";
 
 export function FeaturedProductsSection() {
-  const reduce = useReducedMotion();
   const products = getFeaturedProducts();
   // Keepsake tier: the lead featured product that is also a bestseller
   // (first featured otherwise). Wired off the existing catalog flags — no
@@ -23,20 +18,14 @@ export function FeaturedProductsSection() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
-          className="mx-auto max-w-2xl text-center"
-        >
+        <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-balance text-headline font-semibold text-ink-espresso">
             Starting points for the first months
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
             Quiet basics for the early days. Easy gifts for new parents.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mt-10 sm:mt-12">
           <ProductGrid products={products} keepsakeSlug={keepsakeSlug} />

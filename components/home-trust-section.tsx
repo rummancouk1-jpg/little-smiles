@@ -16,6 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Reveal } from "@/components/reveal";
 import { whatsappBaseUrl } from "@/lib/products";
 
 type FaqItem = { question: string; answer: string };
@@ -57,7 +58,7 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-ink-base/50">
             Shop with confidence
           </p>
@@ -70,12 +71,13 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
           <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
             Here&apos;s what to expect once you place an order.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+          <Reveal index={0} className="h-full">
           <Link
             href="/shipping-policy"
-            className="touch-feedback group block rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
+            className="touch-feedback group block h-full rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
           >
             <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-atmosphere-veil to-atmosphere-haze text-ink-base/72 ring-1 ring-ink-base/8">
               <Truck className="size-5" strokeWidth={2} aria-hidden />
@@ -97,10 +99,12 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               </span>
             </span>
           </Link>
+          </Reveal>
 
+          <Reveal index={1} className="h-full">
           <Link
             href="/return-refund-policy"
-            className="touch-feedback group block rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
+            className="touch-feedback group block h-full rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
           >
             <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-atmosphere-veil to-atmosphere-haze text-ink-base/72 ring-1 ring-ink-base/8">
               <RefreshCw className="size-5" strokeWidth={2} aria-hidden />
@@ -122,12 +126,14 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               </span>
             </span>
           </Link>
+          </Reveal>
 
+          <Reveal index={2} className="h-full">
           <a
             href={whatsappBaseUrl}
             target="_blank"
             rel="noreferrer"
-            className="touch-feedback group block rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
+            className="touch-feedback group block h-full rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
           >
             <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-atmosphere-veil to-atmosphere-haze text-ink-base/72 ring-1 ring-ink-base/8">
               <MessageCircle className="size-5" strokeWidth={2} aria-hidden />
@@ -149,10 +155,12 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               </span>
             </span>
           </a>
+          </Reveal>
 
+          <Reveal index={3} className="h-full">
           <Link
             href="/reviews"
-            className="touch-feedback group block rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
+            className="touch-feedback group block h-full rounded-3xl border border-ink-base/10 bg-surface-card/92 p-5 shadow-card-rest transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-ink-base/16 hover:shadow-card-lift"
           >
             <span className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-atmosphere-veil to-atmosphere-haze text-ink-base/72 ring-1 ring-ink-base/8">
               <Star className="size-5" strokeWidth={2} aria-hidden />
@@ -174,9 +182,10 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               </span>
             </span>
           </Link>
+          </Reveal>
         </div>
 
-        <div className="mt-14 rounded-3xl border border-ink-base/9 bg-surface-panel/90 p-6 shadow-[0_26px_52px_-36px_rgba(59,47,47,0.36)] sm:p-8 lg:mt-16">
+        <Reveal className="mt-14 rounded-3xl border border-ink-base/9 bg-surface-panel/90 p-6 shadow-[0_26px_52px_-36px_rgba(59,47,47,0.36)] sm:p-8 lg:mt-16">
           <h3 className="text-center text-2xl font-semibold tracking-tight text-ink-espresso sm:text-3xl">
             What we focus on
           </h3>
@@ -194,9 +203,9 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               </li>
             ))}
           </ul>
-        </div>
+        </Reveal>
 
-        <div className="mt-14 lg:mt-16">
+        <Reveal className="mt-14 lg:mt-16">
           <h3 className="text-center text-2xl font-semibold tracking-tight text-ink-espresso sm:text-3xl">
             Common questions
           </h3>
@@ -219,7 +228,7 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
