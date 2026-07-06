@@ -12,14 +12,14 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground shadow-[0_1px_0_rgba(255,255,255,0.06)] hover:bg-primary/92 active:bg-primary/[0.97] [a]:hover:bg-primary/92 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         outline:
-          "border-[#3B2F2F]/26 bg-white/92 text-[#2E2323] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] hover:border-[#3B2F2F]/40 hover:bg-[#F2EAE4] hover:text-[#1F1918] active:bg-[#E8DFD6] active:border-[#3B2F2F]/44 aria-expanded:border-[#3B2F2F]/36 aria-expanded:bg-[#F2EAE4] aria-expanded:text-[#1F1918] dark:border-input dark:bg-input/35 dark:text-foreground dark:hover:bg-input/55 dark:hover:text-foreground focus-visible:border-[#3B2F2F]/42 focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "border-ink-base/26 bg-white/92 text-ink-walnut shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] hover:border-ink-base/40 hover:bg-surface-hover hover:text-ink-espresso active:bg-surface-active active:border-ink-base/44 aria-expanded:border-ink-base/36 aria-expanded:bg-surface-hover aria-expanded:text-ink-espresso dark:border-input dark:bg-input/35 dark:text-foreground dark:hover:bg-input/55 dark:hover:text-foreground focus-visible:border-ink-base/42 focus-visible:ring-2 focus-visible:ring-ink-base/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         secondary:
-          "border border-[#3B2F2F]/18 bg-[#F2EAE4]/98 text-[#2E2323] hover:border-[#3B2F2F]/28 hover:bg-[#EBE3DC] hover:text-[#1F1918] active:bg-[#E3D9D0] active:border-[#3B2F2F]/32 dark:border-white/12 dark:bg-muted dark:text-foreground dark:hover:bg-muted/85 focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/28 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "border border-ink-base/18 bg-surface-hover/98 text-ink-walnut hover:border-ink-base/28 hover:bg-surface-hover-strong hover:text-ink-espresso active:bg-surface-active-strong active:border-ink-base/32 dark:border-white/12 dark:bg-muted dark:text-foreground dark:hover:bg-muted/85 focus-visible:ring-2 focus-visible:ring-ink-base/28 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         ghost:
-          "text-[#2E2323] hover:bg-[#3B2F2F]/12 hover:text-[#1F1918] active:bg-[#3B2F2F]/17 aria-expanded:bg-[#3B2F2F]/10 dark:text-foreground dark:hover:bg-muted/60 dark:hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/28 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "text-ink-walnut hover:bg-ink-base/12 hover:text-ink-espresso active:bg-ink-base/17 aria-expanded:bg-ink-base/10 dark:text-foreground dark:hover:bg-muted/60 dark:hover:text-foreground focus-visible:ring-2 focus-visible:ring-ink-base/28 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         destructive:
           "bg-destructive/12 text-destructive hover:bg-destructive/20 hover:text-destructive active:bg-destructive/25 focus-visible:ring-2 focus-visible:ring-destructive/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:text-[#1F1918] hover:underline focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/28 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
+        link: "text-primary underline-offset-4 hover:text-ink-espresso hover:underline focus-visible:ring-2 focus-visible:ring-ink-base/28 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
       },
       size: {
         default:
