@@ -87,6 +87,9 @@
   --color-surface-footer: var(--surface-footer);
   --color-surface-callout: var(--surface-callout);
   --color-surface-hover-soft: var(--surface-hover-soft);
+  --color-surface-hover-strong: var(--surface-hover-strong);
+  --color-surface-active: var(--surface-active);
+  --color-surface-active-strong: var(--surface-active-strong);
 
   /* Ambient / decorative warm tints (blur-blobs, image wells). The ~14
      drifting greige decor hexes collapse into these 4 by lightness under
@@ -202,6 +205,9 @@
   --surface-footer: #fcf6f1; /* footer ground. Absorbs: #FCF6F1. (Added in Step 2 — exact value, no fold.) */
   --surface-callout: #f8f2ec; /* blog CTA callout ground. Absorbs: #F8F2EC. (Added in Step 2 — exact value, no fold.) */
   --surface-hover-soft: #f8f4f0; /* remove-button soft hover. Absorbs: #F8F4F0. Exact, NO fold — NOT atmosphere-veil despite ΔE 0.60 (surface role). May adopt --surface-hover at design step. */
+  --surface-hover-strong: #ebe3dc;  /* button secondary hover. Absorbs: #EBE3DC. Exact. Interaction ladder step 2 (after --surface-hover). */
+  --surface-active: #e8dfd6;        /* button outline active/pressed. Absorbs: #E8DFD6. Exact. Ladder step 3. */
+  --surface-active-strong: #e3d9d0; /* button secondary active/pressed. Absorbs: #E3D9D0. Exact. Ladder step 4. Thinning the ladder deferred to accent step. */
 
   /* Ambient / decorative warm-greige tints — 4-tone lightness ladder.
      Collapses the drifting decor family under Option-A (max ΔE 1.83).
