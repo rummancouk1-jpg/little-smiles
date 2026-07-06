@@ -23,21 +23,21 @@ const collageCards = [
     src: "/products/fly-high-swaddle.png",
     alt: "Little Smiles fly high swaddle",
     className:
-      "col-span-7 row-span-7 -translate-y-1 scale-[1.01] -rotate-[1.6deg] bg-[#FBF7F3]/96 ring-[#2C2523]/10",
+      "col-span-7 row-span-7 -translate-y-1 scale-[1.01] -rotate-[1.6deg] bg-surface-panel/96 ring-ink-walnut/10",
     imageWrapClassName: "p-6 sm:p-7",
   },
   {
     src: "/products/dino-deer-bodysuits.png",
     alt: "Little Smiles dino and deer bodysuits",
     className:
-      "col-span-5 row-span-4 -translate-y-2 -translate-x-2 scale-[1.02] rotate-[2.2deg] bg-[#F4EFEB]/96 ring-[#2C2523]/10",
+      "col-span-5 row-span-4 -translate-y-2 -translate-x-2 scale-[1.02] rotate-[2.2deg] bg-atmosphere-mist/96 ring-ink-walnut/10",
     imageWrapClassName: "p-5 sm:p-6",
   },
   {
     src: "/products/blue-and-white-food-bag.png",
     alt: "Little Smiles blue and white food bag",
     className:
-      "col-span-5 row-span-5 -translate-x-6 translate-y-2 scale-[0.98] rotate-[-1.4deg] bg-[#FEFAF6]/95 ring-[#2C2523]/10",
+      "col-span-5 row-span-5 -translate-x-6 translate-y-2 scale-[0.98] rotate-[-1.4deg] bg-atmosphere-veil/95 ring-ink-walnut/10",
     imageWrapClassName: "p-4 sm:p-5",
   },
 ] as const;
@@ -132,9 +132,9 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-transparent">
       <div className="pointer-events-none absolute inset-0 opacity-[0.48]" aria-hidden>
-        <div className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-[#F3ECE6]/72 blur-3xl" />
-        <div className="absolute -right-24 top-24 h-[380px] w-[380px] rounded-full bg-[#EFE8E2]/64 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-[280px] w-[280px] rounded-full bg-[#F7F2ED]/70 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-atmosphere-mist/72 blur-3xl" />
+        <div className="absolute -right-24 top-24 h-[380px] w-[380px] rounded-full bg-atmosphere-haze/64 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-[280px] w-[280px] rounded-full bg-atmosphere-veil/70 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 sm:pb-18 sm:pt-9 lg:px-8 lg:pb-24 lg:pt-12">
@@ -176,7 +176,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-4 max-w-[38ch] text-pretty text-base leading-relaxed text-[#372F2D]/70 sm:mt-6 sm:text-xl"
+              className="mt-4 max-w-[38ch] text-pretty text-base leading-relaxed text-ink-base/70 sm:mt-6 sm:text-xl"
             >
               Considered fabrics. Calm prints. Made for the routines that grow
               with your baby.
@@ -192,13 +192,13 @@ export function HeroSection() {
               <Button
                 asChild
                 size="lg"
-                className="h-12 w-full rounded-full border-transparent bg-[#2F2624] px-9 text-base font-medium text-[#F6F1EC] shadow-[0_14px_34px_-18px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#251E1D] hover:shadow-[0_20px_40px_-20px_rgba(47,38,36,0.68)] sm:w-auto"
+                className="h-12 w-full rounded-full border-transparent bg-ink-walnut px-9 text-base font-medium text-ink-foreground shadow-[0_14px_34px_-18px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-ink-espresso hover:shadow-[0_20px_40px_-20px_rgba(47,38,36,0.68)] sm:w-auto"
               >
                 <Link href="/shop">Shop Collection</Link>
               </Button>
               <Link
                 href="/best-sellers"
-                className="group inline-flex items-center gap-2 self-center text-base font-medium text-ink-strong/85 underline decoration-[#3B2F2F]/22 underline-offset-[8px] transition-[color,text-decoration-color] duration-300 hover:text-ink-strong hover:decoration-[#1F1918]/50 sm:self-auto"
+                className="group inline-flex items-center gap-2 self-center text-base font-medium text-ink-strong/85 underline decoration-ink-base/22 underline-offset-[8px] transition-[color,text-decoration-color] duration-300 hover:text-ink-strong hover:decoration-ink-espresso/50 sm:self-auto"
               >
                 View best sellers
                 <span
@@ -220,9 +220,9 @@ export function HeroSection() {
               {trustItems.map(({ label, icon: Icon }) => (
                 <li
                   key={label}
-                  className="inline-flex items-center gap-2.5 rounded-2xl border border-[#3B2F2F]/8 bg-white/68 px-4 py-2.5 text-sm font-medium text-[#3B2F2F]/80 shadow-[0_8px_30px_-18px_rgba(59,47,47,0.2)] backdrop-blur-sm"
+                  className="inline-flex items-center gap-2.5 rounded-2xl border border-ink-base/8 bg-white/68 px-4 py-2.5 text-sm font-medium text-ink-base/80 shadow-[0_8px_30px_-18px_rgba(59,47,47,0.2)] backdrop-blur-sm"
                 >
-                  <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#F6F0EB] to-[#EEE7E1] text-[#3B2F2F]/70 ring-1 ring-[#3B2F2F]/7">
+                  <span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-atmosphere-veil to-atmosphere-haze text-ink-base/70 ring-1 ring-ink-base/7">
                     <Icon className="size-4" strokeWidth={1.75} aria-hidden />
                   </span>
                   {label}
@@ -245,11 +245,11 @@ export function HeroSection() {
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -left-10 -top-8 h-32 w-32 rounded-full bg-[#ECE4DD]/72 blur-2xl sm:h-36 sm:w-36"
+              className="pointer-events-none absolute -left-10 -top-8 h-32 w-32 rounded-full bg-atmosphere-haze/72 blur-2xl sm:h-36 sm:w-36"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -right-8 bottom-5 h-28 w-28 rounded-full bg-[#E8E0D8]/72 blur-2xl sm:h-36 sm:w-36"
+              className="pointer-events-none absolute -right-8 bottom-5 h-28 w-28 rounded-full bg-atmosphere-shade/72 blur-2xl sm:h-36 sm:w-36"
               aria-hidden
             />
             <div
