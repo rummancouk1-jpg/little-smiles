@@ -3,11 +3,10 @@ import { notFound } from "next/navigation";
 
 import { ProductWhatsappOrder } from "@/components/product-whatsapp-order";
 import { RelatedProductsSection } from "@/components/related-products-section";
-import { ProductImage } from "@/components/product-image";
+import { ProductGallery } from "@/components/product-gallery";
 import { getProductDetailMetadata } from "@/lib/commercial-seo";
 import { breadcrumbJsonLdDocument, productJsonLd } from "@/lib/json-ld";
 import {
-  getImageCandidates,
   getProductBySlug,
   getRelatedProducts,
   products,
@@ -70,18 +69,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           className="grid items-start gap-8 lg:grid-cols-2 lg:gap-16"
           aria-labelledby="product-title"
         >
-          <div className="relative rounded-3xl border border-ink-base/10 bg-surface-panel/95 p-5 shadow-[0_30px_62px_-36px_rgba(59,47,47,0.38)] sm:p-7">
+          <div className="relative rounded-3xl border border-ink-base/10 bg-surface-panel/95 p-5 shadow-[0_30px_62px_-36px_rgba(59,47,47,0.38)] sm:p-7 lg:sticky lg:top-24 lg:self-start">
             <div className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 rounded-full bg-atmosphere-haze/82 blur-2xl" />
             <div className="pointer-events-none absolute -bottom-6 -right-8 h-28 w-28 rounded-full bg-atmosphere-shade/70 blur-2xl" />
-            <div className="relative h-[320px] rounded-3xl bg-surface-well p-6 sm:h-[460px] sm:p-7">
-              <ProductImage
-                sources={getImageCandidates(product.image)}
-                alt={`${product.name} — ${product.category} by Little Smiles Pakistan`}
-                fill
-                className="object-contain object-center"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
+            <div className="relative">
+              <ProductGallery product={product} />
             </div>
           </div>
 
@@ -89,6 +81,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </article>
         <RelatedProductsSection products={relatedProducts} />
       </section>
+      {/* End-of-content marker: the desktop buy-bar hides once this scrolls into
+          view so the fixed bar never overlaps the footer. */}
+      <div id="pdp-scroll-end" aria-hidden className="h-px w-full" />
     </main>
   );
 }

@@ -21,6 +21,15 @@ const productRowSchema = z.object({
     .string()
     .min(1)
     .refine((p) => p.startsWith("/products/"), "image must be under /products/"),
+  /** Optional extra gallery shots (in display order); each must live under /products/. */
+  images: z
+    .array(
+      z
+        .string()
+        .min(1)
+        .refine((p) => p.startsWith("/products/"), "image must be under /products/"),
+    )
+    .optional(),
   description: z.string().min(1),
   longDescription: z.string().min(20).optional(),
   compareAtPricePkr: z.number().int().positive(),

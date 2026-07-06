@@ -13,6 +13,12 @@ export type Product = {
     | "Bow Set"
     | "Food Container";
   image: string;
+  /**
+   * Optional additional gallery images (in display order). When present with
+   * 2+ entries the PDP shows a thumbnail strip; otherwise `image` is the sole
+   * shot. Threaded through automatically from the catalog seed via `...rest`.
+   */
+  images?: readonly string[];
   /** Short listing copy (cards / grids). */
   shortDescription: string;
   /** Richer detail copy for PDP + SEO. */
