@@ -24,36 +24,36 @@ const reviewsBreadcrumbLd = breadcrumbJsonLdDocument([
 
 export default function ReviewsPage() {
   return (
-    <main className="min-h-screen bg-[#F9F5F1] pb-20 pt-10 sm:pb-24 sm:pt-12 lg:pt-16">
+    <main className="min-h-screen bg-surface-page pb-20 pt-10 sm:pb-24 sm:pt-12 lg:pt-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsBreadcrumbLd) }}
       />
       <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B2F2F]/50">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Trusted By Parents
           </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-[#2E2323] sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-ink-walnut sm:text-5xl">
             Customer Reviews
           </h1>
-          <p className="mt-4 text-base leading-relaxed text-[#3B2F2F]/70 sm:text-lg">
+          <p className="mt-4 text-base leading-relaxed text-ink-base/70 sm:text-lg">
             Photo stories from our community, plus written notes from families
             across Pakistan—no repeated stock shots, just honest detail.
           </p>
         </div>
 
         <div className="mt-12 sm:mt-14">
-          <h2 className="text-center text-xs font-medium uppercase tracking-[0.22em] text-[#3B2F2F]/50">
+          <h2 className="text-center text-xs font-medium uppercase tracking-[0.22em] text-ink-base/50">
             In photos
           </h2>
           <div className="mobile-rail mt-6 flex snap-x gap-4 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible lg:grid-cols-4">
             {homepageTestimonials.map((item) => (
               <article
                 key={item.id}
-                className="min-w-[84%] snap-start overflow-hidden rounded-3xl border border-[#3B2F2F]/9 bg-[#FBF7F3]/95 shadow-[0_26px_58px_-36px_rgba(59,47,47,0.4)] sm:min-w-0"
+                className="min-w-[84%] snap-start overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-panel/95 shadow-[0_26px_58px_-36px_rgba(59,47,47,0.4)] sm:min-w-0"
               >
-                <div className="relative aspect-square overflow-hidden bg-[#F3ECE6]">
+                <div className="relative aspect-square overflow-hidden bg-atmosphere-mist">
                   <Image
                     src={item.image}
                     alt={`Customer photo — ${item.author}`}
@@ -63,10 +63,10 @@ export default function ReviewsPage() {
                   />
                 </div>
                 <div className="space-y-3 px-4 pb-5 pt-4">
-                  <p className="text-sm leading-relaxed text-[#3B2F2F]/74">
+                  <p className="text-sm leading-relaxed text-ink-base/74">
                     &ldquo;{item.quote}&rdquo;
                   </p>
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/58">
+                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-base/58">
                     {item.author} — {item.location}
                   </p>
                 </div>
@@ -76,10 +76,10 @@ export default function ReviewsPage() {
         </div>
 
         <div className="mt-14 sm:mt-16">
-          <h2 className="text-center text-xs font-medium uppercase tracking-[0.22em] text-[#3B2F2F]/50">
+          <h2 className="text-center text-xs font-medium uppercase tracking-[0.22em] text-ink-base/50">
             Written reviews
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-[#3B2F2F]/65">
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-ink-base/65">
             City-by-city feedback on orders, fabrics, and delivery—ideal when
             you want specifics without extra photography.
           </p>
@@ -87,12 +87,12 @@ export default function ReviewsPage() {
             {textReviewSnippets.map((item) => (
               <article
                 key={item.id}
-                className="rounded-3xl border border-[#3B2F2F]/9 bg-[#FCF8F4]/94 p-6 shadow-[0_22px_48px_-32px_rgba(59,47,47,0.38)]"
+                className="rounded-3xl border border-ink-base/9 bg-surface-card/94 p-6 shadow-[0_22px_48px_-32px_rgba(59,47,47,0.38)]"
               >
-                <p className="text-sm leading-relaxed text-[#3B2F2F]/78 sm:text-[0.9375rem]">
+                <p className="text-sm leading-relaxed text-ink-base/78 sm:text-[0.9375rem]">
                   &ldquo;{item.quote}&rdquo;
                 </p>
-                <p className="mt-4 text-xs font-medium uppercase tracking-[0.12em] text-[#3B2F2F]/58">
+                <p className="mt-4 text-xs font-medium uppercase tracking-[0.12em] text-ink-base/58">
                   {item.author} — {item.location}
                 </p>
               </article>
@@ -103,14 +103,14 @@ export default function ReviewsPage() {
         <div className="mx-auto mt-14 flex max-w-lg flex-col items-center gap-4 sm:mt-16">
           <Button
             asChild
-            className="h-11 w-full rounded-full bg-[#2F2624] px-8 text-sm font-medium text-[#F6F1EC] sm:w-auto"
+            className="h-11 w-full rounded-full bg-ink-walnut px-8 text-sm font-medium text-ink-foreground sm:w-auto"
           >
             <Link href="/shop">Shop essentials</Link>
           </Button>
           <Button
             asChild
             variant="outline"
-            className="h-11 w-full rounded-full border-[#3B2F2F]/18 bg-white/70 px-8 text-sm font-medium text-[#2E2323] sm:w-auto"
+            className="h-11 w-full rounded-full border-ink-base/18 bg-white/70 px-8 text-sm font-medium text-ink-walnut sm:w-auto"
           >
             <Link
               href={`${whatsappBaseUrl}?text=${encodeURIComponent(
