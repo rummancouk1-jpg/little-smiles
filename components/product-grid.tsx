@@ -26,14 +26,23 @@ import { cn } from "@/lib/utils";
 
 type ProductGridProps = {
   products: Product[];
+  /**
+   * Opt-in "keepsake" brass treatment for a single product by slug.
+   * Only the card whose slug matches renders the featured tier; every other
+   * card (and every grid that omits this prop) stays the standard tier.
+   * Applying it to more products later = widen this to a slug set.
+   */
+  keepsakeSlug?: string;
 };
 
-export function ProductGrid({ products }: ProductGridProps) {
+export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
   const reduce = useReducedMotion();
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-      {products.map((product, index) => (
+      {products.map((product, index) => {
+        const keepsake = product.slug === keepsakeSlug;
+        return (
         <motion.div
           key={product.slug}
           initial={reduce ? false : { opacity: 0, y: 12 }}
@@ -49,7 +58,10 @@ export function ProductGrid({ products }: ProductGridProps) {
         >
           <Card
             className={cn(
-              "flex h-full overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-card/94 py-0",
+              "flex h-full overflow-hidden rounded-3xl bg-surface-card/94 py-0",
+              keepsake
+                ? "border-[1.5px] border-accent-brass"
+                : "border border-ink-base/9",
               "shadow-card-rest transition-shadow duration-300",
               "hover:shadow-card-lift"
             )}
@@ -61,6 +73,11 @@ export function ProductGrid({ products }: ProductGridProps) {
               >
                 <div className="relative mx-3.5 mt-3.5 h-52 rounded-3xl bg-surface-well p-4 sm:mx-4 sm:mt-4 sm:h-56 sm:p-5">
                   <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.5),transparent_65%)]" />
+                  {keepsake ? (
+                    <span className="absolute left-3 top-3 z-10 rounded-full bg-accent-brass px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-brass-ink">
+                      Bestseller
+                    </span>
+                  ) : null}
                   <ProductImage
                     sources={getImageCandidates(product.image)}
                     alt={`${product.name} — ${product.category} by Little Smiles`}
@@ -114,7 +131,14 @@ export function ProductGrid({ products }: ProductGridProps) {
                 </p>
               </div>
               <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:min-w-[11.5rem]">
-                <AddToCartButton product={product} className="w-full" />
+                <AddToCartButton
+                  product={product}
+                  className={cn(
+                    "w-full",
+                    keepsake &&
+                      "border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90"
+                  )}
+                />
                 <Link
                   href={getWhatsappOrderLink(product)}
                   target="_blank"
@@ -143,7 +167,8 @@ export function ProductGrid({ products }: ProductGridProps) {
             </CardFooter>
           </Card>
         </motion.div>
-      ))}
+        );
+      })}
     </div>
   );
 }

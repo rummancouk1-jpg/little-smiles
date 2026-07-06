@@ -72,6 +72,7 @@
 
   /* Ownable accent + emphasis (DEFINE ONLY — not applied until a later step). */
   --color-accent-brass: var(--accent-brass);
+  --color-accent-brass-ink: var(--accent-brass-ink);
   --color-accent-blush: var(--accent-blush);
   --color-accent-blush-strong: var(--accent-blush-strong);
   --color-emphasis-berry: var(--emphasis-berry);
@@ -193,6 +194,7 @@
 
   /* --- Ownable accent + emphasis (DEFINE ONLY; apply in a later step) - */
   --accent-brass: #b08641;        /* NEW brand accent — not yet present in code. */
+  --accent-brass-ink: #332107;    /* dark-brass text ON brass fills (keepsake CTA + pill). AA 4.65:1 on --accent-brass. NOTE: brief suggested ~#3A2A10 (=4.17:1, just under AA 4.5) — deepened to pass the accessibility rule. */
   --accent-blush: #e8b4b8;        /* contact CTA rest. Absorbs: #E8B4B8. Exact, no fold (ΔE 20.9 from berry). *** HIGH-PRIORITY accent-step reconciliation: first color that CONFLICTS with the brass-single-accent thesis — decide blush-as-soft-secondary vs unify-to-brass. *** */
   --accent-blush-strong: #e3a9ae; /* contact CTA hover. Absorbs: #E3A9AE. Exact. Pairs with --accent-blush. */
   --emphasis-berry: #8a2f40;      /* Absorbs: #8A2F40. */

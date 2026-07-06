@@ -9,6 +9,11 @@ import { getFeaturedProducts } from "@/lib/products";
 export function FeaturedProductsSection() {
   const reduce = useReducedMotion();
   const products = getFeaturedProducts();
+  // Keepsake tier: the lead featured product that is also a bestseller
+  // (first featured otherwise). Wired off the existing catalog flags — no
+  // new data. Currently resolves to "fly-high-swaddle".
+  const keepsakeSlug =
+    products.find((p) => p.bestSeller)?.slug ?? products[0]?.slug;
 
   return (
     <section className="relative overflow-hidden bg-transparent pb-18 pt-12 sm:pb-22 sm:pt-14 lg:pb-26 lg:pt-18">
@@ -34,7 +39,7 @@ export function FeaturedProductsSection() {
         </motion.div>
 
         <div className="mt-10 sm:mt-12">
-          <ProductGrid products={products} />
+          <ProductGrid products={products} keepsakeSlug={keepsakeSlug} />
         </div>
       </div>
     </section>
