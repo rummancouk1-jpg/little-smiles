@@ -61,60 +61,60 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
   return (
     <>
       <div className="self-center lg:pr-6">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#3B2F2F]/52">
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-ink-base/52">
           Little Smiles
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Badge
             variant="outline"
-            className="border-[#3B2F2F]/12 bg-white/65 text-[#3B2F2F]/74"
+            className="border-ink-base/12 bg-white/65 text-ink-base/74"
           >
             {product.category}
           </Badge>
           {getDiscountBadgeLabel(product) ? (
-            <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
+            <Badge className="border-transparent bg-ink-walnut text-ink-foreground">
               {getDiscountBadgeLabel(product)}
             </Badge>
           ) : null}
         </div>
         <h1
           id="product-title"
-          className="mt-4 text-3xl font-semibold tracking-tight text-[#1F1918] sm:mt-5 sm:text-5xl"
+          className="mt-4 text-3xl font-semibold tracking-tight text-ink-espresso sm:mt-5 sm:text-5xl"
         >
           {product.name}
         </h1>
-        <p className="mt-5 max-w-[42ch] text-base leading-relaxed text-[#3B2F2F]/72 sm:text-lg">
+        <p className="mt-5 max-w-[42ch] text-base leading-relaxed text-ink-base/72 sm:text-lg">
           {product.longDescription}
         </p>
 
-        <div className="mt-7 rounded-2xl border border-[#3B2F2F]/10 bg-white/58 p-4 sm:p-5">
+        <div className="mt-7 rounded-2xl border border-ink-base/10 bg-white/58 p-4 sm:p-5">
           <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
-            <p className="text-3xl font-semibold text-[#2E2323] sm:text-[2rem]">
+            <p className="text-3xl font-semibold text-ink-walnut sm:text-[2rem]">
               {formatPkr(product.pricePkr)}
             </p>
             {getDiscountBadgeLabel(product) ? (
-              <p className="text-base text-[#3B2F2F]/56 line-through">
+              <p className="text-base text-ink-base/56 line-through">
                 {formatPkr(product.compareAtPricePkr)}
               </p>
             ) : null}
           </div>
-          <p className="mt-2 text-xs font-semibold tracking-[0.1em] text-[#6E2D2D] uppercase">
+          <p className="mt-2 text-xs font-semibold tracking-[0.1em] text-tone-availability uppercase">
             {getAvailabilityLabel(product)}
           </p>
         </div>
 
-        <div className="mt-8 space-y-4 rounded-2xl border border-[#3B2F2F]/10 bg-white/55 p-4 sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#3B2F2F]/55">
+        <div className="mt-8 space-y-4 rounded-2xl border border-ink-base/10 bg-white/55 p-4 sm:p-5">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-ink-base/55">
             Add your details
           </p>
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-qty">
+            <label className="text-sm font-medium text-ink-walnut" htmlFor="order-qty">
               Quantity
             </label>
             <select
               id="order-qty"
-              className="h-11 w-full max-w-[12rem] rounded-full border border-[#3B2F2F]/14 bg-white/90 px-4 text-sm text-[#2E2323] outline-none focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/25"
+              className="h-11 w-full max-w-[12rem] rounded-full border border-ink-base/14 bg-white/90 px-4 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-base/25"
               value={safeQty}
               disabled={disabled}
               onChange={(event) =>
@@ -132,7 +132,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
 
           {productShowsVariantField(product) ? (
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-variant">
+              <label className="text-sm font-medium text-ink-walnut" htmlFor="order-variant">
                 Color or style
               </label>
               <Input
@@ -141,9 +141,9 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 value={variantNote}
                 disabled={disabled}
                 onChange={(event) => setVariantNote(event.target.value)}
-                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
+                className="h-11 rounded-full border-ink-base/14 bg-white/90 px-4 text-base lg:text-sm"
               />
-              <p className="text-xs text-[#3B2F2F]/58">
+              <p className="text-xs text-ink-base/58">
                 Optional. We confirm before packing.
               </p>
             </div>
@@ -151,7 +151,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
 
           {productShowsSizeField(product) ? (
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-size">
+              <label className="text-sm font-medium text-ink-walnut" htmlFor="order-size">
                 Size
               </label>
               <Input
@@ -160,13 +160,13 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 value={sizeNote}
                 disabled={disabled}
                 onChange={(event) => setSizeNote(event.target.value)}
-                className="h-11 rounded-full border-[#3B2F2F]/14 bg-white/90 px-4 text-base lg:text-sm"
+                className="h-11 rounded-full border-ink-base/14 bg-white/90 px-4 text-base lg:text-sm"
               />
             </div>
           ) : null}
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-[#2E2323]" htmlFor="order-note">
+            <label className="text-sm font-medium text-ink-walnut" htmlFor="order-note">
               Note (optional)
             </label>
             <textarea
@@ -175,40 +175,40 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               value={customerNote}
               disabled={disabled}
               onChange={(event) => setCustomerNote(event.target.value)}
-              className="min-h-22 w-full rounded-2xl border border-[#3B2F2F]/14 bg-white/90 px-4 py-2.5 text-sm text-[#2E2323] outline-none focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/25"
+              className="min-h-22 w-full rounded-2xl border border-ink-base/14 bg-white/90 px-4 py-2.5 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-base/25"
             />
           </div>
 
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-[#3B2F2F]/10 pt-4">
-            <span className="text-sm text-[#3B2F2F]/72">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-ink-base/10 pt-4">
+            <span className="text-sm text-ink-base/72">
               {safeQty > 1 ? "Line total" : "Total"}
             </span>
-            <span className="text-lg font-semibold text-[#2E2323]">
+            <span className="text-lg font-semibold text-ink-walnut">
               {formatPkr(lineTotal)}
             </span>
           </div>
         </div>
 
-        <div className="mt-7 rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/88 p-4 text-sm leading-relaxed text-[#3B2F2F]/76">
+        <div className="mt-7 rounded-2xl border border-ink-base/10 bg-surface-panel/88 p-4 text-sm leading-relaxed text-ink-base/76">
           <p>
-            <span className="font-semibold text-[#241B1B]">Payment:</span> Cash on delivery, available across Pakistan.
+            <span className="font-semibold text-ink-espresso">Payment:</span> Cash on delivery, available across Pakistan.
           </p>
           <p>
-            <span className="font-semibold text-[#241B1B]">Shipping:</span> {product.dispatchTimeline}{" "}
+            <span className="font-semibold text-ink-espresso">Shipping:</span> {product.dispatchTimeline}{" "}
             {product.deliveryEstimate}
           </p>
           <p className="mt-2">
-            <span className="font-semibold text-[#241B1B]">Care:</span> {product.careNote}
+            <span className="font-semibold text-ink-espresso">Care:</span> {product.careNote}
           </p>
           <p className="mt-2">
-            <span className="font-semibold text-[#241B1B]">Gifting:</span> {product.giftingNote}
+            <span className="font-semibold text-ink-espresso">Gifting:</span> {product.giftingNote}
           </p>
           <p className="mt-2">
-            <span className="font-semibold text-[#241B1B]">Returns:</span> Message us within 48 hours of delivery for damaged or wrong items, with photos.
+            <span className="font-semibold text-ink-espresso">Returns:</span> Message us within 48 hours of delivery for damaged or wrong items, with photos.
           </p>
-          <p className="mt-3 text-xs text-[#3B2F2F]/68">
+          <p className="mt-3 text-xs text-ink-base/68">
             Already placed an order?{" "}
-            <Link href="/track-order" className="font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#241B1B]">
+            <Link href="/track-order" className="font-medium text-ink-walnut underline underline-offset-2 hover:text-ink-espresso">
               Track your order
             </Link>
             .
@@ -219,7 +219,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {disabled ? (
             <Button
               disabled
-              className="h-11 w-full rounded-full bg-[#3B2F2F]/35 px-7 text-sm font-medium text-[#F6F1EC] sm:w-auto"
+              className="h-11 w-full rounded-full bg-ink-base/35 px-7 text-sm font-medium text-ink-foreground sm:w-auto"
               type="button"
             >
               Currently unavailable
@@ -230,7 +230,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <Button
                 asChild
                 variant="outline"
-                className="h-12 w-full rounded-full border-[#2E2323]/16 bg-white/72 px-7 text-sm font-semibold text-[#2E2323] sm:h-11 sm:w-auto"
+                className="h-12 w-full rounded-full border-ink-walnut/16 bg-white/72 px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
               >
                 <Link
                   href={orderHref}
@@ -254,7 +254,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           )}
           <Link
             href="/shop"
-            className="group inline-flex h-11 items-center gap-1.5 self-center text-sm font-medium text-[#3B2F2F]/72 underline decoration-[#3B2F2F]/20 underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-[#1F1918] hover:decoration-[#1F1918]/45 sm:self-auto"
+            className="group inline-flex h-11 items-center gap-1.5 self-center text-sm font-medium text-ink-base/72 underline decoration-ink-base/20 underline-offset-[6px] transition-[color,text-decoration-color] duration-200 hover:text-ink-espresso hover:decoration-ink-espresso/45 sm:self-auto"
           >
             <span
               aria-hidden
@@ -268,15 +268,15 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-2 sm:hidden">
-        <div className="mx-auto max-w-md space-y-2 rounded-2xl border border-[#3B2F2F]/12 bg-[#FCF8F4]/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-[#FCF8F4]/92">
+        <div className="mx-auto max-w-md space-y-2 rounded-2xl border border-ink-base/12 bg-surface-card/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-surface-card/92">
           <div className="flex items-baseline justify-between gap-2">
-            <p className="text-base font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
+            <p className="text-base font-semibold text-ink-walnut">{formatPkr(lineTotal)}</p>
             {safeQty === 1 && getDiscountBadgeLabel(product) ? (
-              <p className="text-[11px] text-[#3B2F2F]/58 line-through">
+              <p className="text-[11px] text-ink-base/58 line-through">
                 {formatPkr(product.compareAtPricePkr)}
               </p>
             ) : (
-              <p className="text-[11px] text-[#3B2F2F]/58">
+              <p className="text-[11px] text-ink-base/58">
                 {safeQty} × {formatPkr(product.pricePkr)} each
               </p>
             )}
@@ -284,7 +284,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {disabled ? (
             <Button
               disabled
-              className="h-11 w-full rounded-full bg-[#3B2F2F]/35 text-xs font-medium text-[#F6F1EC]"
+              className="h-11 w-full rounded-full bg-ink-base/35 text-xs font-medium text-ink-foreground"
               type="button"
             >
               Unavailable
@@ -300,7 +300,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <Button
                 asChild
                 variant="outline"
-                className="h-11 min-h-11 shrink-0 rounded-full border-[#2E2323]/16 bg-white/72 px-3 text-xs font-semibold text-[#2E2323]"
+                className="h-11 min-h-11 shrink-0 rounded-full border-ink-walnut/16 bg-white/72 px-3 text-xs font-semibold text-ink-walnut"
               >
                 <Link
                   href={orderHref}
