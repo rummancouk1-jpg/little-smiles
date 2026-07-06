@@ -113,7 +113,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
       >
         <TabsTrigger
           value="all"
-          className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut data-active:text-ink-foreground data-active:shadow-none"
+          className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:after:opacity-0 data-active:text-ink-foreground data-active:shadow-none"
         >
           All ({products.length})
         </TabsTrigger>
@@ -123,7 +123,7 @@ export function ShopCategoryTabs({ products }: ShopCategoryTabsProps) {
             <TabsTrigger
               key={category}
               value={category}
-              className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut data-active:text-ink-foreground data-active:shadow-none"
+              className="touch-feedback h-10 shrink-0 rounded-full border border-ink-base/12 bg-white/62 px-4 text-sm text-ink-base/75 data-active:border-ink-walnut/15 data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:bg-ink-walnut group-data-[variant=line]/tabs-list:data-active:after:opacity-0 data-active:text-ink-foreground data-active:shadow-none"
             >
               {category} ({count})
             </TabsTrigger>
