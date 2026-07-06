@@ -65,10 +65,10 @@ export function TrackOrderForm() {
   };
 
   return (
-    <section className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-6 sm:p-7">
+    <section className="rounded-3xl border border-ink-base/10 bg-white/90 p-6 sm:p-7">
       <form onSubmit={submit} className="space-y-4">
         <div className="grid gap-1">
-          <label htmlFor="order-ref" className="text-sm font-medium text-[#2E2323]">
+          <label htmlFor="order-ref" className="text-sm font-medium text-ink-walnut">
             Order ID (first 8 chars or full)
           </label>
           <input
@@ -76,11 +76,11 @@ export function TrackOrderForm() {
             value={orderRef}
             onChange={(event) => setOrderRef(event.target.value)}
             placeholder="e.g. a1b2c3d4"
-            className="h-11 rounded-2xl border border-[#3B2F2F]/14 bg-white px-3 text-sm text-[#2E2323] outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/20"
+            className="h-11 rounded-2xl border border-ink-base/14 bg-white px-3 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/20"
           />
         </div>
         <div className="grid gap-1">
-          <label htmlFor="order-phone" className="text-sm font-medium text-[#2E2323]">
+          <label htmlFor="order-phone" className="text-sm font-medium text-ink-walnut">
             Phone number used for order
           </label>
           <input
@@ -88,31 +88,31 @@ export function TrackOrderForm() {
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="03XXXXXXXXX"
-            className="h-11 rounded-2xl border border-[#3B2F2F]/14 bg-white px-3 text-sm text-[#2E2323] outline-none focus-visible:ring-2 focus-visible:ring-[#2E2323]/20"
+            className="h-11 rounded-2xl border border-ink-base/14 bg-white px-3 text-sm text-ink-walnut outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/20"
           />
         </div>
         <button
           type="submit"
           disabled={loading || orderRef.trim().length < 6 || phone.trim().length < 7}
-          className="h-11 rounded-full bg-[#2F2624] px-6 text-sm font-medium text-[#F6F1EC] disabled:cursor-not-allowed disabled:opacity-70"
+          className="h-11 rounded-full bg-ink-walnut px-6 text-sm font-medium text-ink-foreground disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? "Checking..." : "Track order"}
         </button>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-[#9A4C5A]">{error}</p> : null}
+      {error ? <p className="mt-4 text-sm text-emphasis-berry-soft">{error}</p> : null}
 
       {result ? (
-        <article className="mt-5 rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF7F2] p-4">
-          <p className="text-sm font-semibold text-[#1F1918]">
+        <article className="mt-5 rounded-2xl border border-ink-base/10 bg-surface-card p-4">
+          <p className="text-sm font-semibold text-ink-espresso">
             Order #{result.shortId} • {result.productName}
           </p>
-          <p className="mt-2 text-sm text-[#3B2F2F]/80">Status: {result.status}</p>
-          <p className="mt-1 text-sm text-[#3B2F2F]/80">Total: {formatPkr(result.totalPkr)}</p>
-          <p className="mt-1 text-sm text-[#3B2F2F]/80">Last update: {formatDateTime(result.updatedAt)}</p>
-          {result.courier ? <p className="mt-1 text-sm text-[#3B2F2F]/80">Courier: {result.courier}</p> : null}
+          <p className="mt-2 text-sm text-ink-base/80">Status: {result.status}</p>
+          <p className="mt-1 text-sm text-ink-base/80">Total: {formatPkr(result.totalPkr)}</p>
+          <p className="mt-1 text-sm text-ink-base/80">Last update: {formatDateTime(result.updatedAt)}</p>
+          {result.courier ? <p className="mt-1 text-sm text-ink-base/80">Courier: {result.courier}</p> : null}
           {result.trackingId ? (
-            <p className="mt-1 text-sm text-[#3B2F2F]/80">Tracking ID: {result.trackingId}</p>
+            <p className="mt-1 text-sm text-ink-base/80">Tracking ID: {result.trackingId}</p>
           ) : null}
         </article>
       ) : null}

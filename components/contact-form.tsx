@@ -101,11 +101,11 @@ export function ContactForm() {
       <div>
         <Input
           placeholder="Your Name"
-          className="contact-input h-11 rounded-2xl border-[#2E2323]/12 bg-white/80 text-[#2E2323] caret-[#2E2323] placeholder:text-[#6B5B59]/65 focus-visible:border-[#2E2323]/32 focus-visible:ring-[#2E2323]/18"
+          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-white/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
           {...register("name")}
         />
         {errors.name ? (
-          <p className="mt-1 text-xs text-[#9A4C5A]">{errors.name.message}</p>
+          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.name.message}</p>
         ) : null}
       </div>
       <div>
@@ -114,11 +114,11 @@ export function ContactForm() {
           inputMode="email"
           autoComplete="email"
           placeholder="Email Address"
-          className="contact-input h-11 rounded-2xl border-[#2E2323]/12 bg-white/80 text-[#2E2323] caret-[#2E2323] placeholder:text-[#6B5B59]/65 focus-visible:border-[#2E2323]/32 focus-visible:ring-[#2E2323]/18"
+          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-white/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
           {...register("email")}
         />
         {errors.email ? (
-          <p className="mt-1 text-xs text-[#9A4C5A]">{errors.email.message}</p>
+          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.email.message}</p>
         ) : null}
       </div>
       <div>
@@ -126,35 +126,35 @@ export function ContactForm() {
           placeholder="Phone Number"
           inputMode="tel"
           autoComplete="tel"
-          className="contact-input h-11 rounded-2xl border-[#2E2323]/12 bg-white/80 text-[#2E2323] caret-[#2E2323] placeholder:text-[#6B5B59]/65 focus-visible:border-[#2E2323]/32 focus-visible:ring-[#2E2323]/18"
+          className="contact-input h-11 rounded-2xl border-ink-walnut/12 bg-white/80 text-ink-walnut caret-ink-walnut placeholder:text-ink-placeholder/65 focus-visible:border-ink-walnut/32 focus-visible:ring-ink-walnut/18"
           {...register("phone")}
         />
         {errors.phone ? (
-          <p className="mt-1 text-xs text-[#9A4C5A]">{errors.phone.message}</p>
+          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.phone.message}</p>
         ) : null}
       </div>
       <div>
         <textarea
           placeholder="How can we help?"
-          className="contact-textarea min-h-28 w-full rounded-2xl border border-[#2E2323]/12 bg-white/80 px-3 py-2 text-base leading-relaxed text-[#2E2323] caret-[#2E2323] outline-none ring-0 placeholder:text-[#6B5B59]/65 focus:border-[#2E2323]/32 focus:ring-3 focus:ring-[#2E2323]/18 lg:text-sm"
+          className="contact-textarea min-h-28 w-full rounded-2xl border border-ink-walnut/12 bg-white/80 px-3 py-2 text-base leading-relaxed text-ink-walnut caret-ink-walnut outline-none ring-0 placeholder:text-ink-placeholder/65 focus:border-ink-walnut/32 focus:ring-3 focus:ring-ink-walnut/18 lg:text-sm"
           {...register("message")}
         />
         {errors.message ? (
-          <p className="mt-1 text-xs text-[#9A4C5A]">{errors.message.message}</p>
+          <p className="mt-1 text-xs text-emphasis-berry-soft">{errors.message.message}</p>
         ) : null}
       </div>
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 rounded-full bg-[#E8B4B8] px-7 text-sm font-medium text-[#2E2323] shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#E3A9AE]"
+        className="h-11 rounded-full bg-accent-blush px-7 text-sm font-medium text-ink-walnut shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong"
       >
         {isSubmitting ? "Sending..." : "Send Message"}
       </Button>
       {submitted ? (
-        <div className="space-y-1 text-sm text-[#3B2F2F]/75">
+        <div className="space-y-1 text-sm text-ink-base/75">
           <p>Thank you — we received your message.</p>
           {deliveredToInbox === false ? (
-            <p className="text-[#3B2F2F]/62">
+            <p className="text-ink-base/62">
               Email delivery is temporarily delayed. Please message us on{" "}
               <Link
                 href={whatsappBaseUrl}
@@ -171,7 +171,7 @@ export function ContactForm() {
           )}
         </div>
       ) : null}
-      {error ? <p className="text-sm text-[#9A4C5A]">{error}</p> : null}
+      {error ? <p className="text-sm text-emphasis-berry-soft">{error}</p> : null}
     </form>
   );
 }
