@@ -217,8 +217,10 @@ export function getProductDetailMetadata(product: Product): Metadata {
   const override = productSeoBySlug[product.slug as TopCommercialSlug];
   const core = override ?? fallbackProductMetadata(product);
   const pageUrl = `${siteUrl}/shop/${product.slug}`;
-  const ogImage = product.image;
 
+  // og:image / twitter:image are supplied by the route's opengraph-image.tsx +
+  // twitter-image.tsx (a composed 1200×630 product card), so they're
+  // intentionally omitted here to avoid duplicate image tags.
   return {
     title: core.title,
     description: core.description,
@@ -231,13 +233,11 @@ export function getProductDetailMetadata(product: Product): Metadata {
       type: "website",
       locale: "en_PK",
       siteName: "Little Smiles",
-      images: [{ url: ogImage, alt: `${product.name} — ${product.category}, Little Smiles` }],
     },
     twitter: {
       card: "summary_large_image",
       title: core.title,
       description: core.description,
-      images: [ogImage],
     },
   };
 }
