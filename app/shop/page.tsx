@@ -62,7 +62,7 @@ export default function ShopPage() {
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Little Smiles
           </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-ink-walnut sm:text-5xl">
+          <h1 className="mt-4 text-headline font-semibold text-ink-walnut">
             Shop Baby Essentials
           </h1>
           <p className="mt-4 text-base leading-relaxed text-ink-base/70 sm:text-lg">

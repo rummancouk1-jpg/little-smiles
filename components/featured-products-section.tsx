@@ -30,7 +30,7 @@ export function FeaturedProductsSection() {
           transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
           className="mx-auto max-w-2xl text-center"
         >
-          <h2 className="text-balance text-4xl font-semibold leading-[1] tracking-tight text-ink-espresso sm:text-5xl">
+          <h2 className="text-balance text-headline font-semibold text-ink-espresso">
             Starting points for the first months
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">

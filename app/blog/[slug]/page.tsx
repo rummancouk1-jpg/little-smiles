@@ -105,7 +105,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
             {post.category}
           </p>
-          <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-ink-espresso sm:text-5xl">
+          <h1 className="mt-4 text-balance text-headline font-semibold text-ink-espresso">
             {post.title}
           </h1>
           <p className="mt-5 text-base leading-relaxed text-ink-base/72 sm:text-lg">

@@ -26,8 +26,8 @@ export default function ContactPage() {
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-ink-base/50">
             Contact Little Smiles
           </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-ink-walnut sm:text-5xl">
-            We are here to help
+          <h1 className="mt-4 text-headline font-semibold text-ink-walnut">
+            We are here to <span className="italic">help</span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-ink-base/72 sm:text-lg">
             For product details, gifting support, or order assistance, message us

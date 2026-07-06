@@ -165,7 +165,7 @@ export function HeroSection() {
                 hidden: { opacity: 0, y: reduce ? 0 : 12 },
                 visible: { opacity: 1, y: 0, transition: baseTransition },
               }}
-              className="mt-3 text-balance text-[2.5rem] font-semibold leading-[1] tracking-tight text-ink-strong sm:mt-4 sm:text-[4rem] lg:text-[5rem]"
+              className="mt-3 text-balance text-display font-medium text-ink-strong sm:mt-4"
             >
               Tiny Essentials for Your Little{" "}
               <span className="italic">Smiles</span>

@@ -10,6 +10,24 @@
   --font-sans: var(--font-body-sans);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-heading: var(--font-editorial-serif);
+
+  /* === Editorial type scale (Step 3, Move 3) ===============================
+     Fluid clamp(min, preferred, max) so display headings gain editorial
+     presence on desktop WITHOUT breaking mobile — the min pins small-screen
+     size near today's values, growth is viewport-driven. font-family stays
+     Cormorant via the base h1/h2/h3 rule; these tokens set size + line-height
+     + tracking only. Headings reference the scale (text-display/-headline/
+     -subhead), not arbitrary rem values. Weight is carried at the call site
+     (kept elegant, not heavy). ======================================= */
+  --text-display: clamp(2.75rem, 1.6rem + 5vw, 5.75rem);
+  --text-display--line-height: 1.03;
+  --text-display--letter-spacing: -0.02em;
+  --text-headline: clamp(2.25rem, 1.5rem + 2.6vw, 3.5rem);
+  --text-headline--line-height: 1.06;
+  --text-headline--letter-spacing: -0.015em;
+  --text-subhead: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+  --text-subhead--line-height: 1.15;
+  --text-subhead--letter-spacing: -0.01em;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

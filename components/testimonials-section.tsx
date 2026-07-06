@@ -28,7 +28,7 @@ export function TestimonialsSection() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="eyebrow">Letters</p>
-          <h2 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-ink-espresso sm:text-5xl">
+          <h2 className="mt-4 text-balance text-headline font-semibold text-ink-espresso">
             From families across Pakistan
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">

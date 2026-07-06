@@ -63,9 +63,9 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
           </p>
           <h2
             id="trust-heading"
-            className="mt-4 text-balance text-4xl font-semibold tracking-tight text-ink-espresso sm:text-5xl"
+            className="mt-4 text-balance text-headline font-semibold text-ink-espresso"
           >
-            Care continues after the order
+            <span className="italic">Care</span> continues after the order
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
             Here&apos;s what to expect once you place an order.
