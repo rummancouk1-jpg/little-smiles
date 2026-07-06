@@ -20,7 +20,7 @@ export default function Home() {
   const homeFaqStructuredData = faqPageJsonLd([...homeShoppingFaqs]);
 
   return (
-    <main className="min-h-screen bg-[#F9F5F1]">
+    <main className="min-h-screen bg-surface-page">
       <HeroSection />
       <HomeCategoryLinks products={products} />
       <FeaturedProductsSection />

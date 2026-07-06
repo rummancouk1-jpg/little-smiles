@@ -13,8 +13,8 @@ export function FeaturedProductsSection() {
   return (
     <section className="relative overflow-hidden bg-transparent pb-18 pt-12 sm:pb-22 sm:pt-14 lg:pb-26 lg:pt-18">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute left-0 top-16 h-56 w-56 rounded-full bg-[#EFE7E0]/70 blur-3xl" />
-        <div className="absolute right-0 top-20 h-64 w-64 rounded-full bg-[#ECE4DD]/62 blur-3xl" />
+        <div className="absolute left-0 top-16 h-56 w-56 rounded-full bg-atmosphere-haze/70 blur-3xl" />
+        <div className="absolute right-0 top-20 h-64 w-64 rounded-full bg-atmosphere-haze/62 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
@@ -25,10 +25,10 @@ export function FeaturedProductsSection() {
           transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
           className="mx-auto max-w-2xl text-center"
         >
-          <h2 className="text-balance text-4xl font-semibold leading-[1] tracking-tight text-[#1F1918] sm:text-5xl">
+          <h2 className="text-balance text-4xl font-semibold leading-[1] tracking-tight text-ink-espresso sm:text-5xl">
             Starting points for the first months
           </h2>
-          <p className="mt-5 text-pretty text-base leading-relaxed text-[#3B2F2F]/68 sm:text-lg">
+          <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
             Quiet basics for the early days. Easy gifts for new parents.
           </p>
         </motion.div>

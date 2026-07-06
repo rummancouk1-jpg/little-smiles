@@ -28,11 +28,11 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
       <div className="mb-6 flex items-center justify-between gap-3">
         <h2
           id="related-products-title"
-          className="text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl"
+          className="text-2xl font-semibold tracking-tight text-ink-espresso sm:text-3xl"
         >
           Parents also liked
         </h2>
-        <Link href="/shop" className="text-sm font-medium text-[#2E2323] hover:underline">
+        <Link href="/shop" className="text-sm font-medium text-ink-walnut hover:underline">
           View all
         </Link>
       </div>
@@ -40,10 +40,10 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
         {products.map((item) => (
           <article
             key={item.slug}
-            className="rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-3.5 shadow-[0_22px_46px_-30px_rgba(59,47,47,0.32)]"
+            className="rounded-3xl border border-ink-base/10 bg-surface-card/94 p-3.5 shadow-[0_22px_46px_-30px_rgba(59,47,47,0.32)]"
           >
             <Link href={`/shop/${item.slug}`} className="group block">
-              <div className="relative h-44 rounded-2xl bg-[#F5EEE7] p-4">
+              <div className="relative h-44 rounded-2xl bg-surface-well p-4">
                 <ProductImage
                   sources={getImageCandidates(item.image)}
                   alt={`${item.name} by Little Smiles`}
@@ -52,23 +52,23 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
                   className="object-contain object-center"
                 />
               </div>
-              <p className="mt-3 text-sm font-semibold text-[#2E2323] group-hover:underline">
+              <p className="mt-3 text-sm font-semibold text-ink-walnut group-hover:underline">
                 {item.name}
               </p>
             </Link>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-[#3B2F2F]/12 bg-white/66 text-[#3B2F2F]/74">
+              <Badge variant="outline" className="border-ink-base/12 bg-white/66 text-ink-base/74">
                 {item.category}
               </Badge>
               {getDiscountBadgeLabel(item) ? (
-                <Badge className="border-transparent bg-[#2F2624] text-[#F6F1EC]">
+                <Badge className="border-transparent bg-ink-walnut text-ink-foreground">
                   {getDiscountBadgeLabel(item)}
                 </Badge>
               ) : null}
             </div>
             <div className="mt-2">
-              <p className="text-base font-semibold text-[#2E2323]">{formatPkr(item.pricePkr)}</p>
-              <p className="text-[11px] font-medium tracking-[0.08em] text-[#6E2D2D] uppercase">
+              <p className="text-base font-semibold text-ink-walnut">{formatPkr(item.pricePkr)}</p>
+              <p className="text-[11px] font-medium tracking-[0.08em] text-tone-availability uppercase">
                 {getAvailabilityLabel(item)}
               </p>
             </div>
@@ -77,7 +77,7 @@ export function RelatedProductsSection({ products }: RelatedProductsSectionProps
               <Button
                 asChild
                 variant="outline"
-                className="h-9 w-full rounded-full border-[#2E2323]/14 bg-white/62 text-xs font-medium text-[#2E2323]"
+                className="h-9 w-full rounded-full border-ink-walnut/14 bg-white/62 text-xs font-medium text-ink-walnut"
               >
                 <Link
                   href={getWhatsappOrderLink(item)}
