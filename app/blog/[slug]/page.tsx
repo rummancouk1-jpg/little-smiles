@@ -91,7 +91,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   ]);
 
   return (
-    <main className="min-h-screen bg-[#F9F5F1] pb-16 pt-10 sm:pt-12 lg:pt-16">
+    <main className="min-h-screen bg-surface-page pb-16 pt-10 sm:pt-12 lg:pt-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -101,24 +101,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <article className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-[#3B2F2F]/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
+        <div className="rounded-3xl border border-ink-base/8 bg-white/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
             {post.category}
           </p>
-          <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-[#1F1918] sm:text-5xl">
+          <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight text-ink-espresso sm:text-5xl">
             {post.title}
           </h1>
-          <p className="mt-5 text-base leading-relaxed text-[#3B2F2F]/72 sm:text-lg">
+          <p className="mt-5 text-base leading-relaxed text-ink-base/72 sm:text-lg">
             {post.description}
           </p>
-          <p className="mt-4 text-xs text-[#3B2F2F]/58">
+          <p className="mt-4 text-xs text-ink-base/58">
             <time dateTime={publishedIso}>
               {post.publishedAt} · {post.readTime}
             </time>
           </p>
 
           {heroImagePath ? (
-            <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]">
+            <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-ink-base/10 bg-surface-panel">
               <Image
                 src={heroImagePath}
                 alt={`${post.title} hero image`}
@@ -133,10 +133,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="mt-9 space-y-8">
             {post.sections.map((section) => (
               <section key={section.heading}>
-                <h2 className="text-2xl font-semibold tracking-tight text-[#241B1B]">
+                <h2 className="text-2xl font-semibold tracking-tight text-ink-espresso">
                   {section.heading}
                 </h2>
-                <div className="mt-3 space-y-3 text-base leading-relaxed text-[#3B2F2F]/74">
+                <div className="mt-3 space-y-3 text-base leading-relaxed text-ink-base/74">
                   {section.content.map((paragraph) => (
                     <p key={paragraph}>{paragraph}</p>
                   ))}
@@ -145,13 +145,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             ))}
           </div>
 
-          <div className="mt-10 rounded-2xl border border-[#3B2F2F]/10 bg-[#F8F2EC] p-5">
-            <p className="text-sm text-[#3B2F2F]/72">
+          <div className="mt-10 rounded-2xl border border-ink-base/10 bg-surface-callout p-5">
+            <p className="text-sm text-ink-base/72">
               Ready to shop products mentioned in this guide?
             </p>
             <Link
               href={post.cta.href}
-              className="mt-3 inline-flex rounded-full bg-[#2F2624] px-5 py-2.5 text-sm font-medium text-[#F6F1EC] transition-colors hover:bg-[#251E1D]"
+              className="mt-3 inline-flex rounded-full bg-ink-walnut px-5 py-2.5 text-sm font-medium text-ink-foreground transition-colors hover:bg-ink-espresso"
             >
               {post.cta.label}
             </Link>
@@ -159,24 +159,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {relatedPosts.length > 0 ? (
             <section className="mt-10">
-              <h2 className="text-2xl font-semibold tracking-tight text-[#241B1B]">
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-espresso">
                 Related Articles
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedPosts.map((entry) => (
                   <article
                     key={entry.slug}
-                    className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/95 p-4"
+                    className="rounded-2xl border border-ink-base/10 bg-surface-card/95 p-4"
                   >
-                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-[#3B2F2F]/56">
+                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-ink-base/56">
                       {entry.category}
                     </p>
-                    <h3 className="mt-2 text-lg font-semibold leading-snug text-[#1F1918]">
+                    <h3 className="mt-2 text-lg font-semibold leading-snug text-ink-espresso">
                       <Link href={`/blog/${entry.slug}`} className="hover:underline">
                         {entry.title}
                       </Link>
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#3B2F2F]/70">
+                    <p className="mt-2 text-sm leading-relaxed text-ink-base/70">
                       {entry.description}
                     </p>
                   </article>
@@ -187,34 +187,34 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {relatedProducts.length > 0 ? (
             <section className="mt-10">
-              <h2 className="text-2xl font-semibold tracking-tight text-[#241B1B]">
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-espresso">
                 Related Products
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {relatedProducts.map((product) => (
                   <article
                     key={product.slug}
-                    className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/95 p-4"
+                    className="rounded-2xl border border-ink-base/10 bg-surface-card/95 p-4"
                   >
-                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-[#3B2F2F]/56">
+                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-ink-base/56">
                       {product.category}
                     </p>
-                    <h3 className="mt-2 text-base font-semibold leading-snug text-[#1F1918]">
+                    <h3 className="mt-2 text-base font-semibold leading-snug text-ink-espresso">
                       <Link href={`/shop/${product.slug}`} className="hover:underline">
                         {product.name}
                       </Link>
                     </h3>
                     <div className="mt-2 flex items-center gap-2">
-                      <p className="text-sm font-semibold text-[#2E2323]">
+                      <p className="text-sm font-semibold text-ink-walnut">
                         {formatPkr(product.pricePkr)}
                       </p>
-                      <p className="text-xs text-[#3B2F2F]/56 line-through">
+                      <p className="text-xs text-ink-base/56 line-through">
                         {formatPkr(product.compareAtPricePkr)}
                       </p>
                     </div>
                     <Link
                       href={`/shop/${product.slug}`}
-                      className="mt-3 inline-flex rounded-full border border-[#2E2323]/14 bg-white/70 px-3 py-1.5 text-xs font-medium text-[#2E2323] transition-[background-color,border-color] duration-200 hover:border-[#3B2F2F]/28 hover:bg-[#F2EAE4]"
+                      className="mt-3 inline-flex rounded-full border border-ink-walnut/14 bg-white/70 px-3 py-1.5 text-xs font-medium text-ink-walnut transition-[background-color,border-color] duration-200 hover:border-ink-base/28 hover:bg-surface-hover"
                     >
                       View Product
                     </Link>

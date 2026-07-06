@@ -85,6 +85,7 @@
   --color-surface-well: var(--surface-well);
   --color-surface-hover: var(--surface-hover);
   --color-surface-footer: var(--surface-footer);
+  --color-surface-callout: var(--surface-callout);
 
   /* Semantic category / status tones (define only). */
   --color-tone-green: var(--tone-green);
@@ -187,6 +188,7 @@
   --surface-well: #f7f0ea;  /* product image well. Absorbs: #F7F0EA (+ PDP #F5EEE7). */
   --surface-hover: #f2eae4; /* neutral hover fill. Absorbs: #F2EAE4. */
   --surface-footer: #fcf6f1; /* footer ground. Absorbs: #FCF6F1. (Added in Step 2 — exact value, no fold.) */
+  --surface-callout: #f8f2ec; /* blog CTA callout ground. Absorbs: #F8F2EC. (Added in Step 2 — exact value, no fold.) */
 
   /* --- Semantic category / status tones (define only) --------------- */
   --tone-green: #2e6a41;      /* Absorbs: #2E6A41. */
