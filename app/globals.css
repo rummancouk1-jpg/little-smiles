@@ -747,3 +747,17 @@
     transform: none;
   }
 }
+
+/* Cart-icon reaction: a subtle scale-pulse when an item is added (see
+   components/navbar.tsx). Calm bump, not a bounce. Motion-only — under
+   reduced motion the class is inert, so the count simply updates. */
+@keyframes cartBump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cart-bump {
+    animation: cartBump 0.32s ease-out;
+  }
+}

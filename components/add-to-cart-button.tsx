@@ -1,6 +1,7 @@
 "use client";
 
-import { ShoppingBag } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, ShoppingBag } from "lucide-react";
 
 import { useCart } from "@/components/cart-provider";
 import { Button } from "@/components/ui/button";
@@ -29,12 +30,27 @@ export function AddToCartButton({
   showIcon = true,
 }: Props) {
   const { addToCart } = useCart();
+  // Presentation-only confirmation: after a successful add, the button briefly
+  // morphs to a "✓ Added" state, then returns. The add itself is unchanged.
+  const [added, setAdded] = useState(false);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    [],
+  );
 
   const disabled = !product.inStock || product.inventoryQty <= 0;
 
   const handleClick = () => {
     if (disabled) return;
-    addToCart(product, quantity);
+    const result = addToCart(product, quantity);
+    if (!result?.ok) return;
+    setAdded(true);
+    if (addedTimer.current) clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setAdded(false), 1400);
   };
 
   const uiVariant =
@@ -46,7 +62,7 @@ export function AddToCartButton({
       variant={uiVariant}
       size={size === "sm" ? "sm" : "default"}
       className={cn(
-        "gap-2 rounded-full font-medium",
+        "relative gap-2 rounded-full font-medium",
         variant === "primary" &&
           "h-12 border-transparent bg-ink-walnut px-5 text-ink-foreground shadow-[0_14px_32px_-20px_rgba(47,38,36,0.56)] hover:bg-ink-espresso sm:h-10",
         variant === "outline" &&
@@ -58,8 +74,27 @@ export function AddToCartButton({
       onClick={handleClick}
       aria-label={label}
     >
-      {showIcon ? <ShoppingBag className="size-4 shrink-0" aria-hidden /> : null}
-      {label}
+      {/* In-flow label defines the button width, so the morph never shifts
+          layout — the success state is an absolute overlay that cross-fades. */}
+      <span
+        className={cn(
+          "inline-flex items-center gap-2 transition-opacity duration-200 motion-reduce:transition-none",
+          added && "opacity-0",
+        )}
+      >
+        {showIcon ? <ShoppingBag className="size-4 shrink-0" aria-hidden /> : null}
+        {label}
+      </span>
+      <span
+        aria-hidden
+        className={cn(
+          "absolute inset-0 inline-flex items-center justify-center gap-2 transition-opacity duration-200 motion-reduce:transition-none",
+          added ? "opacity-100" : "opacity-0",
+        )}
+      >
+        <Check className="size-4 shrink-0" strokeWidth={2.5} aria-hidden />
+        Added
+      </span>
     </Button>
   );
 }

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, MessageCircle, ShoppingBag } from "lucide-react";
 
 import { useCart } from "@/components/cart-provider";
@@ -35,6 +35,11 @@ export function Navbar() {
   const { totalQuantity, isCartReady } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // Scale-pulse the cart icon whenever the count increases (an item landed).
+  // Remounting via `bumpKey` restarts the CSS animation on every add; the
+  // keyframe is gated to prefers-reduced-motion: no-preference in globals.css.
+  const [bumpKey, setBumpKey] = useState(0);
+  const prevQuantity = useRef<number | null>(null);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 10);
@@ -42,6 +47,19 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isCartReady) return;
+    // First post-hydration read only establishes the baseline (no pulse on load).
+    if (prevQuantity.current === null) {
+      prevQuantity.current = totalQuantity;
+      return;
+    }
+    if (totalQuantity > prevQuantity.current) {
+      setBumpKey((key) => key + 1);
+    }
+    prevQuantity.current = totalQuantity;
+  }, [totalQuantity, isCartReady]);
 
   return (
     <header
@@ -89,7 +107,12 @@ export function Navbar() {
               totalQuantity > 0 ? `Cart, ${totalQuantity} items` : "View shopping cart"
             }
           >
-            <ShoppingBag className="size-[1.2rem]" aria-hidden />
+            <span
+              key={bumpKey}
+              className={cn("inline-flex", bumpKey > 0 && "cart-bump")}
+            >
+              <ShoppingBag className="size-[1.2rem]" aria-hidden />
+            </span>
             {isCartReady && totalQuantity > 0 ? (
               <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-ink-walnut px-1 text-[10px] font-semibold tabular-nums text-ink-foreground">
                 {totalQuantity > 99 ? "99+" : totalQuantity}
