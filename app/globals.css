@@ -71,6 +71,8 @@
 
   /* Ownable accent + emphasis (DEFINE ONLY — not applied until a later step). */
   --color-accent-brass: var(--accent-brass);
+  --color-accent-blush: var(--accent-blush);
+  --color-accent-blush-strong: var(--accent-blush-strong);
   --color-emphasis-berry: var(--emphasis-berry);
   --color-emphasis-berry-deep: var(--emphasis-berry-deep);
   --color-emphasis-berry-soft: var(--emphasis-berry-soft);
@@ -189,6 +191,8 @@
 
   /* --- Ownable accent + emphasis (DEFINE ONLY; apply in a later step) - */
   --accent-brass: #b08641;        /* NEW brand accent — not yet present in code. */
+  --accent-blush: #e8b4b8;        /* contact CTA rest. Absorbs: #E8B4B8. Exact, no fold (ΔE 20.9 from berry). *** HIGH-PRIORITY accent-step reconciliation: first color that CONFLICTS with the brass-single-accent thesis — decide blush-as-soft-secondary vs unify-to-brass. *** */
+  --accent-blush-strong: #e3a9ae; /* contact CTA hover. Absorbs: #E3A9AE. Exact. Pairs with --accent-blush. */
   --emphasis-berry: #8a2f40;      /* Absorbs: #8A2F40. */
   --emphasis-berry-deep: #5e1c29; /* Absorbs: #5E1C29. (Verify #6E2D2D availability-label folds here in Step 2.) */
   --emphasis-berry-soft: #9a4c5a; /* Absorbs: #9A4C5A. */
