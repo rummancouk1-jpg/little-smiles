@@ -25,7 +25,7 @@ export function TestimonialsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: reduce ? 0 : motionDuration.slow, ease: premiumEase }}
-          className="mx-auto max-w-2xl text-center"
+          className="max-w-2xl"
         >
           <p className="eyebrow">Letters</p>
           <h2 className="mt-4 text-balance text-headline font-semibold text-ink-espresso">
