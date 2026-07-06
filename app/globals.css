@@ -86,6 +86,7 @@
   --color-surface-hover: var(--surface-hover);
   --color-surface-footer: var(--surface-footer);
   --color-surface-callout: var(--surface-callout);
+  --color-surface-hover-soft: var(--surface-hover-soft);
 
   /* Ambient / decorative warm tints (blur-blobs, image wells). The ~14
      drifting greige decor hexes collapse into these 4 by lightness under
@@ -106,6 +107,8 @@
   --color-tone-blue: var(--tone-blue);
   --color-tone-blue-tint: var(--tone-blue-tint);
   --color-tone-availability: var(--tone-availability);
+  --color-tone-trust: var(--tone-trust);
+  --color-tone-danger: var(--tone-danger);
 }
 
 :root {
@@ -198,6 +201,7 @@
   --surface-hover: #f2eae4; /* neutral hover fill. Absorbs: #F2EAE4. */
   --surface-footer: #fcf6f1; /* footer ground. Absorbs: #FCF6F1. (Added in Step 2 — exact value, no fold.) */
   --surface-callout: #f8f2ec; /* blog CTA callout ground. Absorbs: #F8F2EC. (Added in Step 2 — exact value, no fold.) */
+  --surface-hover-soft: #f8f4f0; /* remove-button soft hover. Absorbs: #F8F4F0. Exact, NO fold — NOT atmosphere-veil despite ΔE 0.60 (surface role). May adopt --surface-hover at design step. */
 
   /* Ambient / decorative warm-greige tints — 4-tone lightness ladder.
      Collapses the drifting decor family under Option-A (max ΔE 1.83).
@@ -218,6 +222,8 @@
   --tone-blue: #1f3f66;       /* Absorbs: #1F3F66. */
   --tone-blue-tint: #e7eef7;  /* Absorbs: #E7EEF7. */
   --tone-availability: #6e2d2d; /* availability-label maroon (all stock states). Absorbs: #6E2D2D. Exact, NO fold — distinct from --emphasis-berry* (ΔE 9+). Revisit at accent step. */
+  --tone-trust: #3b5f4a;  /* COD trust-checkmark sage. Absorbs: #3B5F4A. Exact, NO fold — ΔE 15 from --tone-green. Reconcile with green system at accent step. */
+  --tone-danger: #8b3a3a; /* form validation/error text. Absorbs: #8B3A3A. Exact — fills a real gap (no danger token existed; shadcn --destructive unused/different). Review vs warm palette at accent step. */
 
   /* --- Motion tokens ------------------------------------------------
      Mirror lib/motion.ts so CSS-driven transitions in later steps can
