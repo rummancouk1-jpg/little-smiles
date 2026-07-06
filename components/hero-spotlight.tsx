@@ -76,7 +76,6 @@ export function HeroSpotlight() {
                   sources={getImageCandidates(HERO_SRC)}
                   alt={HERO_ALT}
                   fill
-                  priority
                   sizes="(max-width: 1024px) 80vw, 40vw"
                   className="object-contain"
                 />

@@ -94,19 +94,15 @@ function ProductCard({
       )}
       style={{ x, y }}
     >
-      <motion.div
-        animate={reduce ? { y: 0 } : { y: [0, -3, 0] }}
-        transition={
-          reduce
-            ? { duration: 0 }
-            : {
-                duration: 11 + delay * 1.35,
-                delay: 0.35 + delay / 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }
-        }
-        className={cn("relative h-full w-full", imageWrapClassName)}
+      {/* Float via CSS (not framer) so it auto-pauses when this hero is the
+          hidden theme (display:none) — no wasted main-thread. Per-card timing
+          preserved; disabled under reduced-motion by the media query. */}
+      <div
+        className={cn("hero-float relative h-full w-full", imageWrapClassName)}
+        style={{
+          animationDuration: `${11 + delay * 1.35}s`,
+          animationDelay: `${0.35 + delay / 2}s`,
+        }}
       >
         <ProductImage
           sources={getImageCandidates(src)}
@@ -116,7 +112,7 @@ function ProductCard({
           sizes="(max-width: 1024px) 45vw, 26vw"
           className="object-contain"
         />
-      </motion.div>
+      </div>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_16%,rgba(255,255,255,0.72),transparent_58%)]" />
     </motion.div>
   );

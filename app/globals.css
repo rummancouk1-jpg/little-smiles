@@ -703,3 +703,17 @@
   .living-drift-b { animation: livingDriftB 13s ease-in-out infinite; }
   .living-drift-c { animation: livingDriftC 9.5s ease-in-out infinite; }
 }
+
+/* Light-hero collage float — CSS (not framer) so it auto-pauses when the light
+   hero is the hidden theme (display:none). Per-card duration/delay set inline. */
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-float {
+    animation-name: heroFloat;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+}
