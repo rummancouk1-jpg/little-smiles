@@ -46,6 +46,55 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ==================================================================
+     Direction C — "Modern Heirloom" brand spine  (STEP 1: DEFINE ONLY)
+     ------------------------------------------------------------------
+     These expose the brand palette declared in :root below as Tailwind
+     color utilities (text-* / bg-* / border-* + /<opacity>). This block
+     is PURELY ADDITIVE and inert: no component references any of these
+     tokens yet, so the site renders identically. Application is Step 2
+     (hex -> token codemod) and later steps. Names are chosen to avoid
+     collision with existing --color-* and existing manual .text-ink-*
+     utilities. See the token map in the PR description.
+     ================================================================== */
+
+  /* Opaque display / CTA inks — collapse target for the FIVE drifting
+     near-black browns (see :root notes for the exact hex mapping). */
+  --color-ink-espresso: var(--ink-espresso);     /* darkest ink + CTA hover */
+  --color-ink-walnut: var(--ink-walnut);         /* headings + primary CTA fill */
+  --color-ink-foreground: var(--ink-foreground); /* cream text ON dark ink */
+
+  /* Raw body-ink hue. Enables text-ink-base/<op>, border-ink-base/<op>,
+     bg-ink-base/<op> to absorb the ~1000 inline #3B2F2F/<op> uses. */
+  --color-ink-base: var(--ink-base);
+
+  /* Ownable accent + emphasis (DEFINE ONLY — not applied until a later step). */
+  --color-accent-brass: var(--accent-brass);
+  --color-emphasis-berry: var(--emphasis-berry);
+  --color-emphasis-berry-deep: var(--emphasis-berry-deep);
+  --color-emphasis-berry-soft: var(--emphasis-berry-soft);
+  --color-emphasis-berry-tint: var(--emphasis-berry-tint);
+
+  /* Warm surface / cream ladder. */
+  --color-surface-ivory: var(--surface-ivory);
+  --color-surface-page: var(--surface-page);
+  --color-surface-grain: var(--surface-grain);
+  --color-surface-card: var(--surface-card);
+  --color-surface-panel: var(--surface-panel);
+  --color-surface-well: var(--surface-well);
+  --color-surface-hover: var(--surface-hover);
+
+  /* Semantic category / status tones (define only). */
+  --color-tone-green: var(--tone-green);
+  --color-tone-green-deep: var(--tone-green-deep);
+  --color-tone-green-tint: var(--tone-green-tint);
+  --color-tone-amber: var(--tone-amber);
+  --color-tone-amber-deep: var(--tone-amber-deep);
+  --color-tone-amber-soft: var(--tone-amber-soft);
+  --color-tone-amber-tint: var(--tone-amber-tint);
+  --color-tone-blue: var(--tone-blue);
+  --color-tone-blue-tint: var(--tone-blue-tint);
 }
 
 :root {
@@ -55,6 +104,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+  /* NOTE (Direction C): --primary / --secondary are still the default
+     shadcn neutral OKLCH values. A LATER step will repoint these at the
+     brand tokens below (--ink-walnut fill, --ink-foreground text, etc.).
+     Left unchanged this session so nothing shifts visually. */
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
   /* Warm taupe/beige — visible hovers for secondary + ghost on grain backgrounds */
@@ -95,6 +148,73 @@
   /* Two-tier card depth: near-flat at rest, lifted on hover. */
   --shadow-card-rest: 0 10px 28px -22px rgba(59, 47, 47, 0.18);
   --shadow-card-lift: 0 22px 48px -26px rgba(59, 47, 47, 0.3);
+
+  /* ==================================================================
+     Direction C — "Modern Heirloom" — brand token VALUES.
+     STEP 1: values defined + documented ONLY. Nothing references these,
+     so rendering is unchanged. Each token notes the inline hex(es) it
+     will absorb during the Step 2 codemod. "Absorbs" = the existing
+     inline hex(es) that will be replaced by this token, mechanically.
+     ================================================================== */
+
+  /* --- Opaque display / CTA inks ------------------------------------
+     Collapses the FIVE drifting near-black browns into TWO canonical
+     tokens. (The example in the brief suggested --ink-strong/--ink-body,
+     but --ink-body is a *translucent* #3B2F2F above — a different hue.
+     So the second canonical is a dedicated opaque walnut instead.) */
+  --ink-espresso: #1f1918; /* darkest ink. Absorbs: #1F1918, #241B1B, #251E1D (CTA hover). Same value as --ink-strong; kept as an opaque fill/border sibling so the semantic --ink-strong text token stays stable. */
+  --ink-walnut: #2a211c;   /* Direction C walnut. Absorbs: #2E2323, #2F2624 (headings + primary CTA fill). */
+  --ink-foreground: #f6f1ec; /* cream text on dark ink. Absorbs: #F6F1EC. */
+
+  /* Raw body-ink hue behind the translucent --ink-body/muted/subtle.
+     Absorbs the ~1000 inline #3B2F2F/<opacity> uses via ink-base/<op>. */
+  --ink-base: #3b2f2f;      /* Absorbs: #3B2F2F (all opacities). */
+
+  /* --- Ownable accent + emphasis (DEFINE ONLY; apply in a later step) - */
+  --accent-brass: #b08641;        /* NEW brand accent — not yet present in code. */
+  --emphasis-berry: #8a2f40;      /* Absorbs: #8A2F40. */
+  --emphasis-berry-deep: #5e1c29; /* Absorbs: #5E1C29. (Verify #6E2D2D availability-label folds here in Step 2.) */
+  --emphasis-berry-soft: #9a4c5a; /* Absorbs: #9A4C5A. */
+  --emphasis-berry-tint: #f8e8ea; /* Absorbs: #F8E8EA, #FBEEF1. */
+
+  /* --- Warm surface / cream ladder ---------------------------------- */
+  --surface-ivory: #fbf6ef; /* Direction C ground TARGET — page bg migrates here in a later step. Unused now. */
+  --surface-page: #f9f5f1;  /* current page/body ground. Absorbs: #F9F5F1. */
+  --surface-grain: #fdf8f4; /* grain-surface base. Absorbs: #FDF8F4. */
+  --surface-card: #fcf8f4;  /* product/blog card fill. Absorbs: #FCF8F4 (+ near-dupe #FCF7F2). */
+  --surface-panel: #fbf7f3; /* raised panels. Absorbs: #FBF7F3. */
+  --surface-well: #f7f0ea;  /* product image well. Absorbs: #F7F0EA (+ PDP #F5EEE7). */
+  --surface-hover: #f2eae4; /* neutral hover fill. Absorbs: #F2EAE4. */
+
+  /* --- Semantic category / status tones (define only) --------------- */
+  --tone-green: #2e6a41;      /* Absorbs: #2E6A41. */
+  --tone-green-deep: #1e5a37; /* Absorbs: #1E5A37. */
+  --tone-green-tint: #e7f4ea; /* Absorbs: #E7F4EA, #EAF5EE. */
+  --tone-amber: #7a4a12;      /* Absorbs: #7A4A12. */
+  --tone-amber-deep: #5e4a1c; /* Absorbs: #5E4A1C. */
+  --tone-amber-soft: #8a6a2f; /* Absorbs: #8A6A2F. */
+  --tone-amber-tint: #fbeede; /* Absorbs: #FBEEDE, #FBF5EA. */
+  --tone-blue: #1f3f66;       /* Absorbs: #1F3F66. */
+  --tone-blue-tint: #e7eef7;  /* Absorbs: #E7EEF7. */
+
+  /* --- Motion tokens ------------------------------------------------
+     Mirror lib/motion.ts so CSS-driven transitions in later steps can
+     share the same curve/timing. JS/Framer motion keeps reading
+     lib/motion.ts; these are additive and unused for now. */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1); /* = premiumEase */
+  --duration-fast: 380ms; /* = motionDuration.fast (0.38s) */
+  --duration-base: 520ms; /* = motionDuration.base (0.52s) */
+  --duration-slow: 620ms; /* = motionDuration.slow (0.62s) */
+  --stagger-step: 50ms;   /* = motionStagger (0.05s) */
+
+  /* --- Canonical shadows -------------------------------------------
+     --shadow-card-rest / --shadow-card-lift above are the canonical
+     two-tier card depth. These add the other recurring inline shadows
+     as named tokens; the 89 inline shadow-[0_...] migrate onto these in
+     a later step. Define only. */
+  --shadow-cta: 0 14px 34px -18px rgba(47, 38, 36, 0.58);       /* primary CTA rest */
+  --shadow-cta-hover: 0 20px 40px -20px rgba(47, 38, 36, 0.68); /* primary CTA hover */
+  --shadow-nav: 0 20px 44px -26px rgba(59, 47, 47, 0.4);        /* scrolled navbar */
 }
 
 .dark {
