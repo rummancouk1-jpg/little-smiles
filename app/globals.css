@@ -68,6 +68,7 @@
   /* Raw body-ink hue. Enables text-ink-base/<op>, border-ink-base/<op>,
      bg-ink-base/<op> to absorb the ~1000 inline #3B2F2F/<op> uses. */
   --color-ink-base: var(--ink-base);
+  --color-ink-placeholder: var(--ink-placeholder);
 
   /* Ownable accent + emphasis (DEFINE ONLY — not applied until a later step). */
   --color-accent-brass: var(--accent-brass);
@@ -188,6 +189,7 @@
   /* Raw body-ink hue behind the translucent --ink-body/muted/subtle.
      Absorbs the ~1000 inline #3B2F2F/<opacity> uses via ink-base/<op>. */
   --ink-base: #3b2f2f;      /* Absorbs: #3B2F2F (all opacities). */
+  --ink-placeholder: #6b5b59; /* form input placeholder ink (muted mauve). Absorbs: #6B5B59. Exact. NOTE: globals .contact-input::placeholder still hardcodes this value — repoint in a later globals cleanup. */
 
   /* --- Ownable accent + emphasis (DEFINE ONLY; apply in a later step) - */
   --accent-brass: #b08641;        /* NEW brand accent — not yet present in code. */
