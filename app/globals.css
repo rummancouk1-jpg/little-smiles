@@ -87,6 +87,14 @@
   --color-surface-footer: var(--surface-footer);
   --color-surface-callout: var(--surface-callout);
 
+  /* Ambient / decorative warm tints (blur-blobs, image wells). The ~14
+     drifting greige decor hexes collapse into these 4 by lightness under
+     Option-A (max ΔE 1.83, decorative layers only). */
+  --color-atmosphere-veil: var(--atmosphere-veil);
+  --color-atmosphere-mist: var(--atmosphere-mist);
+  --color-atmosphere-haze: var(--atmosphere-haze);
+  --color-atmosphere-shade: var(--atmosphere-shade);
+
   /* Semantic category / status tones (define only). */
   --color-tone-green: var(--tone-green);
   --color-tone-green-deep: var(--tone-green-deep);
@@ -189,6 +197,14 @@
   --surface-hover: #f2eae4; /* neutral hover fill. Absorbs: #F2EAE4. */
   --surface-footer: #fcf6f1; /* footer ground. Absorbs: #FCF6F1. (Added in Step 2 — exact value, no fold.) */
   --surface-callout: #f8f2ec; /* blog CTA callout ground. Absorbs: #F8F2EC. (Added in Step 2 — exact value, no fold.) */
+
+  /* Ambient / decorative warm-greige tints — 4-tone lightness ladder.
+     Collapses the drifting decor family under Option-A (max ΔE 1.83).
+     Uniformly warm hue (no cool variant exists in the source). */
+  --atmosphere-veil: #f9f5f0;  /* lightest warm-white. Absorbs: #FEFAF6, #FAF6F2, #F7F2ED, #F6F0EB */
+  --atmosphere-mist: #f4eee8;  /* light warm. Absorbs: #F5EEE7, #F4EFEB, #F3ECE6 */
+  --atmosphere-haze: #eee6e0;  /* mid greige. Absorbs: #F0E8E1, #EFE8E2, #EEE7E1, #EEE5DE, #ECE4DD */
+  --atmosphere-shade: #e9e1d9; /* deeper greige. Absorbs: #E9E1D9, #E8E0D8 */
 
   /* --- Semantic category / status tones (define only) --------------- */
   --tone-green: #2e6a41;      /* Absorbs: #2E6A41. */
