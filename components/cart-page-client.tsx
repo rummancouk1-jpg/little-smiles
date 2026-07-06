@@ -21,7 +21,7 @@ import { ProductImage } from "@/components/product-image";
 import { cn } from "@/lib/utils";
 
 const fieldClass =
-  "h-11 rounded-2xl border-[#3B2F2F]/14 bg-white/88 px-4 text-base text-[#2E2323] outline-none transition-[border-color,box-shadow] placeholder:text-[#3B2F2F]/45 focus-visible:border-[#3B2F2F]/32 focus-visible:ring-2 focus-visible:ring-[#3B2F2F]/18 lg:text-sm";
+  "h-11 rounded-2xl border-ink-base/14 bg-white/88 px-4 text-base text-ink-walnut outline-none transition-[border-color,box-shadow] placeholder:text-ink-base/45 focus-visible:border-ink-base/32 focus-visible:ring-2 focus-visible:ring-ink-base/18 lg:text-sm";
 
 function validateCheckoutForm(data: {
   fullName: string;
@@ -37,7 +37,7 @@ function validateCheckoutForm(data: {
 }
 
 const stepperBtnClass =
-  "size-9 shrink-0 rounded-full border-[#3B2F2F]/24 bg-white/95 text-[#2E2323] shadow-sm hover:bg-[#F2EAE4] disabled:opacity-40";
+  "size-9 shrink-0 rounded-full border-ink-base/24 bg-white/95 text-ink-walnut shadow-sm hover:bg-surface-hover disabled:opacity-40";
 
 export function CartPageClient() {
   const { resolvedLines, setQuantity, removeLine, totalQuantity, subtotalPkr } =
@@ -93,8 +93,8 @@ export function CartPageClient() {
   if (resolvedLines.length === 0) {
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-10 text-center shadow-[0_24px_52px_-34px_rgba(59,47,47,0.28)]">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2EAE4]">
+        <div className="rounded-3xl border border-ink-base/10 bg-surface-card/94 p-10 text-center shadow-[0_24px_52px_-34px_rgba(59,47,47,0.28)]">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-hover">
             <Image
               src="/products/logo.png"
               alt=""
@@ -103,16 +103,16 @@ export function CartPageClient() {
               className="h-10 w-10 object-contain opacity-90"
             />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#1F1918] sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-espresso sm:text-3xl">
             Your cart is empty
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#3B2F2F]/72">
-            Browse the shop and use <span className="font-medium text-[#2E2323]">Add to cart</span>{" "}
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-base/72">
+            Browse the shop and use <span className="font-medium text-ink-walnut">Add to cart</span>{" "}
             on any product. Your selections are saved on this device until you check out on WhatsApp.
           </p>
           <Button
             asChild
-            className="mt-8 h-12 rounded-full bg-[#2F2624] px-8 text-sm font-semibold text-[#F6F1EC] shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)]"
+            className="mt-8 h-12 rounded-full bg-ink-walnut px-8 text-sm font-semibold text-ink-foreground shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)]"
           >
             <Link href="/shop">Continue shopping</Link>
           </Button>
@@ -124,15 +124,15 @@ export function CartPageClient() {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <div className="mb-8">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#3B2F2F]/52">
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-ink-base/52">
           Little Smiles
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#1F1918] sm:text-4xl">
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink-espresso sm:text-4xl">
           Your cart
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-[#3B2F2F]/72">
+        <p className="mt-2 max-w-2xl text-sm text-ink-base/72">
           {totalQuantity} {totalQuantity === 1 ? "item" : "items"} · Subtotal{" "}
-          <span className="font-semibold text-[#2E2323]">{formatPkr(subtotalPkr)}</span>
+          <span className="font-semibold text-ink-walnut">{formatPkr(subtotalPkr)}</span>
         </p>
       </div>
 
@@ -146,11 +146,11 @@ export function CartPageClient() {
           return (
             <li
               key={productSlug}
-              className="flex flex-col gap-4 rounded-3xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-4 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.32)] sm:flex-row sm:items-start sm:gap-5 sm:p-5"
+              className="flex flex-col gap-4 rounded-3xl border border-ink-base/10 bg-surface-card/94 p-4 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.32)] sm:flex-row sm:items-start sm:gap-5 sm:p-5"
             >
               <Link
                 href={`/shop/${product.slug}`}
-                className="relative mx-auto h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-[#F5EEE7] sm:mx-0 sm:h-28 sm:w-28"
+                className="relative mx-auto h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-surface-well sm:mx-0 sm:h-28 sm:w-28"
               >
                 <ProductImage
                   sources={getImageCandidates(product.image)}
@@ -163,45 +163,45 @@ export function CartPageClient() {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-[#3B2F2F]/12 bg-white/66 px-2.5 py-0.5 text-xs font-medium text-[#3B2F2F]/74">
+                  <span className="rounded-full border border-ink-base/12 bg-white/66 px-2.5 py-0.5 text-xs font-medium text-ink-base/74">
                     {product.category}
                   </span>
                   {getDiscountBadgeLabel(product) ? (
-                    <span className="rounded-full bg-[#2F2624] px-2.5 py-0.5 text-xs font-medium text-[#F6F1EC]">
+                    <span className="rounded-full bg-ink-walnut px-2.5 py-0.5 text-xs font-medium text-ink-foreground">
                       {getDiscountBadgeLabel(product)}
                     </span>
                   ) : null}
                 </div>
                 <Link
                   href={`/shop/${product.slug}`}
-                  className="mt-2 block text-lg font-semibold text-[#1F1918] hover:underline"
+                  className="mt-2 block text-lg font-semibold text-ink-espresso hover:underline"
                 >
                   {product.name}
                 </Link>
                 <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-base font-semibold text-[#2E2323]">
+                  <span className="text-base font-semibold text-ink-walnut">
                     {formatPkr(product.pricePkr)}
                   </span>
                   {getDiscountBadgeLabel(product) ? (
-                    <span className="text-sm text-[#3B2F2F]/56 line-through">
+                    <span className="text-sm text-ink-base/56 line-through">
                       {formatPkr(product.compareAtPricePkr)}
                     </span>
                   ) : null}
                 </div>
                 {limited ? (
-                  <p className="mt-2 text-xs font-medium tracking-[0.08em] text-[#6E2D2D] uppercase">
+                  <p className="mt-2 text-xs font-medium tracking-[0.08em] text-tone-availability uppercase">
                     Only {maxQty} left — order soon
                   </p>
                 ) : null}
               </div>
 
-              <div className="flex w-full shrink-0 flex-col gap-4 border-t border-[#3B2F2F]/10 pt-4 sm:mt-0 sm:w-72 sm:border-t-0 sm:border-l sm:pl-5 sm:pt-0">
+              <div className="flex w-full shrink-0 flex-col gap-4 border-t border-ink-base/10 pt-4 sm:mt-0 sm:w-72 sm:border-t-0 sm:border-l sm:pl-5 sm:pt-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.1em] text-[#3B2F2F]/58">
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.1em] text-ink-base/58">
                       Quantity
                     </p>
-                    <div className="inline-flex items-center gap-1 rounded-full border border-[#3B2F2F]/20 bg-white/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                    <div className="inline-flex items-center gap-1 rounded-full border border-ink-base/20 bg-white/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
                       <Button
                         type="button"
                         variant="outline"
@@ -213,7 +213,7 @@ export function CartPageClient() {
                       >
                         <Minus className="size-4" strokeWidth={2.25} />
                       </Button>
-                      <span className="min-w-10 px-1 text-center text-sm font-semibold tabular-nums text-[#2E2323]">
+                      <span className="min-w-10 px-1 text-center text-sm font-semibold tabular-nums text-ink-walnut">
                         {quantity}
                       </span>
                       <Button
@@ -230,15 +230,15 @@ export function CartPageClient() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-[#3B2F2F]/62">Line total</p>
-                    <p className="text-lg font-semibold text-[#2E2323]">{formatPkr(lineTotal)}</p>
+                    <p className="text-xs text-ink-base/62">Line total</p>
+                    <p className="text-lg font-semibold text-ink-walnut">{formatPkr(lineTotal)}</p>
                   </div>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-10 w-full rounded-full border-[#3B2F2F]/36 bg-white/95 text-sm font-semibold text-[#1F1918] hover:bg-[#F8F4F0] hover:text-[#1F1918] dark:text-[#1F1918] dark:hover:text-[#1F1918] sm:w-auto [&_svg]:text-[#1F1918]"
+                  className="h-10 w-full rounded-full border-ink-base/36 bg-white/95 text-sm font-semibold text-ink-espresso hover:bg-surface-hover-soft hover:text-ink-espresso dark:text-ink-espresso dark:hover:text-ink-espresso sm:w-auto [&_svg]:text-ink-espresso"
                   onClick={() => removeLine(productSlug)}
                 >
                   <Trash2 className="mr-2 size-4" aria-hidden />
@@ -257,19 +257,19 @@ export function CartPageClient() {
         >
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
                 Complete the order
               </p>
               <h2
                 id="cart-upsell-heading"
-                className="mt-1.5 text-xl font-semibold tracking-tight text-[#1F1918] sm:text-2xl"
+                className="mt-1.5 text-xl font-semibold tracking-tight text-ink-espresso sm:text-2xl"
               >
                 You may also like
               </h2>
             </div>
             <Link
               href="/shop"
-              className="text-sm font-medium text-[#2E2323] underline underline-offset-2 hover:text-[#1F1918]"
+              className="text-sm font-medium text-ink-walnut underline underline-offset-2 hover:text-ink-espresso"
             >
               View all
             </Link>
@@ -278,10 +278,10 @@ export function CartPageClient() {
             {upsellProducts.map((item) => (
               <article
                 key={item.slug}
-                className="flex flex-col rounded-2xl border border-[#3B2F2F]/10 bg-[#FCF8F4]/94 p-3.5 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.3)]"
+                className="flex flex-col rounded-2xl border border-ink-base/10 bg-surface-card/94 p-3.5 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.3)]"
               >
                 <Link href={`/shop/${item.slug}`} className="group block">
-                  <div className="relative h-36 rounded-xl bg-[#F5EEE7] p-3">
+                  <div className="relative h-36 rounded-xl bg-surface-well p-3">
                     <ProductImage
                       sources={getImageCandidates(item.image)}
                       alt={item.name}
@@ -290,11 +290,11 @@ export function CartPageClient() {
                       sizes="(max-width: 640px) 100vw, 25vw"
                     />
                   </div>
-                  <p className="mt-2.5 line-clamp-2 text-sm font-semibold text-[#2E2323] group-hover:underline">
+                  <p className="mt-2.5 line-clamp-2 text-sm font-semibold text-ink-walnut group-hover:underline">
                     {item.name}
                   </p>
                 </Link>
-                <p className="mt-1 text-sm font-semibold text-[#2E2323]">{formatPkr(item.pricePkr)}</p>
+                <p className="mt-1 text-sm font-semibold text-ink-walnut">{formatPkr(item.pricePkr)}</p>
                 <AddToCartButton
                   product={item}
                   size="sm"
@@ -307,53 +307,53 @@ export function CartPageClient() {
         </section>
       ) : null}
 
-      <div className="mt-10 space-y-8 rounded-3xl border border-[#3B2F2F]/10 bg-white/55 p-6 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.22)] sm:p-8">
-        <div className="border-b border-[#3B2F2F]/10 pb-6">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#3B2F2F]/52">
+      <div className="mt-10 space-y-8 rounded-3xl border border-ink-base/10 bg-white/55 p-6 shadow-[0_20px_48px_-32px_rgba(59,47,47,0.22)] sm:p-8">
+        <div className="border-b border-ink-base/10 pb-6">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
             Checkout
           </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight text-[#1F1918] sm:text-2xl">
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-ink-espresso sm:text-2xl">
             Cash on Delivery
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#3B2F2F]/74">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-base/74">
             Review your order summary, add your delivery details, then confirm on WhatsApp. No card
             or online payment is required.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#FBF7F3]/92 p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#3B2F2F]/55">
+          <div className="rounded-2xl border border-ink-base/10 bg-surface-panel/92 p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-base/55">
               Order summary
             </p>
             <dl className="mt-4 space-y-3 text-sm">
-              <div className="flex flex-col gap-0.5 border-b border-[#3B2F2F]/8 pb-3">
-                <dt className="font-medium text-[#3B2F2F]/68">Payment method</dt>
-                <dd className="font-semibold text-[#2E2323]">Cash on Delivery</dd>
+              <div className="flex flex-col gap-0.5 border-b border-ink-base/8 pb-3">
+                <dt className="font-medium text-ink-base/68">Payment method</dt>
+                <dd className="font-semibold text-ink-walnut">Cash on Delivery</dd>
               </div>
-              <div className="flex flex-col gap-0.5 border-b border-[#3B2F2F]/8 pb-3">
-                <dt className="font-medium text-[#3B2F2F]/68">Delivery</dt>
-                <dd className="text-[#2E2323]">Confirmed on WhatsApp for your address</dd>
+              <div className="flex flex-col gap-0.5 border-b border-ink-base/8 pb-3">
+                <dt className="font-medium text-ink-base/68">Delivery</dt>
+                <dd className="text-ink-walnut">Confirmed on WhatsApp for your address</dd>
               </div>
-              <div className="flex flex-col gap-0.5 border-b border-[#3B2F2F]/8 pb-3">
-                <dt className="font-medium text-[#3B2F2F]/68">Shipping fee</dt>
-                <dd className="text-[#2E2323]">Confirmed after city &amp; address</dd>
+              <div className="flex flex-col gap-0.5 border-b border-ink-base/8 pb-3">
+                <dt className="font-medium text-ink-base/68">Shipping fee</dt>
+                <dd className="text-ink-walnut">Confirmed after city &amp; address</dd>
               </div>
               <div className="flex flex-col gap-0.5 pt-0.5">
-                <dt className="font-medium text-[#3B2F2F]/68">Final total</dt>
-                <dd className="text-[#2E2323]">Confirmed before dispatch (subtotal + delivery)</dd>
+                <dt className="font-medium text-ink-base/68">Final total</dt>
+                <dd className="text-ink-walnut">Confirmed before dispatch (subtotal + delivery)</dd>
               </div>
             </dl>
           </div>
 
-          <div className="rounded-2xl border border-[#3B2F2F]/10 bg-[#F2EAE4]/55 p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#3B2F2F]/55">
+          <div className="rounded-2xl border border-ink-base/10 bg-surface-hover/55 p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-base/55">
               Why shop with us
             </p>
-            <ul className="mt-4 space-y-3 text-sm leading-snug text-[#2E2323]">
+            <ul className="mt-4 space-y-3 text-sm leading-snug text-ink-walnut">
               <li className="flex gap-2.5">
                 <Check
-                  className="mt-0.5 size-4 shrink-0 text-[#3B5F4A]"
+                  className="mt-0.5 size-4 shrink-0 text-tone-trust"
                   strokeWidth={2.25}
                   aria-hidden
                 />
@@ -361,7 +361,7 @@ export function CartPageClient() {
               </li>
               <li className="flex gap-2.5">
                 <Check
-                  className="mt-0.5 size-4 shrink-0 text-[#3B5F4A]"
+                  className="mt-0.5 size-4 shrink-0 text-tone-trust"
                   strokeWidth={2.25}
                   aria-hidden
                 />
@@ -369,7 +369,7 @@ export function CartPageClient() {
               </li>
               <li className="flex gap-2.5">
                 <Check
-                  className="mt-0.5 size-4 shrink-0 text-[#3B5F4A]"
+                  className="mt-0.5 size-4 shrink-0 text-tone-trust"
                   strokeWidth={2.25}
                   aria-hidden
                 />
@@ -388,15 +388,15 @@ export function CartPageClient() {
           }}
         >
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#3B2F2F]/55">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-base/55">
               Delivery details
             </p>
-            <p className="mt-1 text-sm text-[#3B2F2F]/68">
+            <p className="mt-1 text-sm text-ink-base/68">
               We&apos;ll pre-fill WhatsApp with this information. Double-check your phone number.
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-name">
+              <label className="mb-1.5 block text-sm font-medium text-ink-walnut" htmlFor="cart-name">
                 Full name
               </label>
               <Input
@@ -410,7 +410,7 @@ export function CartPageClient() {
               />
               </div>
               <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-phone">
+              <label className="mb-1.5 block text-sm font-medium text-ink-walnut" htmlFor="cart-phone">
                 Phone (WhatsApp)
               </label>
               <Input
@@ -426,7 +426,7 @@ export function CartPageClient() {
               />
               </div>
               <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-city">
+              <label className="mb-1.5 block text-sm font-medium text-ink-walnut" htmlFor="cart-city">
                 City
               </label>
               <Input
@@ -440,7 +440,7 @@ export function CartPageClient() {
               />
               </div>
               <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-address">
+              <label className="mb-1.5 block text-sm font-medium text-ink-walnut" htmlFor="cart-address">
                 Address
               </label>
               <textarea
@@ -455,8 +455,8 @@ export function CartPageClient() {
               />
               </div>
               <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-[#2E2323]" htmlFor="cart-note">
-                Note <span className="font-normal text-[#3B2F2F]/58">(optional)</span>
+              <label className="mb-1.5 block text-sm font-medium text-ink-walnut" htmlFor="cart-note">
+                Note <span className="font-normal text-ink-base/58">(optional)</span>
               </label>
               <textarea
                 id="cart-note"
@@ -470,17 +470,17 @@ export function CartPageClient() {
               </div>
             </div>
             {formError ? (
-              <p className="mt-3 text-sm font-medium text-[#8B3A3A]" role="alert">
+              <p className="mt-3 text-sm font-medium text-tone-danger" role="alert">
                 {formError}
               </p>
             ) : null}
           </div>
 
-          <div className="flex w-full min-w-0 flex-col gap-4 border-t border-[#3B2F2F]/10 pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="flex w-full min-w-0 flex-col gap-4 border-t border-ink-base/10 pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 max-w-xl">
-              <p className="text-sm text-[#3B2F2F]/72">Cart subtotal</p>
-              <p className="text-2xl font-semibold text-[#2E2323]">{formatPkr(subtotalPkr)}</p>
-              <p className="mt-1 text-xs leading-relaxed text-[#3B2F2F]/62">
+              <p className="text-sm text-ink-base/72">Cart subtotal</p>
+              <p className="text-2xl font-semibold text-ink-walnut">{formatPkr(subtotalPkr)}</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-base/62">
                 Delivery is added after we confirm your city. Final COD total is shared on WhatsApp
                 before we dispatch.
               </p>
@@ -488,7 +488,7 @@ export function CartPageClient() {
             <div className="w-full shrink-0 sm:w-auto sm:max-w-[min(100%,18.5rem)] sm:pt-0.5">
               <Button
                 type="submit"
-                className="h-12 w-full rounded-full bg-[#2F2624] px-6 text-sm font-semibold text-[#F6F1EC] shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[box-shadow,background-color] duration-300 hover:bg-[#251E1D] sm:min-w-[14rem]"
+                className="h-12 w-full rounded-full bg-ink-walnut px-6 text-sm font-semibold text-ink-foreground shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[box-shadow,background-color] duration-300 hover:bg-ink-espresso sm:min-w-[14rem]"
               >
                 Confirm COD Order on WhatsApp
               </Button>
@@ -496,24 +496,24 @@ export function CartPageClient() {
           </div>
         </form>
 
-        <div className="grid gap-4 text-sm leading-relaxed text-[#3B2F2F]/76 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[#3B2F2F]/8 bg-[#FBF7F3]/88 p-4">
-            <p className="font-semibold text-[#241B1B]">Delivery</p>
+        <div className="grid gap-4 text-sm leading-relaxed text-ink-base/76 sm:grid-cols-2">
+          <div className="rounded-2xl border border-ink-base/8 bg-surface-panel/88 p-4">
+            <p className="font-semibold text-ink-espresso">Delivery</p>
             <p className="mt-2">
               Most orders dispatch within 24–48 hours after confirmation; typical transit is 2–5
               business days across Pakistan. We&apos;ll align courier details on WhatsApp.
             </p>
           </div>
-          <div className="rounded-2xl border border-[#3B2F2F]/8 bg-[#FBF7F3]/88 p-4">
-            <p className="font-semibold text-[#241B1B]">Returns &amp; support</p>
+          <div className="rounded-2xl border border-ink-base/8 bg-surface-panel/88 p-4">
+            <p className="font-semibold text-ink-espresso">Returns &amp; support</p>
             <p className="mt-2">
               For damaged or incorrect items, message us within 48 hours of delivery with photos. We
               aim to resolve issues fairly and quickly.
             </p>
           </div>
         </div>
-        <p className="text-center text-xs text-[#3B2F2F]/58">
-          <Link href="/shop" className="font-medium text-[#2E2323] underline underline-offset-2">
+        <p className="text-center text-xs text-ink-base/58">
+          <Link href="/shop" className="font-medium text-ink-walnut underline underline-offset-2">
             Continue shopping
           </Link>
         </p>

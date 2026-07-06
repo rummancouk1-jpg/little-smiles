@@ -29,7 +29,7 @@ export function CartToast() {
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0 text-[#3B2F2F]/65 hover:text-[#2E2323]"
+          className="h-8 w-8 shrink-0 text-ink-base/65 hover:text-ink-walnut"
           onClick={dismissToast}
           aria-label="Dismiss"
         >
