@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { z } from "zod";
 
+import { escapeHtml, sendResendEmail } from "@/lib/email";
 import { captureServerError } from "@/lib/error-observability";
 import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 
@@ -39,45 +39,6 @@ function isSuspiciousSubmission(input: {
   if (compactMessage.toLowerCase().includes("<script")) return true;
 
   return false;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-async function sendResendEmail(input: {
-  to: string;
-  from: string;
-  subject: string;
-  html: string;
-  replyTo: string;
-}): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY?.trim();
-  if (!key) return false;
-
-  try {
-    const resend = new Resend(key);
-    const { error } = await resend.emails.send({
-      from: input.from,
-      to: input.to,
-      subject: input.subject,
-      html: input.html,
-      replyTo: input.replyTo,
-    });
-
-    if (error) {
-      console.warn("[contact] Resend error", error);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.warn("[contact] Resend failed", e);
-    return false;
-  }
 }
 
 export async function POST(request: Request) {
