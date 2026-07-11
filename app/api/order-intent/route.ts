@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { captureServerError } from "@/lib/error-observability";
+import { scheduleCodOrderNotification } from "@/lib/order-notify";
 import { getProductBySlug } from "@/lib/products";
 import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 import { getSupabaseAdminClient, getSupabaseRuntimeChecks } from "@/lib/supabase-admin";
@@ -174,6 +175,19 @@ export async function POST(request: Request) {
         details: {
           code: error.code,
         },
+      });
+    }
+
+    // Order is persisted — notify the owner out-of-band. Non-blocking: runs
+    // after the response, and a failure never affects the customer or the order.
+    if (isCod && payload.customer && payload.items && payload.totalPkr != null) {
+      scheduleCodOrderNotification({
+        customer: payload.customer,
+        items: payload.items,
+        quantity: payload.quantity ?? payload.items.reduce((n, i) => n + i.quantity, 0),
+        totalPkr: payload.totalPkr,
+        sourcePage: payload.sourcePage,
+        timestamp: payload.timestamp,
       });
     }
 
