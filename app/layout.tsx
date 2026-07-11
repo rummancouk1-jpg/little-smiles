@@ -10,6 +10,7 @@ import { CartToast } from "@/components/cart-toast";
 import { Navbar } from "@/components/navbar";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { SiteFooter } from "@/components/site-footer";
+import { StorefrontChromeGate } from "@/components/storefront-chrome-gate";
 import "./globals.css";
 
 const bodySans = Plus_Jakarta_Sans({
@@ -96,10 +97,16 @@ export default function RootLayout({
         />
         <PostHogProvider>
           <CartProvider>
-            <Navbar />
+            <StorefrontChromeGate>
+              <Navbar />
+            </StorefrontChromeGate>
             <div className="flex-1">{children}</div>
-            <CartToast />
-            <SiteFooter />
+            <StorefrontChromeGate>
+              <CartToast />
+            </StorefrontChromeGate>
+            <StorefrontChromeGate>
+              <SiteFooter />
+            </StorefrontChromeGate>
           </CartProvider>
         </PostHogProvider>
       </body>

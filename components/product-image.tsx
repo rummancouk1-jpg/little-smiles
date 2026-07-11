@@ -20,6 +20,14 @@ export function ProductImage({ sources, alt, ...props }: ProductImageProps) {
   const src = normalizedSources[Math.min(index, normalizedSources.length - 1)];
   const { className, onLoad, onError, priority, ...rest } = props;
 
+  // LCP fix: a `priority` image is (or is near) the largest paint. It must NOT
+  // be gated behind a JS `onLoad` opacity flip — that reveal can only run after
+  // the bundle hydrates, which pushed LCP out to ~9s even though the bytes had
+  // already arrived. Priority images render fully visible and paint on decode.
+  // Non-priority (lazy, below-the-fold) images are never the LCP element, so
+  // they keep the gentle load-in fade.
+  const fadeIn = !priority;
+
   return (
     <Image
       key={src}
@@ -32,8 +40,8 @@ export function ProductImage({ sources, alt, ...props }: ProductImageProps) {
       {...rest}
       className={cn(
         className,
-        "transition-[opacity,filter,transform] duration-500 ease-out",
-        loaded ? "opacity-100" : "opacity-0"
+        fadeIn && "transition-[opacity,filter,transform] duration-500 ease-out",
+        fadeIn && !loaded && "opacity-0"
       )}
       onLoad={(event) => {
         setLoaded(true);

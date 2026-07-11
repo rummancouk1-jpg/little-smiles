@@ -761,3 +761,17 @@
     animation: cartBump 0.32s ease-out;
   }
 }
+
+/* Hero supporting-text entrance — CSS, so it runs at paint without framer
+   hydration. Deliberately NOT applied to the hero <h1> (the LCP element), which
+   must paint instantly. Under reduced-motion the class is inert, so text is
+   simply visible (never held at opacity:0). */
+@keyframes heroRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rise {
+    animation: heroRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}

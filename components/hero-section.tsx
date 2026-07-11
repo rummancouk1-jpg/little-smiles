@@ -1,22 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent } from "react";
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { type CSSProperties, type MouseEvent } from "react";
 import { BadgeCheck, Feather, Sun } from "lucide-react";
 
-import { motionDuration, motionStagger, premiumEase } from "@/lib/motion";
 import { PakistanServiceNotes } from "@/components/pakistan-service-notes";
 import { ProductImage } from "@/components/product-image";
 import { Button } from "@/components/ui/button";
 import { getImageCandidates } from "@/lib/products";
+import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
 
 const trustItems = [
@@ -56,8 +48,6 @@ function ProductCard({
   imageWrapClassName,
   priority,
   delay,
-  springX,
-  springY,
   depthX,
   depthY,
 }: {
@@ -67,36 +57,30 @@ function ProductCard({
   imageWrapClassName?: string;
   priority?: boolean;
   delay: number;
-  springX: MotionValue<number>;
-  springY: MotionValue<number>;
   depthX: number;
   depthY: number;
 }) {
-  const reduce = useReducedMotion();
-  // Depth-layered parallax: each card scales the shared pointer spring by its
-  // own depth, so the foreground card travels more than the background.
-  const x = useTransform(springX, (v) => v * depthX);
-  const y = useTransform(springY, (v) => v * depthY);
+  // Depth-layered parallax without framer: each card translates by the shared
+  // pointer CSS variables (set on the collage container) scaled by its own
+  // depth. The transition supplies the soft spring-like lag. At rest the vars
+  // are 0, so the card is settled and paints immediately (no JS gate on LCP).
+  const parallaxStyle: CSSProperties = {
+    transform: `translate3d(calc(var(--parallax-x, 0) * ${depthX}px), calc(var(--parallax-y, 0) * ${depthY}px), 0)`,
+    transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
+  };
 
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{
-        duration: reduce ? 0 : motionDuration.slow,
-        delay: reduce ? 0 : delay,
-        ease: premiumEase,
-      }}
+    <div
       className={cn(
         "relative h-full w-full overflow-hidden rounded-3xl ring-1 ring-inset",
         "shadow-[0_36px_78px_-34px_rgba(45,35,32,0.34)]",
         className
       )}
-      style={{ x, y }}
+      style={parallaxStyle}
     >
-      {/* Float via CSS (not framer) so it auto-pauses when this hero is the
-          hidden theme (display:none) — no wasted main-thread. Per-card timing
-          preserved; disabled under reduced-motion by the media query. */}
+      {/* Float via CSS so it auto-pauses when this hero is the hidden theme
+          (display:none). Per-card timing preserved; disabled under
+          reduced-motion by the media query. */}
       <div
         className={cn("hero-float relative h-full w-full", imageWrapClassName)}
         style={{
@@ -114,35 +98,27 @@ function ProductCard({
         />
       </div>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_16%,rgba(255,255,255,0.72),transparent_58%)]" />
-    </motion.div>
+    </div>
   );
 }
 
 export function HeroSection() {
-  const reduce = useReducedMotion();
-  // Shared pointer springs — a soft, slow lag so the collage drifts, not jumps.
-  // Calmer than the dark hero: low stiffness, no overshoot.
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const springConfig = { stiffness: 45, damping: 20, mass: 0.7 };
-  const springX = useSpring(pointerX, springConfig);
-  const springY = useSpring(pointerY, springConfig);
-  const baseTransition = {
-    duration: reduce ? 0 : motionDuration.slow,
-    ease: premiumEase,
-  };
-  const stagger = reduce ? 0 : motionStagger;
+  const reduce = usePrefersReducedMotion();
 
+  // Vanilla pointer parallax: write normalized -1..1 offsets to CSS variables on
+  // the collage container; the cards read them. Desktop pointer only — mobile
+  // never fires this, so it costs nothing on the tested path. No framer.
   const handleCollagePointerMove = (event: MouseEvent<HTMLDivElement>) => {
     if (reduce) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    pointerX.set(((event.clientX - rect.left) / rect.width - 0.5) * 2);
-    pointerY.set(((event.clientY - rect.top) / rect.height - 0.5) * 2);
+    const el = event.currentTarget;
+    const rect = el.getBoundingClientRect();
+    el.style.setProperty("--parallax-x", String(((event.clientX - rect.left) / rect.width - 0.5) * 2));
+    el.style.setProperty("--parallax-y", String(((event.clientY - rect.top) / rect.height - 0.5) * 2));
   };
 
-  const handleCollagePointerLeave = () => {
-    pointerX.set(0);
-    pointerY.set(0);
+  const handleCollagePointerLeave = (event: MouseEvent<HTMLDivElement>) => {
+    event.currentTarget.style.setProperty("--parallax-x", "0");
+    event.currentTarget.style.setProperty("--parallax-y", "0");
   };
 
   return (
@@ -161,55 +137,29 @@ export function HeroSection() {
 
       <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 sm:pb-18 sm:pt-9 lg:px-8 lg:pb-24 lg:pt-12">
         <div className="grid items-center gap-6 sm:gap-9 lg:grid-cols-2 lg:gap-14 xl:gap-18">
-          <motion.div
-            initial={reduce ? false : "hidden"}
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: {
-                transition: { staggerChildren: stagger, delayChildren: 0.04 },
-              },
-            }}
-            className="max-w-xl lg:max-w-none"
-          >
-            <motion.p
-              variants={{
-                hidden: { opacity: 0, y: reduce ? 0 : 12 },
-                visible: { opacity: 1, y: 0, transition: baseTransition },
-              }}
-              className="eyebrow"
-            >
+          <div className="max-w-xl lg:max-w-none">
+            {/* Supporting text uses the CSS hero-rise entrance (runs at paint,
+                no framer). The <h1> is intentionally exempt: it's the LCP and
+                must paint instantly, so it carries no entrance animation. */}
+            <p className="hero-rise eyebrow" style={{ animationDelay: "0.04s" }}>
               Little Smiles
-            </motion.p>
+            </p>
 
-            <motion.h1
-              variants={{
-                hidden: { opacity: 0, y: reduce ? 0 : 12 },
-                visible: { opacity: 1, y: 0, transition: baseTransition },
-              }}
-              className="mt-3 text-balance text-display font-medium text-ink-strong sm:mt-4"
-            >
-              Tiny Essentials for Your Little{" "}
-              <span className="italic">Smiles</span>
-            </motion.h1>
+            <h1 className="mt-3 text-balance text-display font-medium text-ink-strong sm:mt-4">
+              Tiny Essentials for Your Little <span className="italic">Smiles</span>
+            </h1>
 
-            <motion.p
-              variants={{
-                hidden: { opacity: 0, y: reduce ? 0 : 12 },
-                visible: { opacity: 1, y: 0, transition: baseTransition },
-              }}
-              className="mt-4 max-w-[38ch] text-pretty text-base leading-relaxed text-ink-base/70 sm:mt-6 sm:text-xl"
+            <p
+              className="hero-rise mt-4 max-w-[38ch] text-pretty text-base leading-relaxed text-ink-base/70 sm:mt-6 sm:text-xl"
+              style={{ animationDelay: "0.12s" }}
             >
               Considered fabrics. Calm prints. Made for the routines that grow
               with your baby.
-            </motion.p>
+            </p>
 
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: reduce ? 0 : 12 },
-                visible: { opacity: 1, y: 0, transition: baseTransition },
-              }}
-              className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6"
+            <div
+              className="hero-rise mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6"
+              style={{ animationDelay: "0.2s" }}
             >
               <Button
                 asChild
@@ -230,14 +180,11 @@ export function HeroSection() {
                   →
                 </span>
               </Link>
-            </motion.div>
+            </div>
 
-            <motion.ul
-              variants={{
-                hidden: { opacity: 0, y: reduce ? 0 : 10 },
-                visible: { opacity: 1, y: 0, transition: baseTransition },
-              }}
-              className="mt-8 flex flex-wrap gap-2.5 sm:mt-12 sm:gap-4"
+            <ul
+              className="hero-rise mt-8 flex flex-wrap gap-2.5 sm:mt-12 sm:gap-4"
+              style={{ animationDelay: "0.28s" }}
             >
               {trustItems.map(({ label, icon: Icon }) => (
                 <li
@@ -250,16 +197,11 @@ export function HeroSection() {
                   {label}
                 </li>
               ))}
-            </motion.ul>
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: reduce ? 0 : 10 },
-                visible: { opacity: 1, y: 0, transition: baseTransition },
-              }}
-            >
+            </ul>
+            <div className="hero-rise" style={{ animationDelay: "0.34s" }}>
               <PakistanServiceNotes variant="hero" />
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           <div className="relative mx-auto w-full max-w-[30rem] lg:mx-0 lg:max-w-xl">
             <div
@@ -286,8 +228,6 @@ export function HeroSection() {
                 imageWrapClassName={collageCards[0].imageWrapClassName}
                 priority
                 delay={0.12}
-                springX={springX}
-                springY={springY}
                 depthX={-9}
                 depthY={-8}
               />
@@ -297,8 +237,6 @@ export function HeroSection() {
                 className={cn(collageCards[1].className, "z-[5] luxe-sheen")}
                 imageWrapClassName={collageCards[1].imageWrapClassName}
                 delay={0.2}
-                springX={springX}
-                springY={springY}
                 depthX={24}
                 depthY={20}
               />
@@ -308,8 +246,6 @@ export function HeroSection() {
                 className={cn(collageCards[2].className, "z-[4] luxe-sheen")}
                 imageWrapClassName={collageCards[2].imageWrapClassName}
                 delay={0.28}
-                springX={springX}
-                springY={springY}
                 depthX={-15}
                 depthY={13}
               />

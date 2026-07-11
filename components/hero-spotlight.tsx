@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
-import { useReducedMotion } from "motion/react";
 
 import { ProductImage } from "@/components/product-image";
 import { Button } from "@/components/ui/button";
 import { getImageCandidates } from "@/lib/products";
+import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
 
 /**
  * Dark-mode "Spotlight" hero: one bestseller product lit by a single pool of
@@ -21,7 +21,7 @@ const HERO_ALT = "Little Smiles dino and deer bodysuits";
 const HERO_SLUG = "dino-deer-bodysuits";
 
 export function HeroSpotlight() {
-  const reduce = useReducedMotion();
+  const reduce = usePrefersReducedMotion();
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
 
   const handleMove = (event: MouseEvent<HTMLElement>) => {

@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function AdminLogoutButton() {
+const DEFAULT_LOGOUT_CLASS =
+  "rounded-full border border-[#3B2F2F]/14 bg-[#F2E8DE] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#EADFD4] disabled:cursor-not-allowed disabled:opacity-70";
+
+/** Sign-out control. Logic is fixed; only the styling is themeable via
+ *  `className` so the dark cockpit command bar can reuse it. */
+export function AdminLogoutButton({ className }: { className?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +29,7 @@ export function AdminLogoutButton() {
       type="button"
       onClick={() => void onLogout()}
       disabled={loading}
-      className="rounded-full border border-[#3B2F2F]/14 bg-[#F2E8DE] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#EADFD4] disabled:cursor-not-allowed disabled:opacity-70"
+      className={className ?? DEFAULT_LOGOUT_CLASS}
     >
       {loading ? "Signing out..." : "Sign out"}
     </button>
