@@ -6,6 +6,23 @@ import { getProductBySlug } from "@/lib/products";
 import { checkRequestRateLimit } from "@/lib/request-rate-limit";
 import { getSupabaseAdminClient, getSupabaseRuntimeChecks } from "@/lib/supabase-admin";
 
+/** Delivery details for a COD cart checkout. Kept lenient — a real order must
+ *  not be dropped over a strict regex — but tight enough to reject obvious junk. */
+const customerSchema = z.object({
+  fullName: z.string().trim().min(2).max(120),
+  phone: z.string().trim().min(7).max(40),
+  city: z.string().trim().min(2).max(120),
+  address: z.string().trim().min(5).max(600),
+  note: z.string().trim().max(2000).optional(),
+});
+
+const itemSchema = z.object({
+  slug: z.string().min(1).max(200),
+  name: z.string().min(1).max(200),
+  quantity: z.number().int().min(1).max(999),
+  pricePkr: z.number().int().min(0).max(1_000_000),
+});
+
 const orderIntentSchema = z.object({
   productSlug: z.string().min(1).max(200).optional(),
   productName: z.string().min(1).max(200).optional(),
@@ -14,7 +31,18 @@ const orderIntentSchema = z.object({
   sourcePage: z.string().min(1).max(240),
   timestamp: z.string().datetime(),
   userAgent: z.string().min(1).max(1000).optional(),
+  // COD cart-checkout payload (all optional — thin analytics intents omit them).
+  customer: customerSchema.optional(),
+  items: z.array(itemSchema).max(50).optional(),
+  quantity: z.number().int().min(1).max(9999).optional(),
+  totalPkr: z.number().int().min(0).max(10_000_000).optional(),
 });
+
+/** Second gate beyond zod: a real PK phone carries 7–15 digits. */
+function isFulfillableCodCustomer(customer: z.infer<typeof customerSchema>): boolean {
+  const digits = customer.phone.replace(/\D/g, "");
+  return digits.length >= 7 && digits.length <= 15;
+}
 
 /**
  * Debug context is logged server-side only — never returned in the HTTP
@@ -64,7 +92,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    console.info("[order-intent]", JSON.stringify(payload));
+    // Redact PII from server logs — never log name / phone / address.
+    console.info(
+      "[order-intent]",
+      JSON.stringify({
+        productSlug: payload.productSlug,
+        productName: payload.productName,
+        sourcePage: payload.sourcePage,
+        totalPkr: payload.totalPkr,
+        quantity: payload.quantity,
+        itemCount: payload.items?.length,
+        city: payload.customer?.city,
+        isCod: Boolean(payload.customer),
+      }),
+    );
     const checks = getSupabaseRuntimeChecks();
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
@@ -80,18 +121,46 @@ export async function POST(request: Request) {
       });
     }
 
-    const { error } = await supabase.from("order_intents").insert([
-      {
-        product_slug: payload.productSlug ?? null,
-        product_name: payload.productName ?? null,
-        category: payload.category ?? null,
-        price_pkr: payload.pricePkr ?? null,
-        source_page: payload.sourcePage,
-        event_timestamp: payload.timestamp,
-        user_agent: payload.userAgent ?? null,
-        // Let DB default manage created_at.
-      },
-    ]);
+    // A COD capture only writes the customer columns when the phone is
+    // fulfillable (callable) — otherwise it degrades to a thin analytics intent
+    // rather than storing an unreachable "order".
+    const isCod = Boolean(payload.customer) && isFulfillableCodCustomer(payload.customer!);
+
+    const baseRow = {
+      product_slug: payload.productSlug ?? null,
+      product_name: payload.productName ?? null,
+      category: payload.category ?? null,
+      price_pkr: payload.pricePkr ?? null,
+      source_page: payload.sourcePage,
+      event_timestamp: payload.timestamp,
+      user_agent: payload.userAgent ?? null,
+      // Let DB default manage created_at.
+    };
+
+    const row = isCod
+      ? {
+          ...baseRow,
+          customer_name: payload.customer!.fullName,
+          customer_phone: payload.customer!.phone,
+          customer_city: payload.customer!.city,
+          customer_address: payload.customer!.address,
+          items: payload.items ?? null,
+          quantity: payload.quantity ?? null,
+          total_pkr: payload.totalPkr ?? null,
+        }
+      : baseRow;
+
+    let { error } = await supabase.from("order_intents").insert([row]);
+
+    // If the COD columns don't exist yet (migration not applied — Postgres
+    // "undefined_column"), fall back to the base row so the analytics intent is
+    // never lost. Apply supabase/order-intents-schema.sql to enable full capture.
+    if (error?.code === "42703" && isCod) {
+      console.warn(
+        "[order-intent] COD columns missing — apply supabase/order-intents-schema.sql. Storing thin intent for now.",
+      );
+      ({ error } = await supabase.from("order_intents").insert([baseRow]));
+    }
 
     if (error) {
       console.warn("[order-intent] supabase insert failed", {

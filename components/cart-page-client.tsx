@@ -82,12 +82,28 @@ export function CartPageClient() {
       address: customer.address.trim(),
       note: customer.note.trim(),
     });
-    void trackCartCheckoutAndOpenWhatsapp(url, {
-      itemCount: checkoutLines.length,
-      totalQuantity,
-      subtotalPkr,
-      productSlugs: checkoutLines.map((l) => l.product.slug),
-    });
+    void trackCartCheckoutAndOpenWhatsapp(
+      url,
+      {
+        itemCount: checkoutLines.length,
+        totalQuantity,
+        subtotalPkr,
+        productSlugs: checkoutLines.map((l) => l.product.slug),
+      },
+      {
+        fullName: customer.fullName.trim(),
+        phone: customer.phone.trim(),
+        city: customer.city.trim(),
+        address: customer.address.trim(),
+        note: customer.note.trim(),
+      },
+      checkoutLines.map((l) => ({
+        slug: l.product.slug,
+        name: l.product.name,
+        quantity: l.quantity,
+        pricePkr: l.product.pricePkr,
+      })),
+    );
   };
 
   if (resolvedLines.length === 0) {

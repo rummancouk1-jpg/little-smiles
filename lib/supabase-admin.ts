@@ -4,6 +4,13 @@ import type { BlogPost } from "@/lib/contentops/blog-schema";
 import type { Ga4PagePathRow } from "@/lib/providers/ga4";
 import type { GscQueryRow } from "@/lib/providers/search-console";
 
+type OrderIntentItemRecord = {
+  slug: string;
+  name: string;
+  quantity: number;
+  pricePkr: number;
+};
+
 type OrderIntentsTable = {
   id: string;
   product_slug: string | null;
@@ -13,6 +20,16 @@ type OrderIntentsTable = {
   source_page: string;
   event_timestamp: string;
   user_agent: string | null;
+  // Full Cash-on-Delivery payload — populated only by the /cart Confirm-tap
+  // (see supabase/order-intents-schema.sql). Optional so thin analytics intents
+  // insert without them (and so the migration-not-yet-applied fallback works).
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_city?: string | null;
+  customer_address?: string | null;
+  items?: OrderIntentItemRecord[] | null;
+  quantity?: number | null;
+  total_pkr?: number | null;
   created_at: string;
 };
 
