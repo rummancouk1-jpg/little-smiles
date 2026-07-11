@@ -153,10 +153,11 @@ export async function POST(request: Request) {
 
     let { error } = await supabase.from("order_intents").insert([row]);
 
-    // If the COD columns don't exist yet (migration not applied — Postgres
-    // "undefined_column"), fall back to the base row so the analytics intent is
-    // never lost. Apply supabase/order-intents-schema.sql to enable full capture.
-    if (error?.code === "42703" && isCod) {
+    // If the COD columns don't exist yet (migration not applied), fall back to
+    // the base row so the analytics intent is never lost. PostgREST reports a
+    // missing column as "PGRST204"; "42703" is the native Postgres code (direct
+    // SQL). Apply supabase/order-intents-schema.sql to enable full capture.
+    if ((error?.code === "PGRST204" || error?.code === "42703") && isCod) {
       console.warn(
         "[order-intent] COD columns missing — apply supabase/order-intents-schema.sql. Storing thin intent for now.",
       );
