@@ -160,7 +160,9 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               {Array.from({ length: maxQty }, (_, index) => index + 1).map((n) => (
                 <option key={n} value={n}>
                   {n}
-                  {maxQty === 1 ? " (only one available)" : ""}
+                  {product.inStock && product.inventoryQty === 1
+                    ? " (only one available)"
+                    : ""}
                 </option>
               ))}
             </select>
