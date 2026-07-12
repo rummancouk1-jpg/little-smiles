@@ -24,6 +24,7 @@ import {
   productShowsSizeField,
   productShowsVariantField,
 } from "@/lib/products";
+import { cn } from "@/lib/utils";
 
 type ProductWhatsappOrderProps = {
   product: Product;
@@ -136,7 +137,13 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               </p>
             ) : null}
           </div>
-          <p className="mt-2 text-xs font-semibold tracking-[0.1em] text-tone-availability uppercase">
+          <p
+            className={cn(
+              "mt-2 text-xs font-semibold tracking-[0.1em] uppercase",
+              // Availability is per-state: trust green only when buyable.
+              product.inStock ? "text-tone-availability" : "text-tone-danger",
+            )}
+          >
             {getAvailabilityLabel(product)}
           </p>
         </div>

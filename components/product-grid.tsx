@@ -111,7 +111,13 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
                     </span>
                   ) : null}
                 </div>
-                <p className="text-[11px] font-medium tracking-[0.08em] text-tone-availability uppercase">
+                <p
+                  className={cn(
+                    "text-[11px] font-medium tracking-[0.08em] uppercase",
+                    // Availability is per-state: trust green only when buyable.
+                    product.inStock ? "text-tone-availability" : "text-tone-danger"
+                  )}
+                >
                   {getAvailabilityLabel(product)}
                 </p>
               </div>
