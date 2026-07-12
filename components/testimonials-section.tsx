@@ -8,12 +8,8 @@ import { cn } from "@/lib/utils";
 
 export function TestimonialsSection() {
   return (
-    <section className="relative overflow-hidden bg-transparent pb-20 pt-8 sm:pb-24 sm:pt-10 lg:pb-28 lg:pt-12">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -left-12 top-20 h-56 w-56 rounded-full bg-atmosphere-haze/64 blur-3xl" />
-        <div className="absolute right-0 top-10 h-64 w-64 rounded-full bg-atmosphere-haze/60 blur-3xl" />
-      </div>
-
+    // Paper chapter between the two warm bands.
+    <section className="relative bg-transparent pb-20 pt-14 sm:pb-24 sm:pt-16 lg:pb-28 lg:pt-18">
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <Reveal className="max-w-2xl">
           <p className="eyebrow">Letters</p>
@@ -81,9 +77,12 @@ export function TestimonialsSection() {
           })}
         </div>
         <Reveal className="mt-10 flex justify-center sm:mt-12">
+          {/* Gentle/human ask, not commerce — stitched outline keeps it quiet
+              so marigold stays reserved for buying actions. */}
           <Button
             asChild
-            className="h-11 rounded-full bg-ink-walnut px-7 text-sm font-medium text-ink-foreground shadow-[0_14px_34px_-22px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-ink-espresso hover:shadow-[0_18px_40px_-24px_rgba(47,38,36,0.66)]"
+            variant="outline"
+            className="h-11 rounded-full border-dashed border-ink-base/35 bg-transparent px-7 text-sm font-medium text-ink-walnut shadow-none transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-surface-hover"
           >
             <Link
               href={`${whatsappBaseUrl}?text=${encodeURIComponent(

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { useCart } from "@/components/cart-provider";
+import { SavingsNote, categoryMatClass } from "@/components/product-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCartWhatsappCheckoutUrl } from "@/lib/cart-checkout";
@@ -14,7 +15,6 @@ import { trackCartCheckoutAndOpenWhatsapp } from "@/lib/order-intent-client";
 import {
   formatPkr,
   getCartUpsellProducts,
-  getDiscountBadgeLabel,
   getImageCandidates,
 } from "@/lib/products";
 import { ProductImage } from "@/components/product-image";
@@ -128,7 +128,7 @@ export function CartPageClient() {
           </p>
           <Button
             asChild
-            className="mt-8 h-12 rounded-full bg-accent-brass px-8 text-sm font-semibold text-accent-brass-ink shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)] hover:bg-accent-brass/90 [a]:hover:bg-accent-brass/90"
+            className="mt-8 h-12 rounded-full bg-accent-marigold px-8 text-sm font-semibold text-accent-marigold-ink shadow-[0_14px_34px_-20px_rgba(47,38,36,0.56)] hover:bg-accent-marigold/90 [a]:hover:bg-accent-marigold/90"
           >
             <Link href="/shop">Continue shopping</Link>
           </Button>
@@ -148,7 +148,9 @@ export function CartPageClient() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ink-base/72">
           {totalQuantity} {totalQuantity === 1 ? "item" : "items"} · Subtotal{" "}
-          <span className="font-semibold text-ink-walnut">{formatPkr(subtotalPkr)}</span>
+          <span className="font-heading text-base font-semibold tabular-nums text-ink-strong">
+            {formatPkr(subtotalPkr)}
+          </span>
         </p>
       </div>
 
@@ -166,27 +168,25 @@ export function CartPageClient() {
             >
               <Link
                 href={`/shop/${product.slug}`}
-                className="relative mx-auto h-36 w-full shrink-0 overflow-hidden rounded-2xl bg-surface-well sm:mx-0 sm:h-28 sm:w-28"
+                className={cn(
+                  "arch-frame relative mx-auto h-36 w-full shrink-0 sm:mx-0 sm:h-28 sm:w-28",
+                  categoryMatClass[product.category] ?? "bg-mat-butter",
+                )}
               >
                 <ProductImage
                   sources={getImageCandidates(product.image)}
                   alt={product.name}
                   fill
-                  className="object-contain object-center"
+                  className="object-contain object-center p-3"
                   sizes="(max-width: 640px) 100vw, 7rem"
                 />
               </Link>
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-ink-base/12 bg-surface-raised/66 px-2.5 py-0.5 text-xs font-medium text-ink-base/74">
+                  <span className="rounded-full border border-dashed border-ink-base/28 bg-surface-raised/66 px-2.5 py-0.5 text-xs font-medium text-ink-base/74">
                     {product.category}
                   </span>
-                  {getDiscountBadgeLabel(product) ? (
-                    <span className="rounded-full bg-ink-walnut px-2.5 py-0.5 text-xs font-medium text-ink-foreground">
-                      {getDiscountBadgeLabel(product)}
-                    </span>
-                  ) : null}
                 </div>
                 <Link
                   href={`/shop/${product.slug}`}
@@ -195,17 +195,14 @@ export function CartPageClient() {
                   {product.name}
                 </Link>
                 <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-base font-semibold text-ink-walnut">
+                  <span className="font-heading text-lg font-semibold tabular-nums text-ink-strong">
                     {formatPkr(product.pricePkr)}
                   </span>
-                  {getDiscountBadgeLabel(product) ? (
-                    <span className="text-sm text-ink-base/56 line-through">
-                      {formatPkr(product.compareAtPricePkr)}
-                    </span>
-                  ) : null}
+                  <SavingsNote product={product} />
                 </div>
                 {limited ? (
-                  <p className="mt-2 text-xs font-medium tracking-[0.08em] text-tone-availability uppercase">
+                  <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-ink-base/68">
+                    <span aria-hidden className="size-[7px] rounded-full bg-tone-amber" />
                     Only {maxQty} left — order soon
                   </p>
                 ) : null}
@@ -247,7 +244,9 @@ export function CartPageClient() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-ink-base/62">Line total</p>
-                    <p className="text-lg font-semibold text-ink-walnut">{formatPkr(lineTotal)}</p>
+                    <p className="font-heading text-xl font-semibold tabular-nums text-ink-strong">
+                      {formatPkr(lineTotal)}
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -292,25 +291,32 @@ export function CartPageClient() {
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {upsellProducts.map((item) => (
-              <article
-                key={item.slug}
-                className="flex flex-col rounded-2xl border border-ink-base/10 bg-surface-card/94 p-3.5 shadow-[0_18px_40px_-28px_rgba(59,47,47,0.3)]"
-              >
-                <Link href={`/shop/${item.slug}`} className="group block">
-                  <div className="relative h-36 rounded-xl bg-surface-well p-3">
-                    <ProductImage
-                      sources={getImageCandidates(item.image)}
-                      alt={item.name}
-                      fill
-                      className="object-contain object-center"
-                      sizes="(max-width: 640px) 100vw, 25vw"
-                    />
+              <article key={item.slug} className="group flex flex-col text-center">
+                <Link href={`/shop/${item.slug}`} className="block">
+                  <div
+                    className={cn(
+                      "arch-frame pb-4 pt-6 shadow-card-rest transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-hover:shadow-card-lift",
+                      categoryMatClass[item.category] ?? "bg-mat-butter",
+                    )}
+                  >
+                    <div className="relative mx-auto aspect-square w-[68%]">
+                      <ProductImage
+                        sources={getImageCandidates(item.image)}
+                        alt={item.name}
+                        fill
+                        className="object-contain object-center"
+                        sizes="(max-width: 640px) 100vw, 25vw"
+                      />
+                    </div>
+                    <div aria-hidden className="arch-floor bottom-[4%] h-2.5 w-[50%]" />
                   </div>
-                  <p className="mt-2.5 line-clamp-2 text-sm font-semibold text-ink-walnut group-hover:underline">
+                  <p className="mt-2.5 line-clamp-2 text-sm font-semibold text-ink-strong group-hover:underline">
                     {item.name}
                   </p>
                 </Link>
-                <p className="mt-1 text-sm font-semibold text-ink-walnut">{formatPkr(item.pricePkr)}</p>
+                <p className="mt-1 font-heading text-base font-semibold tabular-nums text-ink-strong">
+                  {formatPkr(item.pricePkr)}
+                </p>
                 <AddToCartButton
                   product={item}
                   size="sm"
@@ -495,16 +501,20 @@ export function CartPageClient() {
           <div className="flex w-full min-w-0 flex-col gap-4 border-t border-ink-base/10 pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
             <div className="min-w-0 max-w-xl">
               <p className="text-sm text-ink-base/72">Cart subtotal</p>
-              <p className="text-2xl font-semibold text-ink-walnut">{formatPkr(subtotalPkr)}</p>
+              <p className="font-heading text-3xl font-semibold tabular-nums text-ink-strong">
+                {formatPkr(subtotalPkr)}
+              </p>
               <p className="mt-1 text-xs leading-relaxed text-ink-base/62">
                 Delivery is added after we confirm your city. Final COD total is shared on WhatsApp
                 before we dispatch.
               </p>
             </div>
             <div className="w-full shrink-0 sm:w-auto sm:max-w-[min(100%,18.5rem)] sm:pt-0.5">
+              {/* Marigold owns the commerce action — className ONLY; the
+                  submit wiring and handler are frozen. */}
               <Button
                 type="submit"
-                className="h-12 w-full rounded-full bg-ink-walnut px-6 text-sm font-semibold text-ink-foreground shadow-[0_16px_34px_-18px_rgba(47,38,36,0.6)] transition-[box-shadow,background-color] duration-300 hover:bg-ink-espresso sm:min-w-[14rem]"
+                className="h-12 w-full rounded-full bg-accent-marigold px-6 text-sm font-semibold text-accent-marigold-ink shadow-cta transition-[box-shadow,background-color] duration-300 hover:bg-accent-marigold-deep sm:min-w-[14rem]"
               >
                 Confirm COD Order on WhatsApp
               </Button>

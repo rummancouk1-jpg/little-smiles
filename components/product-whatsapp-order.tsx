@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { AvailabilityDot, SavingsNote } from "@/components/product-grid";
 import {
   Accordion,
   AccordionContent,
@@ -18,8 +19,6 @@ import {
   type Product,
   clampOrderQuantity,
   formatPkr,
-  getAvailabilityLabel,
-  getDiscountBadgeLabel,
   getWhatsappOrderLink,
   productShowsSizeField,
   productShowsVariantField,
@@ -103,17 +102,14 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           Little Smiles
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* Stitched ticket — matches the grid cards; the % OFF badge is
+              retired (savings live as fine print by the price). */}
           <Badge
             variant="outline"
-            className="border-ink-base/12 bg-surface-raised/65 text-ink-base/74"
+            className="border-dashed border-ink-base/30 bg-surface-raised/65 uppercase tracking-[0.12em] text-ink-base/72"
           >
             {product.category}
           </Badge>
-          {getDiscountBadgeLabel(product) ? (
-            <Badge className="border-transparent bg-ink-walnut text-ink-foreground">
-              {getDiscountBadgeLabel(product)}
-            </Badge>
-          ) : null}
         </div>
         <h1
           id="product-title"
@@ -125,20 +121,15 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
           {product.longDescription}
         </p>
 
-        <div className="mt-7 rounded-2xl border border-ink-base/10 bg-surface-raised/58 p-4 sm:p-5">
-          <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
-            <p className="text-3xl font-semibold text-ink-walnut sm:text-[2rem]">
+        {/* Serif money — the price is part of the selling moment. */}
+        <div className="mt-7">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="font-heading text-4xl font-semibold tabular-nums text-ink-strong sm:text-[2.6rem]">
               {formatPkr(product.pricePkr)}
             </p>
-            {getDiscountBadgeLabel(product) ? (
-              <p className="text-base text-ink-base/56 line-through">
-                {formatPkr(product.compareAtPricePkr)}
-              </p>
-            ) : null}
+            <SavingsNote product={product} className="text-sm" />
           </div>
-          <p className="mt-2 text-xs font-semibold tracking-[0.1em] text-tone-availability uppercase">
-            {getAvailabilityLabel(product)}
-          </p>
+          <AvailabilityDot product={product} className="mt-2" />
         </div>
 
         {/* Decision cluster — quantity + the primary buy actions, directly under
@@ -172,7 +163,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             <span className="text-sm text-ink-base/68">
               {safeQty > 1 ? "Line total" : "Total"}
             </span>
-            <span className="text-lg font-semibold text-ink-walnut">
+            <span className="font-heading text-xl font-semibold tabular-nums text-ink-strong">
               {formatPkr(lineTotal)}
             </span>
           </div>
@@ -191,12 +182,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 <AddToCartButton
                   product={product}
                   quantity={safeQty}
-                  className="h-12 min-h-12 w-full border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90 sm:h-11 sm:w-auto sm:min-w-[13rem]"
+                  className="h-12 min-h-12 w-full sm:h-11 sm:w-auto sm:min-w-[13rem]"
                 />
                 <Button
                   asChild
                   variant="outline"
-                  className="h-12 w-full rounded-full border-ink-walnut/16 bg-surface-raised/72 px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
+                  className="h-12 w-full rounded-full border-dashed border-ink-base/35 bg-transparent shadow-none px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
                 >
                   <Link
                     href={orderHref}
@@ -338,11 +329,11 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
       <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-2 sm:hidden">
         <div className="mx-auto max-w-md space-y-2 rounded-2xl border border-ink-base/12 bg-surface-card/96 p-3 shadow-[0_18px_38px_-24px_rgba(59,47,47,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-surface-card/92">
           <div className="flex items-baseline justify-between gap-2">
-            <p className="text-base font-semibold text-ink-walnut">{formatPkr(lineTotal)}</p>
-            {safeQty === 1 && getDiscountBadgeLabel(product) ? (
-              <p className="text-[11px] text-ink-base/58 line-through">
-                {formatPkr(product.compareAtPricePkr)}
-              </p>
+            <p className="font-heading text-lg font-semibold tabular-nums text-ink-strong">
+              {formatPkr(lineTotal)}
+            </p>
+            {safeQty === 1 ? (
+              <SavingsNote product={product} className="text-[11px]" />
             ) : (
               <p className="text-[11px] text-ink-base/58">
                 {safeQty} × {formatPkr(product.pricePkr)} each
@@ -363,12 +354,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 product={product}
                 quantity={safeQty}
                 label="Add to cart"
-                className="h-11 min-h-11 flex-1 border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90 text-xs"
+                className="h-11 min-h-11 flex-1 text-xs"
               />
               <Button
                 asChild
                 variant="outline"
-                className="h-11 min-h-11 shrink-0 rounded-full border-ink-walnut/16 bg-surface-raised/72 px-3 text-xs font-semibold text-ink-walnut"
+                className="h-11 min-h-11 shrink-0 rounded-full border-dashed border-ink-base/35 bg-transparent shadow-none px-3 text-xs font-semibold text-ink-walnut"
               >
                 <Link
                   href={orderHref}
@@ -399,7 +390,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-ink-walnut">{product.name}</p>
               <p className="text-sm">
-                <span className="font-semibold text-ink-walnut">{formatPkr(lineTotal)}</span>
+                <span className="font-heading text-base font-semibold tabular-nums text-ink-strong">{formatPkr(lineTotal)}</span>
                 {safeQty > 1 ? (
                   <span className="ml-2 text-ink-base/55">
                     {safeQty} × {formatPkr(product.pricePkr)}
@@ -411,12 +402,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <AddToCartButton
                 product={product}
                 quantity={safeQty}
-                className="h-11 min-h-11 border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90 min-w-[12rem]"
+                className="h-11 min-h-11 min-w-[12rem]"
               />
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-full border-ink-walnut/16 bg-surface-raised/72 px-6 text-sm font-semibold text-ink-walnut"
+                className="h-11 rounded-full border-dashed border-ink-base/35 bg-transparent shadow-none px-6 text-sm font-semibold text-ink-walnut"
               >
                 <Link
                   href={orderHref}

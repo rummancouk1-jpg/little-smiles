@@ -9,16 +9,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body-sans);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-heading: var(--font-editorial-serif);
+  --font-heading: var(--font-display-serif);
 
-  /* === Editorial type scale (Step 3, Move 3) ===============================
-     Fluid clamp(min, preferred, max) so display headings gain editorial
-     presence on desktop WITHOUT breaking mobile — the min pins small-screen
-     size near today's values, growth is viewport-driven. font-family stays
-     Cormorant via the base h1/h2/h3 rule; these tokens set size + line-height
-     + tracking only. Headings reference the scale (text-display/-headline/
-     -subhead), not arbitrary rem values. Weight is carried at the call site
-     (kept elegant, not heavy). ======================================= */
+  /* === Display type scale ==================================================
+     Fluid clamp(min, preferred, max) so display headings gain presence on
+     desktop WITHOUT breaking mobile — the min pins small-screen size, growth
+     is viewport-driven. font-family is Fraunces (Golden Hour) via the base
+     h1/h2/h3 rule; these tokens set size + line-height + tracking only.
+     Headings reference the scale (text-display/-headline/-subhead), not
+     arbitrary rem values. Weight is carried at the call site. ========== */
   --text-display: clamp(2.75rem, 1.6rem + 5vw, 5.75rem);
   --text-display--line-height: 1.03;
   --text-display--letter-spacing: -0.02em;
@@ -89,11 +88,9 @@
   --color-ink-placeholder: var(--ink-placeholder);
 
   /* Ownable accent + emphasis (DEFINE ONLY — not applied until a later step). */
-  --color-accent-brass: var(--accent-brass);
-  --color-accent-brass-ink: var(--accent-brass-ink);
-  --color-accent-blush: var(--accent-blush);
-  --color-accent-blush-strong: var(--accent-blush-strong);
-  --color-accent-blush-ink: var(--accent-blush-ink);
+  --color-accent-marigold: var(--accent-marigold);
+  --color-accent-marigold-deep: var(--accent-marigold-deep);
+  --color-accent-marigold-ink: var(--accent-marigold-ink);
   --color-emphasis-berry: var(--emphasis-berry);
   --color-emphasis-berry-deep: var(--emphasis-berry-deep);
   --color-emphasis-berry-soft: var(--emphasis-berry-soft);
@@ -135,6 +132,13 @@
   --color-tone-availability: var(--tone-availability);
   --color-tone-trust: var(--tone-trust);
   --color-tone-danger: var(--tone-danger);
+
+  /* Golden Hour nursery mats — image windows & tinting ONLY (never text or
+     buttons). The arch signature sits on these. All warm. */
+  --color-mat-butter: var(--mat-butter);
+  --color-mat-blush: var(--mat-blush);
+  --color-mat-sand: var(--mat-sand);
+  --color-mat-peach: var(--mat-peach);
 }
 
 :root {
@@ -175,88 +179,97 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* === Boutique design tokens (warm-brown ink + soft shadow language) === */
-  /* Canonical ink colors. Use against the cream page background.
-     For panels with explicit non-cream backgrounds, prefer the existing
-     inline opacities so contrast stays correct. */
-  --ink-strong: #1f1918;
-  --ink-body: rgba(59, 47, 47, 0.78);
-  --ink-muted: rgba(59, 47, 47, 0.62);
-  --ink-subtle: rgba(59, 47, 47, 0.5);
-
-  /* Two-tier card depth: near-flat at rest, lifted on hover. */
-  --shadow-card-rest: 0 10px 28px -22px rgba(59, 47, 47, 0.18);
-  --shadow-card-lift: 0 22px 48px -26px rgba(59, 47, 47, 0.3);
-
   /* ==================================================================
-     Direction C — "Modern Heirloom" — brand token VALUES.
-     STEP 1: values defined + documented ONLY. Nothing references these,
-     so rendering is unchanged. Each token notes the inline hex(es) it
-     will absorb during the Step 2 codemod. "Absorbs" = the existing
-     inline hex(es) that will be replaced by this token, mechanically.
+     GOLDEN HOUR — brand token VALUES (Stage A).
+     The storefront as a sunlit picture-book: sun-washed paper ground,
+     espresso-cocoa ink, ONE marigold accent (from the logo's sun),
+     four nursery mats for image windows only. Token NAMES are retained
+     from the Heirloom-era codemod so this stage is values-only; the
+     rename (brass->marigold etc.) lands with the Stage B rollout.
      ================================================================== */
 
-  /* --- Opaque display / CTA inks ------------------------------------
-     Collapses the FIVE drifting near-black browns into TWO canonical
-     tokens. (The example in the brief suggested --ink-strong/--ink-body,
-     but --ink-body is a *translucent* #3B2F2F above — a different hue.
-     So the second canonical is a dedicated opaque walnut instead.) */
-  --ink-espresso: #1f1918; /* darkest ink. Absorbs: #1F1918, #241B1B, #251E1D (CTA hover). Same value as --ink-strong; kept as an opaque fill/border sibling so the semantic --ink-strong text token stays stable. */
-  --ink-walnut: #2a211c;   /* Direction C walnut. Absorbs: #2E2323, #2F2624 (headings + primary CTA fill). */
-  --ink-foreground: #f6f1ec; /* cream text on dark ink. Absorbs: #F6F1EC. */
+  /* Canonical ink roles. Golden Hour targets THREE roles (ink/soft/faint);
+     -muted and -subtle both step toward faint until the Stage B class
+     collapse. All derive from the single espresso-cocoa hue. */
+  --ink-strong: #33261d;
+  --ink-body: rgba(51, 38, 29, 0.74);
+  --ink-muted: rgba(51, 38, 29, 0.6);
+  --ink-subtle: rgba(51, 38, 29, 0.52);
 
-  /* Raw body-ink hue behind the translucent --ink-body/muted/subtle.
-     Absorbs the ~1000 inline #3B2F2F/<opacity> uses via ink-base/<op>. */
-  --ink-base: #3b2f2f;      /* Absorbs: #3B2F2F (all opacities). */
-  --ink-placeholder: #6b5b59; /* form input placeholder ink (muted mauve). Absorbs: #6B5B59. Exact. NOTE: globals .contact-input::placeholder still hardcodes this value — repoint in a later globals cleanup. */
+  /* Two-tier card depth: near-flat at rest, lifted on hover. */
+  --shadow-card-rest: 0 10px 28px -22px rgba(51, 38, 29, 0.18);
+  --shadow-card-lift: 0 22px 48px -26px rgba(51, 38, 29, 0.3);
 
-  /* --- Ownable accent + emphasis (DEFINE ONLY; apply in a later step) - */
-  --accent-brass: #b08641;        /* NEW brand accent — not yet present in code. */
-  --accent-brass-ink: #332107;    /* dark-brass text ON brass fills (keepsake CTA + pill). AA 4.65:1 on --accent-brass. NOTE: brief suggested ~#3A2A10 (=4.17:1, just under AA 4.5) — deepened to pass the accessibility rule. */
-  --accent-blush: #e8b4b8;        /* contact CTA rest. Absorbs: #E8B4B8. Exact, no fold (ΔE 20.9 from berry). *** HIGH-PRIORITY accent-step reconciliation: first color that CONFLICTS with the brass-single-accent thesis — decide blush-as-soft-secondary vs unify-to-brass. *** */
-  --accent-blush-strong: #e3a9ae; /* contact CTA hover. Absorbs: #E3A9AE. Exact. Pairs with --accent-blush. */
-  --accent-blush-ink: #2a211c;    /* text ON blush CTAs. Light = ink-walnut (keeps light identical); dark lifts to #3A1E22. */
-  --emphasis-berry: #8a2f40;      /* Absorbs: #8A2F40. */
-  --emphasis-berry-deep: #5e1c29; /* Absorbs: #5E1C29. (Verify #6E2D2D availability-label folds here in Step 2.) */
-  --emphasis-berry-soft: #9a4c5a; /* Absorbs: #9A4C5A. */
-  --emphasis-berry-tint: #f8e8ea; /* Absorbs: #F8E8EA, #FBEEF1. */
+  /* --- Opaque display / CTA inks ------------------------------------ */
+  --ink-espresso: #241a12;   /* darkest ink — hover step for dark fills. */
+  --ink-walnut: #33261d;     /* headings + dark CTA fill (espresso-cocoa). */
+  --ink-foreground: #fbf4e9; /* paper text on dark ink fills. */
 
-  /* --- Warm surface / cream ladder ---------------------------------- */
-  --surface-ivory: #fbf6ef; /* Direction C ground TARGET — page bg migrates here in a later step. Unused now. */
-  --surface-page: #f9f5f1;  /* current page/body ground. Absorbs: #F9F5F1. */
-  --surface-grain: #fdf8f4; /* grain-surface base. Absorbs: #FDF8F4. */
-  --surface-card: #fcf8f4;  /* product/blog card fill. Absorbs: #FCF8F4 (+ near-dupe #FCF7F2). */
-  --surface-panel: #fbf7f3; /* raised panels. Absorbs: #FBF7F3. */
-  --surface-well: #f7f0ea;  /* product image well. Absorbs: #F7F0EA (+ PDP #F5EEE7). */
-  --surface-hover: #f2eae4; /* neutral hover fill. Absorbs: #F2EAE4. */
-  --surface-callout: #f8f2ec; /* blog CTA callout ground. Absorbs: #F8F2EC. (Added in Step 2 — exact value, no fold.) */
-  --surface-hover-soft: #f8f4f0; /* remove-button soft hover. Absorbs: #F8F4F0. Exact, NO fold — NOT atmosphere-veil despite ΔE 0.60 (surface role). May adopt --surface-hover at design step. */
-  --surface-hover-strong: #ebe3dc;  /* button secondary hover. Absorbs: #EBE3DC. Exact. Interaction ladder step 2 (after --surface-hover). */
-  --surface-active: #e8dfd6;        /* button outline active/pressed. Absorbs: #E8DFD6. Exact. Ladder step 3. */
-  --surface-active-strong: #e3d9d0; /* button secondary active/pressed. Absorbs: #E3D9D0. Exact. Ladder step 4. Thinning the ladder deferred to accent step. */
-  --surface-raised: #ffffff;        /* raised white panels (badges/inputs/cards over cream). Light = pure white — IDENTICAL to the prior literal bg-white. Dark inverts to a raised dark card. Replaces literal bg-white so it themes. */
+  /* Raw body-ink hue behind the translucent --ink-body/muted/subtle. */
+  --ink-base: #33261d;
+  --ink-placeholder: #8a7663; /* form placeholder — warm sand. */
 
-  /* Ambient / decorative warm-greige tints — 4-tone lightness ladder.
-     Collapses the drifting decor family under Option-A (max ΔE 1.83).
-     Uniformly warm hue (no cool variant exists in the source). */
-  --atmosphere-veil: #f9f5f0;  /* lightest warm-white. Absorbs: #FEFAF6, #FAF6F2, #F7F2ED, #F6F0EB */
-  --atmosphere-mist: #f4eee8;  /* light warm. Absorbs: #F5EEE7, #F4EFEB, #F3ECE6 */
-  --atmosphere-haze: #eee6e0;  /* mid greige. Absorbs: #F0E8E1, #EFE8E2, #EEE7E1, #EEE5DE, #ECE4DD */
-  --atmosphere-shade: #e9e1d9; /* deeper greige. Absorbs: #E9E1D9, #E8E0D8 */
+  /* --- THE accent: marigold (drawn from the logo's sun) --------------
+     Owns every primary action. 6.8:1 with --ink-strong text (AA).
+     Brass and blush accents are fully retired (blush lives on only as
+     the --mat-blush nursery mat). */
+  --accent-marigold: #e8a33d;
+  --accent-marigold-deep: #c77f1a; /* hover/active step. 4.5:1 with ink text. */
+  --accent-marigold-ink: #33261d;  /* text ON marigold fills. */
+  --emphasis-berry: #8a2f40;      /* dormant on customer surfaces — Stage B review. */
+  --emphasis-berry-deep: #5e1c29;
+  --emphasis-berry-soft: #9a4c5a;
+  --emphasis-berry-tint: #f8e8ea;
 
-  /* --- Semantic category / status tones (define only) --------------- */
-  --tone-green: #2e6a41;      /* Absorbs: #2E6A41. */
-  --tone-green-deep: #1e5a37; /* Absorbs: #1E5A37. */
-  --tone-green-tint: #e7f4ea; /* Absorbs: #E7F4EA, #EAF5EE. */
-  --tone-amber: #7a4a12;      /* Absorbs: #7A4A12. */
-  --tone-amber-deep: #5e4a1c; /* Absorbs: #5E4A1C. */
-  --tone-amber-soft: #8a6a2f; /* Absorbs: #8A6A2F. */
-  --tone-amber-tint: #fbeede; /* Absorbs: #FBEEDE, #FBF5EA. */
-  --tone-blue: #1f3f66;       /* Absorbs: #1F3F66. */
-  --tone-blue-tint: #e7eef7;  /* Absorbs: #E7EEF7. */
-  --tone-availability: #6e2d2d; /* availability-label maroon (all stock states). Absorbs: #6E2D2D. Exact, NO fold — distinct from --emphasis-berry* (ΔE 9+). Revisit at accent step. */
-  --tone-trust: #3b5f4a;  /* COD trust-checkmark sage. Absorbs: #3B5F4A. Exact, NO fold — ΔE 15 from --tone-green. Reconcile with green system at accent step. */
-  --tone-danger: #8b3a3a; /* form validation/error text. Absorbs: #8B3A3A. Exact — fills a real gap (no danger token existed; shadcn --destructive unused/different). Review vs warm palette at accent step. */
+  /* --- Sun-washed paper ladder ---------------------------------------
+     Ground is #FBF4E9 paper; every step keeps the same sunny hue and
+     darkens by lightness only (hover -> active). */
+  --surface-ivory: #fbf4e9;
+  --surface-page: #fbf4e9;  /* page/body ground. */
+  --surface-grain: #fbf4e9; /* grain-surface base. */
+  --surface-card: #fdf8ef;  /* product/blog card fill. */
+  --surface-panel: #fcf6eb; /* raised panels. */
+  --surface-well: #f5ebda;  /* product image well (arch pages use mats instead). */
+  --surface-hover: #f3e9d8; /* neutral hover fill. */
+  --surface-callout: #f8f0e1; /* blog CTA callout ground. */
+  --surface-hover-soft: #f7efe2;
+  --surface-hover-strong: #efe3cc; /* interaction ladder step 2. */
+  --surface-active: #e9dcc2;        /* ladder step 3. */
+  --surface-active-strong: #e3d4b6; /* ladder step 4. */
+  --surface-raised: #fffdf7; /* raised paper panels (badges/inputs/cards). Warm near-white, no longer pure #fff. */
+
+  /* Ambient / decorative warm tints — 4-tone lightness ladder on the
+     paper hue. */
+  --atmosphere-veil: #f8f1e3;
+  --atmosphere-mist: #f4ead8;
+  --atmosphere-haze: #eee2cc;
+  --atmosphere-shade: #e7d9be;
+
+  /* --- Nursery mats (Golden Hour signature) --------------------------
+     Backing tints for the arch image windows and category tinting ONLY —
+     never text, never buttons. ALL WARM: same sunlit family as the paper
+     ground and marigold, so the arch reads native (the original cool
+     sky/sage tints read foreign against the warm site and were retired). */
+  --mat-butter: #f7e8c3;
+  --mat-blush: #f6dfdd;
+  --mat-sand: #f0e5d3;
+  --mat-peach: #f9e4d2;
+  /* Elliptical contact shadow that grounds a product in its arch window. */
+  --arch-contact: rgba(51, 38, 29, 0.2);
+
+  /* --- Semantic category / status tones ----------------------------- */
+  --tone-green: #3f6b4f;      /* unified with --tone-trust (Golden Hour). */
+  --tone-green-deep: #2f5540;
+  --tone-green-tint: #e4f0e4;
+  --tone-amber: #7a4a12;
+  --tone-amber-deep: #5e4a1c;
+  --tone-amber-soft: #8a6a2f;
+  --tone-amber-tint: #f9edd6;
+  --tone-blue: #1f3f66;
+  --tone-blue-tint: #e3edf4;
+  --tone-availability: #3f6b4f; /* in-stock label -> calm trust green. OOS call sites switch to --tone-danger (per-state, done in components). */
+  --tone-trust: #3f6b4f;  /* COD trust green — availability + trust unified. */
+  --tone-danger: #8b3a3a; /* form validation/error text + out-of-stock. */
 
   /* --- Motion tokens ------------------------------------------------
      Mirror lib/motion.ts so CSS-driven transitions in later steps can
@@ -273,9 +286,9 @@
      two-tier card depth. These add the other recurring inline shadows
      as named tokens; the 89 inline shadow-[0_...] migrate onto these in
      a later step. Define only. */
-  --shadow-cta: 0 14px 34px -18px rgba(47, 38, 36, 0.58);       /* primary CTA rest */
-  --shadow-cta-hover: 0 20px 40px -20px rgba(47, 38, 36, 0.68); /* primary CTA hover */
-  --shadow-nav: 0 20px 44px -26px rgba(59, 47, 47, 0.4);        /* scrolled navbar */
+  --shadow-cta: 0 14px 34px -18px rgba(41, 30, 22, 0.5);       /* primary CTA rest */
+  --shadow-cta-hover: 0 20px 40px -20px rgba(41, 30, 22, 0.6); /* primary CTA hover */
+  --shadow-nav: 0 20px 44px -26px rgba(51, 38, 29, 0.4);       /* scrolled navbar */
 }
 
 .dark {
@@ -313,72 +326,76 @@
 }
 
 /* ==================================================================
-   DARK MODE — warm brown-black, never pure #000. (dark Move 1)
-   The token spine makes this a pure override: every brand raw token
-   gets a dark counterpart here and all utilities invert automatically.
-   Ground is warm; cards STEP UP in warmth for elevation (mirrors the
-   light-mode raise). Text is warm off-white, not stark white. Accents
-   LIFT (brass glows, blush brightens). All contrast AA-verified.
+   DARK MODE — Golden Hour "nightlight nursery": warm brown-black,
+   never pure #000. Pure token override: every brand raw token gets a
+   dark counterpart and all utilities invert automatically. Ground is
+   warm; cards STEP UP in warmth for elevation. Text is warm off-white.
+   Marigold GLOWS (lifts). Mats deepen into night tints.
    ================================================================== */
 .dark {
   /* shadcn tokens -> warm (override the neutral OKLCH block above) */
-  --background: #1a1512;
-  --foreground: #f5efe7;
-  --card: #241d18;
-  --card-foreground: #f5efe7;
-  --popover: #241d18;
-  --popover-foreground: #f5efe7;
+  --background: #221a13;
+  --foreground: #f4ead9;
+  --card: #2c2219;
+  --card-foreground: #f4ead9;
+  --popover: #2c2219;
+  --popover-foreground: #f4ead9;
   --primary: var(--ink-walnut);
   --primary-foreground: var(--ink-foreground);
   --secondary: var(--surface-hover);
   --secondary-foreground: var(--ink-walnut);
-  --muted: #2c241e;
-  --muted-foreground: #b5a794;
+  --muted: #362a1e;
+  --muted-foreground: #c1b092;
   --accent: var(--surface-hover);
-  --accent-foreground: #f5efe7;
+  --accent-foreground: #f4ead9;
   --destructive: #e28a85;
-  --border: rgba(245, 239, 231, 0.14);
-  --input: rgba(245, 239, 231, 0.18);
-  --ring: rgba(245, 239, 231, 0.32);
+  --border: rgba(244, 234, 217, 0.14);
+  --input: rgba(244, 234, 217, 0.18);
+  --ring: rgba(244, 234, 217, 0.32);
 
   /* Ink text -> warm off-white (NOT stark white) */
-  --ink-strong: #f5efe7;
-  --ink-espresso: #f5efe7;
-  --ink-walnut: #f5efe7;      /* primary text; also the primary-button/active-pill FILL (light-on-dark) */
-  --ink-base: #f5efe7;        /* body text at opacity; low-opacity borders become light hairlines */
-  --ink-foreground: #1a1512;  /* text/icons ON light ink fills */
-  --ink-placeholder: #8a7d6e;
-  --ink-body: rgba(245, 239, 231, 0.78);
-  --ink-muted: rgba(245, 239, 231, 0.6);
-  --ink-subtle: rgba(245, 239, 231, 0.48);
+  --ink-strong: #f4ead9;
+  --ink-espresso: #f4ead9;
+  --ink-walnut: #f4ead9;      /* primary text; also the primary-button/active-pill FILL (light-on-dark) */
+  --ink-base: #f4ead9;        /* body text at opacity; low-opacity borders become light hairlines */
+  --ink-foreground: #221a13;  /* text/icons ON light ink fills */
+  --ink-placeholder: #9a8870;
+  --ink-body: rgba(244, 234, 217, 0.78);
+  --ink-muted: rgba(244, 234, 217, 0.6);
+  --ink-subtle: rgba(244, 234, 217, 0.48);
 
   /* Surfaces: warm near-black ground; cards STEP UP in warmth for elevation */
-  --surface-ivory: #1a1512;
-  --surface-page: #1a1512;
-  --surface-grain: #1a1512;
-  --surface-card: #241d18;
-  --surface-panel: #2c241e;
-  --surface-well: #2c241e;
-  --surface-callout: #2c241e;
-  --surface-hover: #2e251f;
-  --surface-hover-soft: #2a231d;
-  --surface-hover-strong: #34291f;
-  --surface-active: #3a2e22;
-  --surface-active-strong: #42352a;
-  --surface-raised: #241d18;  /* migrated bg-white panels -> raised dark card */
+  --surface-ivory: #221a13;
+  --surface-page: #221a13;
+  --surface-grain: #221a13;
+  --surface-card: #2c2219;
+  --surface-panel: #362a1e;
+  --surface-well: #362a1e;
+  --surface-callout: #362a1e;
+  --surface-hover: #382c1f;
+  --surface-hover-soft: #33281c;
+  --surface-hover-strong: #40321f;
+  --surface-active: #483a26;
+  --surface-active-strong: #50412d;
+  --surface-raised: #2c2219;  /* raised panels -> raised dark card */
 
   /* Atmosphere: subtle warm lifts just above the ground */
-  --atmosphere-veil: #221a14;
-  --atmosphere-mist: #241c15;
-  --atmosphere-haze: #281f17;
-  --atmosphere-shade: #2c2319;
+  --atmosphere-veil: #2a2015;
+  --atmosphere-mist: #2c2318;
+  --atmosphere-haze: #322718;
+  --atmosphere-shade: #382c1b;
 
-  /* Accents LIFT (glow on dark) */
-  --accent-brass: #c99a52;
-  --accent-brass-ink: #1a1512;
-  --accent-blush: #efc0c4;
-  --accent-blush-strong: #e9b4b8;
-  --accent-blush-ink: #3a1e22;
+  /* Marigold glows on the night ground */
+  --accent-marigold: #f0b458;
+  --accent-marigold-deep: #e8a33d;
+  --accent-marigold-ink: #221a13;
+
+  /* Nursery mats deepen into WARM night tints (never cool grey) */
+  --mat-butter: #4a3b1e;
+  --mat-blush: #46302e;
+  --mat-sand: #3e3325;
+  --mat-peach: #453026;
+  --arch-contact: rgba(0, 0, 0, 0.5);
 
   /* Emphasis (berry; dormant on customer surfaces) */
   --emphasis-berry: #c97a88;
@@ -386,46 +403,46 @@
   --emphasis-berry-soft: #cf8f9a;
   --emphasis-berry-tint: #3a2228;
 
-  /* Semantic tones (meaning-bearing — FLAGGED for review; AA-checked on ground) */
-  --tone-availability: #d98a85; /* stock maroon -> lifted rose (6.83:1) */
-  --tone-trust: #84b593;        /* COD trust sage -> lifted (7.77:1) */
-  --tone-danger: #e28a85;       /* error red -> lifted (7.08:1) */
-  --tone-green: #84b593;
-  --tone-green-deep: #6fa07e;
-  --tone-green-tint: #22322a;
-  --tone-amber: #d0a24e;
-  --tone-amber-deep: #b88a3e;
-  --tone-amber-soft: #c9a366;
-  --tone-amber-tint: #322818;
+  /* Semantic tones (meaning-bearing; AA-checked on ground) */
+  --tone-availability: #8fbc9d; /* in-stock -> lifted trust green */
+  --tone-trust: #8fbc9d;        /* COD trust green -> lifted */
+  --tone-danger: #e28a85;       /* error red + out-of-stock -> lifted */
+  --tone-green: #8fbc9d;
+  --tone-green-deep: #79a886;
+  --tone-green-tint: #26332a;
+  --tone-amber: #d8a954;
+  --tone-amber-deep: #c19140;
+  --tone-amber-soft: #cda767;
+  --tone-amber-tint: #362b16;
   --tone-blue: #7fa8d8;
-  --tone-blue-tint: #1e2c3e;
+  --tone-blue-tint: #202b38;
 }
 
 /* Body grain ground in dark: warm near-black with a faint light grain. */
 .dark .grain-surface {
-  background-color: #1a1512;
+  background-color: #221a13;
   background-image:
     radial-gradient(
       circle at 0 0,
-      rgba(245, 239, 231, 0.035) 0,
-      rgba(245, 239, 231, 0.035) 1px,
+      rgba(244, 234, 217, 0.035) 0,
+      rgba(244, 234, 217, 0.035) 1px,
       transparent 1px
     ),
-    linear-gradient(180deg, rgba(245, 239, 231, 0.02) 0%, rgba(26, 21, 18, 0.9) 100%);
+    linear-gradient(180deg, rgba(244, 234, 217, 0.02) 0%, rgba(34, 26, 19, 0.9) 100%);
   background-size: 4px 4px, 100% 100%;
 }
 
 /* Form inputs hardcode dark ink in light mode — flip to off-white in dark. */
 .dark .contact-input,
 .dark .contact-textarea {
-  color: #f5efe7;
-  caret-color: #f5efe7;
-  -webkit-text-fill-color: #f5efe7;
+  color: #f4ead9;
+  caret-color: #f4ead9;
+  -webkit-text-fill-color: #f4ead9;
 }
 .dark .contact-input::placeholder,
 .dark .contact-textarea::placeholder {
-  color: rgb(181 167 148 / 0.7);
-  -webkit-text-fill-color: rgb(181 167 148 / 0.7);
+  color: rgb(193 176 146 / 0.7);
+  -webkit-text-fill-color: rgb(193 176 146 / 0.7);
 }
 
 @layer base {
@@ -443,7 +460,7 @@
   body {
     @apply bg-background text-foreground;
     /* Softer tap feedback on tappable rows (iOS Safari) */
-    -webkit-tap-highlight-color: rgba(59, 47, 47, 0.06);
+    -webkit-tap-highlight-color: rgba(51, 38, 29, 0.06);
   }
   h1,
   h2,
@@ -452,6 +469,9 @@
   [data-slot="sheet-title"] {
     font-family: var(--font-heading);
     letter-spacing: -0.012em;
+    /* Fraunces SOFT axis — literal roundness for the storybook voice.
+       Optical sizing (opsz) is applied automatically by the browser. */
+    font-variation-settings: "SOFT" 42;
   }
 }
 
@@ -513,15 +533,15 @@
 
   .contact-input,
   .contact-textarea {
-    color: #2e2323;
-    caret-color: #2e2323;
-    -webkit-text-fill-color: #2e2323;
+    color: #33261d;
+    caret-color: #33261d;
+    -webkit-text-fill-color: #33261d;
   }
 
   .contact-input::placeholder,
   .contact-textarea::placeholder {
-    color: rgb(107 91 89 / 0.65);
-    -webkit-text-fill-color: rgb(107 91 89 / 0.65);
+    color: rgb(138 118 99 / 0.7);
+    -webkit-text-fill-color: rgb(138 118 99 / 0.7);
   }
 
   .contact-input:-webkit-autofill,
@@ -530,11 +550,11 @@
   .contact-textarea:-webkit-autofill,
   .contact-textarea:-webkit-autofill:hover,
   .contact-textarea:-webkit-autofill:focus {
-    -webkit-text-fill-color: #2e2323;
-    caret-color: #2e2323;
-    border-color: rgb(46 35 35 / 0.2);
-    -webkit-box-shadow: 0 0 0px 1000px rgb(255 255 255 / 0.8) inset;
-    box-shadow: 0 0 0px 1000px rgb(255 255 255 / 0.8) inset;
+    -webkit-text-fill-color: #33261d;
+    caret-color: #33261d;
+    border-color: rgb(51 38 29 / 0.2);
+    -webkit-box-shadow: 0 0 0px 1000px rgb(255 253 247 / 0.8) inset;
+    box-shadow: 0 0 0px 1000px rgb(255 253 247 / 0.8) inset;
     transition: background-color 9999s ease-out 0s;
   }
 
@@ -560,161 +580,134 @@
     transform: scale(0.99);
   }
 
-  @keyframes luxeSheen {
-    0% {
-      transform: translateX(-130%);
-      opacity: 0;
-    }
-    12% {
-      opacity: 0.18;
-    }
-    34% {
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(150%);
-      opacity: 0;
-    }
+  /* ==================================================================
+     THE ARCH — Golden Hour signature. An arch-topped image window on a
+     nursery mat, grounded by an elliptical contact shadow. Rounded like
+     a nursery window / album frame / smile.
+     ================================================================== */
+  .arch-frame {
+    border-radius: 999px 999px 1.5rem 1.5rem;
+    position: relative;
+    overflow: hidden;
   }
-
-  .luxe-sheen::after {
-    content: "";
+  /* Elliptical contact shadow that seats the product on its mat. Place as
+     a sibling directly under the image inside the arch. */
+  .arch-floor {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      110deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.12) 36%,
-      rgba(255, 255, 255, 0.24) 48%,
-      rgba(255, 255, 255, 0.1) 58%,
-      transparent 75%
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      var(--arch-contact),
+      transparent 68%
     );
-    mix-blend-mode: screen;
-    animation: luxeSheen 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
     pointer-events: none;
   }
 
   .grain-surface {
-    background-color: #fdf8f4;
+    background-color: #fbf4e9;
     background-image:
       radial-gradient(
         circle at 0 0,
-        rgba(255, 255, 255, 0.64) 0,
-        rgba(255, 255, 255, 0.64) 1px,
+        rgba(255, 253, 247, 0.64) 0,
+        rgba(255, 253, 247, 0.64) 1px,
         transparent 1px
       ),
       linear-gradient(
         180deg,
-        rgba(255, 255, 255, 0.46) 0%,
-        rgba(253, 248, 244, 0.95) 100%
+        rgba(255, 253, 247, 0.46) 0%,
+        rgba(251, 244, 233, 0.95) 100%
       );
     background-size: 4px 4px, 100% 100%;
   }
 }
 /* ==================================================================
-   Dark Spotlight hero — cinematic, dark-mode only. Motion is SLOW and
-   deliberate (a film push-in), and every animation is fully disabled
-   under prefers-reduced-motion (users get the static spotlit shot).
+   Arch-rise — the ONE hero-load motion (Golden Hour). The arch window
+   rises gently and its contact shadow fades in underneath; runs once.
+   The ambient loops it replaces (clouds / sheen / breathe / parallax)
+   are deleted — no infinite animation runs on customer surfaces.
+   Fully disabled under prefers-reduced-motion.
    ================================================================== */
-.spotlight-glow {
-  background: radial-gradient(
-    circle at 50% 46%,
-    rgba(201, 154, 82, 0.42) 0%,
-    rgba(201, 154, 82, 0.2) 26%,
-    rgba(201, 154, 82, 0.07) 46%,
-    transparent 68%
-  );
+@keyframes archRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
 }
-
-@keyframes spotlightBreathe {
-  0%, 100% { opacity: 0.78; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.055); }
-}
-@keyframes spotlightGlowIn {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes spotlightSettle {
-  from { opacity: 0; transform: translateY(20px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .spotlight-breathe { animation: spotlightBreathe 5.5s ease-in-out infinite; }
-  .spotlight-glow-in { animation: spotlightGlowIn 1.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .spotlight-settle { animation: spotlightSettle 1.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .spotlight-settle-late { animation: spotlightSettle 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
-  .spotlight-parallax { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
-}
-
-/* ==================================================================
-   Living Cream light hero — soft blush/brass/cream clouds drifting slowly
-   behind the collage. Softer & slower than the dark Spotlight (dust in a
-   sunbeam). All drift is CSS and fully disabled under reduced-motion.
-   ================================================================== */
-.living-cloud {
-  border-radius: 9999px;
-}
-.living-cloud-blush {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(232, 180, 184, 0.34) 0%,
-    rgba(232, 180, 184, 0.1) 42%,
-    transparent 68%
-  );
-}
-.living-cloud-brass {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(176, 134, 65, 0.22) 0%,
-    rgba(176, 134, 65, 0.07) 44%,
-    transparent 68%
-  );
-}
-.living-cloud-cream {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(249, 240, 232, 0.62) 0%,
-    rgba(249, 240, 232, 0.16) 46%,
-    transparent 70%
-  );
-}
-
-@keyframes livingCloudIn {
+@keyframes archFloorIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@keyframes livingDriftA {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(5%, -4%, 0) scale(1.1); }
-}
-@keyframes livingDriftB {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1.06); }
-  50% { transform: translate3d(-6%, 5%, 0) scale(1); }
-}
-@keyframes livingDriftC {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(4%, 5%, 0) scale(1.08); }
+@media (prefers-reduced-motion: no-preference) {
+  .arch-rise {
+    animation: archRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .arch-rise .arch-floor {
+    animation: archFloorIn 0.7s ease-out 0.45s both;
+  }
+  .arch-rise-late {
+    animation: archRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+  }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .living-clouds-in { animation: livingCloudIn 1.6s ease-out both; }
-  .living-drift-a { animation: livingDriftA 11s ease-in-out infinite; }
-  .living-drift-b { animation: livingDriftB 13s ease-in-out infinite; }
-  .living-drift-c { animation: livingDriftC 9.5s ease-in-out infinite; }
+/* Scroll-revealed arches: the contact shadow fades in just after the card
+   settles, so products visibly "land" on their mats. Only exists once JS
+   arms the reveal — no-JS and reduced-motion users see it static. */
+[data-reveal].reveal-armed .arch-floor {
+  opacity: 0;
+}
+[data-reveal].reveal-armed.is-revealed .arch-floor {
+  opacity: 1;
+  transition: opacity 0.6s ease-out 0.35s;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal].reveal-armed .arch-floor {
+    opacity: 1;
+  }
 }
 
-/* Light-hero collage float — CSS (not framer) so it auto-pauses when the light
-   hero is the hidden theme (display:none). Per-card duration/delay set inline. */
-@keyframes heroFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+/* The marigold smile-arc draws itself under the brand word — one-shot,
+   timed to land after the hero copy has settled. Needs pathLength="1"
+   on the SVG path. Static under reduced motion. */
+@keyframes smileDraw {
+  to { stroke-dashoffset: 0; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-float {
-    animation-name: heroFloat;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
+  .smile-arc-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: smileDraw 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.75s forwards;
+  }
+}
+
+/* ==================================================================
+   Add-to-cart delight — the emotional peak of the visit. One-shot on
+   success: the button press-pops, a marigold glow ring dissipates, and
+   the check draws itself in. All CSS, all gated on reduced-motion (the
+   base opacity cross-fade still communicates the state without it).
+   ================================================================== */
+@keyframes cartPop {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.96); }
+  70% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes cartGlow {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-marigold) 55%, transparent); }
+  100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--accent-marigold) 0%, transparent); }
+}
+@keyframes checkDraw {
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cart-added-pop {
+    animation:
+      cartPop 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      cartGlow 0.65s ease-out;
+  }
+  .cart-added-check path {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 26;
+    animation: checkDraw 0.3s ease-out 0.12s forwards;
   }
 }
 

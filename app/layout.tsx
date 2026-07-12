@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { organizationAndWebsiteJsonLd } from "@/lib/json-ld";
 import { products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
@@ -18,10 +18,15 @@ const bodySans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const editorialSerif = Cormorant_Garamond({
-  variable: "--font-editorial-serif",
+/* Golden Hour display serif. ONE variable file (replaces Cormorant's three
+   static weights). SOFT axis loaded so headings can carry the storybook
+   roundness (set via font-variation-settings in globals.css); opsz is
+   applied automatically by the browser. */
+const displaySerif = Fraunces({
+  variable: "--font-display-serif",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "variable",
+  axes: ["SOFT", "opsz"],
   display: "swap",
 });
 
@@ -78,7 +83,7 @@ export default function RootLayout({
     <html
       lang="en-PK"
       suppressHydrationWarning
-      className={`${bodySans.variable} ${editorialSerif.variable} h-full antialiased`}
+      className={`${bodySans.variable} ${displaySerif.variable} h-full antialiased`}
     >
       <body className="grain-surface min-h-full flex flex-col">
         {/* Set the theme before paint (no flash-of-wrong-theme). Stored choice

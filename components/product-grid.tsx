@@ -8,122 +8,152 @@ import {
   type Product,
   formatPkr,
   getAvailabilityLabel,
-  getDiscountBadgeLabel,
   getImageCandidates,
   getWhatsappOrderLink,
+  hasMeaningfulDiscount,
 } from "@/lib/products";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ProductImage } from "@/components/product-image";
 import { cn } from "@/lib/utils";
+
+/**
+ * Category -> nursery mat. Every arch window sits on a WARM mat from the
+ * Golden Hour family; the mapping is deterministic so a category always
+ * reads the same tint across the site. Exported for PDP/related reuse.
+ */
+export const categoryMatClass: Record<Product["category"], string> = {
+  Swaddle: "bg-mat-peach",
+  Bodysuits: "bg-mat-butter",
+  "Food Bag": "bg-mat-sand",
+  "Bottle Case": "bg-mat-sand",
+  "Feeding Cushion": "bg-mat-blush",
+  "Food Container": "bg-mat-sand",
+  "Bow Set": "bg-mat-blush",
+};
+
+/** Calm availability dot — semantic color per state, never shouting caps. */
+export function AvailabilityDot({
+  product,
+  className,
+}: {
+  product: Product;
+  className?: string;
+}) {
+  return (
+    <p
+      className={cn(
+        "inline-flex items-center gap-1.5 text-xs text-ink-base/68",
+        className,
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "size-[7px] rounded-full",
+          product.availabilityStatus === "out_of_stock"
+            ? "bg-tone-danger"
+            : product.availabilityStatus === "limited_stock"
+              ? "bg-tone-amber"
+              : "bg-tone-availability",
+        )}
+      />
+      {getAvailabilityLabel(product)}
+    </p>
+  );
+}
+
+/** "You save Rs. X" fine print — replaces the % OFF badge + strikethrough. */
+export function SavingsNote({
+  product,
+  className,
+}: {
+  product: Product;
+  className?: string;
+}) {
+  if (!hasMeaningfulDiscount(product)) return null;
+  return (
+    <span className={cn("text-xs text-ink-base/56", className)}>
+      you save {formatPkr(product.compareAtPricePkr - product.pricePkr)}
+    </span>
+  );
+}
 
 type ProductGridProps = {
   products: Product[];
   /**
-   * Opt-in "keepsake" brass treatment for a single product by slug.
-   * Only the card whose slug matches renders the featured tier; every other
-   * card (and every grid that omits this prop) stays the standard tier.
-   * Applying it to more products later = widen this to a slug set.
+   * Opt-in "keepsake" marigold Bestseller pill for a single product by slug.
+   * Only the card whose slug matches renders the pill; every other card (and
+   * every grid that omits this prop) stays the standard tier.
    */
   keepsakeSlug?: string;
 };
 
 export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product, index) => {
         const keepsake = product.slug === keepsakeSlug;
         return (
-        <Reveal key={product.slug} index={index} className="h-full">
-          <Card
-            className={cn(
-              "flex h-full overflow-hidden rounded-3xl bg-surface-card/94 py-0",
-              keepsake
-                ? "border-[1.5px] border-accent-brass"
-                : "border border-ink-base/9",
-              "shadow-card-rest transition-[transform,box-shadow] duration-300",
-              "hover:-translate-y-1 hover:shadow-card-lift"
-            )}
-          >
-            <CardContent className="p-0">
+          <Reveal key={product.slug} index={index} className="h-full">
+            {/* No card box — the arch window IS the object; text sits on the
+                paper ground (Golden Hour "fewer boxes"). */}
+            <article className="group flex h-full flex-col text-center">
               <Link
                 href={`/shop/${product.slug}`}
-                className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/24"
+                className="block rounded-t-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/30"
               >
-                <div className="relative mx-3.5 mt-3.5 h-52 rounded-3xl bg-surface-well p-4 sm:mx-4 sm:mt-4 sm:h-56 sm:p-5">
-                  <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.5),transparent_65%)]" />
+                <div
+                  className={cn(
+                    "arch-frame pb-7 pt-9 shadow-card-rest transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-hover:shadow-card-lift",
+                    categoryMatClass[product.category] ?? "bg-mat-butter",
+                  )}
+                >
                   {keepsake ? (
-                    <span className="absolute left-3 top-3 z-10 rounded-full bg-accent-brass px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-brass-ink">
+                    <span className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-accent-marigold px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-marigold-ink">
                       Bestseller
                     </span>
                   ) : null}
-                  <ProductImage
-                    sources={getImageCandidates(product.image)}
-                    alt={`${product.name} — ${product.category} by Little Smiles`}
-                    fill
-                    className="object-contain object-center group-hover:scale-[1.015]"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  />
+                  <div className="relative mx-auto aspect-square w-[68%]">
+                    <ProductImage
+                      sources={getImageCandidates(product.image)}
+                      alt={`${product.name} — ${product.category} by Little Smiles`}
+                      fill
+                      className="object-contain object-center transition-transform duration-300 group-hover:scale-[1.02]"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  </div>
+                  <div aria-hidden className="arch-floor bottom-[5%] h-3.5 w-[52%]" />
                 </div>
               </Link>
-            </CardContent>
-            <CardHeader className="px-4 pb-0 pt-4 sm:px-5 sm:pt-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="w-fit border-ink-base/12 bg-surface-raised/66 text-ink-base/74"
-                >
-                  {product.category}
-                </Badge>
-                {getDiscountBadgeLabel(product) ? (
-                  <Badge className="border-transparent bg-ink-walnut text-ink-foreground">
-                    {getDiscountBadgeLabel(product)}
-                  </Badge>
-                ) : null}
-              </div>
-              <CardTitle className="pt-1.5 text-[1.24rem] font-semibold leading-[1.15] text-ink-espresso sm:text-[1.36rem] sm:leading-[1.1]">
+
+              {/* Stitched ticket — category label seated on the arch rim. */}
+              <span className="z-10 -mt-3.5 self-center rounded-full border border-dashed border-ink-base/30 bg-surface-raised px-3.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-base/70">
+                {product.category}
+              </span>
+
+              <h3 className="mt-3.5 text-[1.35rem] font-semibold leading-[1.12] text-ink-strong">
                 <Link
                   href={`/shop/${product.slug}`}
-                  className="inline-flex min-h-11 items-center rounded-md hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/24"
+                  className="rounded-md hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/24"
                 >
                   {product.name}
                 </Link>
-              </CardTitle>
-              <p className="min-h-[2.8rem] pt-1 text-sm leading-relaxed text-ink-base/67 sm:min-h-[3.1rem] lg:min-h-[3.6rem]">
+              </h3>
+
+              <p className="mx-auto mt-1.5 line-clamp-2 max-w-[34ch] text-sm leading-relaxed text-ink-base/64">
                 {product.description}
               </p>
-            </CardHeader>
-            <CardFooter className="mt-auto flex flex-col items-stretch justify-between gap-3 border-ink-base/8 bg-transparent px-4 py-4 sm:flex-row sm:items-end sm:px-5">
-              <div className="space-y-0.5">
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-lg font-semibold tabular-nums text-ink-strong sm:text-xl">
-                    {formatPkr(product.pricePkr)}
-                  </span>
-                  {getDiscountBadgeLabel(product) ? (
-                    <span className="text-sm tabular-nums text-ink-base/52 line-through">
-                      {formatPkr(product.compareAtPricePkr)}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="text-[11px] font-medium tracking-[0.08em] text-tone-availability uppercase">
-                  {getAvailabilityLabel(product)}
-                </p>
+
+              {/* Serif money — the price joins the display voice. */}
+              <div className="mt-3 flex items-baseline justify-center gap-2.5">
+                <span className="font-heading text-2xl font-semibold tabular-nums text-ink-strong">
+                  {formatPkr(product.pricePkr)}
+                </span>
+                <SavingsNote product={product} />
               </div>
-              <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:min-w-[11.5rem]">
-                <AddToCartButton
-                  product={product}
-                  className={cn(
-                    "w-full",
-                    keepsake &&
-                      "border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90"
-                  )}
-                />
+              <AvailabilityDot product={product} className="mt-1 justify-center" />
+
+              <div className="mx-auto mt-auto flex w-full max-w-[16rem] flex-col items-stretch gap-2 pt-4">
+                <AddToCartButton product={product} className="w-full" />
                 <Link
                   href={getWhatsappOrderLink(product)}
                   target="_blank"
@@ -138,20 +168,19 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
                       pricePkr: product.pricePkr,
                     })
                   }
-                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-medium text-ink-muted underline decoration-ink-base/22 underline-offset-[5px] transition-[color,text-decoration-color] duration-200 hover:text-ink-strong hover:decoration-ink-espresso/45"
+                  className="group/wa inline-flex min-h-9 items-center justify-center gap-1.5 text-xs font-medium text-ink-muted underline decoration-dashed decoration-ink-base/28 underline-offset-[5px] transition-[color,text-decoration-color] duration-200 hover:text-ink-strong hover:decoration-ink-espresso/45"
                 >
-                  Order on WhatsApp
+                  or order on WhatsApp
                   <span
                     aria-hidden
-                    className="text-[0.95em] leading-none transition-transform duration-200 group-hover:translate-x-0.5"
+                    className="text-[0.95em] leading-none transition-transform duration-200 group-hover/wa:translate-x-0.5"
                   >
                     →
                   </span>
                 </Link>
               </div>
-            </CardFooter>
-          </Card>
-        </Reveal>
+            </article>
+          </Reveal>
         );
       })}
     </div>

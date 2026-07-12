@@ -12,7 +12,9 @@ export function LatestBlogSection({ posts }: LatestBlogSectionProps) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden bg-transparent pb-18 pt-8 sm:pb-22 sm:pt-10 lg:pb-26 lg:pt-12">
+    // Warm band chapter — a pale mat-family tint breaks the long paper
+    // scroll into chapters.
+    <section className="relative bg-atmosphere-mist pb-18 pt-14 sm:pb-22 sm:pt-16 lg:pb-26 lg:pt-18">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <Reveal className="flex flex-wrap items-end justify-between gap-4">
           <div>
