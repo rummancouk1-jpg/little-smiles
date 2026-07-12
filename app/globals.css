@@ -390,11 +390,13 @@
   --accent-marigold-deep: #e8a33d;
   --accent-marigold-ink: #221a13;
 
-  /* Nursery mats deepen into WARM night tints (never cool grey) */
-  --mat-butter: #4a3b1e;
-  --mat-blush: #46302e;
-  --mat-sand: #3e3325;
-  --mat-peach: #453026;
+  /* Nursery mats deepen into WARM night tints (never cool grey).
+     Lifted a step from the first pass so light product cutouts settle
+     onto the mat instead of punching against near-black. */
+  --mat-butter: #57472a;
+  --mat-blush: #533c38;
+  --mat-sand: #4c4030;
+  --mat-peach: #543e30;
   --arch-contact: rgba(0, 0, 0, 0.5);
 
   /* Emphasis (berry; dormant on customer surfaces) */
@@ -416,6 +418,24 @@
   --tone-amber-tint: #362b16;
   --tone-blue: #7fa8d8;
   --tone-blue-tint: #202b38;
+}
+
+/* Dark mode only: a soft warm halo pooled behind the product inside every
+   arch window, so light cutout PNGs settle onto the night mat instead of
+   punching against it — a nightlight behind the shelf. Warm cream, never
+   grey; light mode untouched; static (no animation). Top-level on purpose:
+   compound selectors don't survive inside @layer utilities. */
+.dark .arch-frame::before {
+  content: "";
+  position: absolute;
+  inset: 6% 8% 14%;
+  background: radial-gradient(
+    ellipse at 50% 46%,
+    rgba(244, 234, 217, 0.16) 0%,
+    rgba(244, 234, 217, 0.06) 45%,
+    transparent 72%
+  );
+  pointer-events: none;
 }
 
 /* Body grain ground in dark: warm near-black with a faint light grain. */
