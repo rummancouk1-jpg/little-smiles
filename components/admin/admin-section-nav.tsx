@@ -44,8 +44,8 @@ export function AdminSectionNav({ active, extraActions }: Props) {
       {ENTRIES.map((entry) => {
         const isActive = entry.key === active;
         const classes = isActive
-          ? "rounded-full bg-[#2F2624] px-3.5 py-1.5 text-xs font-medium text-[#F6F1EC]"
-          : "rounded-full border border-[#3B2F2F]/14 bg-[#EEE4DB] px-3.5 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#E7DBD1]";
+          ? "rounded-full bg-ink-walnut px-3.5 py-1.5 text-xs font-medium text-ink-foreground"
+          : "rounded-full border border-ink-base/14 bg-surface-raised px-3.5 py-1.5 text-xs font-medium text-ink-walnut hover:bg-surface-hover";
         return (
           <Link key={entry.key} href={entry.href} className={classes} aria-current={isActive ? "page" : undefined}>
             {entry.label}

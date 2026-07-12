@@ -10,7 +10,7 @@ export type { BlogPost, BlogSection };
 const rawBlogPosts: BlogPost[] = [
   {
     slug: "newborn-essentials-checklist-pakistan-2026",
-    title: "Newborn Essentials Checklist in Pakistan (2026): What You Actually Need",
+    title: "Newborn Essentials Checklist Pakistan 2026: What You Actually Need",
     description:
       "A practical premium checklist for newborn shopping in Pakistan, so you buy smart and avoid unnecessary items.",
     category: "Newborn Care",
