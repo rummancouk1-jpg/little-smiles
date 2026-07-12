@@ -23,7 +23,18 @@ export const blogRelatedProductCategorySchema = z.enum([
 
 export const blogSectionSchema = z.object({
   heading: z.string(),
+  /**
+   * Paragraphs. A tiny markdown subset is supported for INTERNAL links
+   * only: `[anchor text](/shop/slug)`, `[…](/blog/slug)`, or
+   * `[…](/shop?category=…)`. The renderer turns internal hrefs into real
+   * anchors; anything else stays plain text.
+   */
   content: z.array(z.string()),
+});
+
+export const blogFaqItemSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
 });
 
 export const blogPostSchema = z.object({
@@ -48,11 +59,17 @@ export const blogPostSchema = z.object({
    * the old auto-resolved behaviour.
    */
   heroImage: z.string().optional(),
+  /**
+   * Optional FAQ entries (3-5 recommended). Rendered as a styled FAQ
+   * section and emitted as FAQPage JSON-LD — the People Also Ask lever.
+   */
+  faq: z.array(blogFaqItemSchema).optional(),
 });
 
 export const blogPostsSchema = z.array(blogPostSchema);
 
 export type BlogSection = z.infer<typeof blogSectionSchema>;
+export type BlogFaqItem = z.infer<typeof blogFaqItemSchema>;
 export type BlogPost = z.infer<typeof blogPostSchema>;
 export type BlogCategory = z.infer<typeof blogCategorySchema>;
 export type BlogRelatedProductCategory = z.infer<

@@ -3,9 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RichParagraph } from "@/components/blog-rich-text";
 import { resolveHeroImagePath } from "@/lib/blog";
 import { getAllBlogPosts, getAnyBlogPostBySlug } from "@/lib/blog-data";
-import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
+import { blogPostingJsonLd, breadcrumbJsonLdDocument, faqPageJsonLd } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
 
@@ -91,6 +92,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     .slice(0, 3);
 
   const structuredData = blogPostingJsonLd(post);
+  const faq = post.faq ?? [];
+  const faqStructuredData = faq.length > 0 ? faqPageJsonLd(faq) : null;
   const publishedIso = `${post.publishedAt}T12:00:00+05:00`;
   const heroImagePath = resolveHeroImagePath(post);
   const breadcrumbLd = breadcrumbJsonLdDocument([
@@ -109,6 +112,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      {faqStructuredData ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+        />
+      ) : null}
       <article className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-ink-base/8 bg-surface-raised/80 p-7 shadow-[0_22px_44px_-30px_rgba(59,47,47,0.4)] sm:p-10">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-ink-base/52">
@@ -147,12 +156,33 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </h2>
                 <div className="mt-3 space-y-3 text-base leading-relaxed text-ink-base/74">
                   {section.content.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
+                    <RichParagraph key={paragraph} text={paragraph} />
                   ))}
                 </div>
               </section>
             ))}
           </div>
+
+          {faq.length > 0 ? (
+            <section className="mt-10">
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-espresso">
+                Frequently asked questions
+              </h2>
+              <dl className="mt-4 space-y-4">
+                {faq.map((item) => (
+                  <div
+                    key={item.question}
+                    className="rounded-2xl border border-dashed border-ink-base/25 bg-surface-raised/60 p-4"
+                  >
+                    <dt className="font-semibold text-ink-strong">{item.question}</dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-ink-base/74">
+                      <RichParagraph text={item.answer} />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
 
           <div className="mt-10 rounded-2xl border border-ink-base/10 bg-surface-callout p-5">
             <p className="text-sm text-ink-base/72">

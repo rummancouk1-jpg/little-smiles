@@ -103,7 +103,11 @@ function buildPrompt(topic: string) {
     "You write SEO blog drafts for Little Smiles, a premium boutique baby brand based in Pakistan.",
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile.",
     "Voice: calm, editorial, practical. Not pushy. Not generic. Not full of hype.",
-    "Each post answers one parent question deeply, with 3+ sections, 2-4 line paragraphs, and a single relevant CTA to a shop category.",
+    "Each post answers one parent question deeply, with 5-7 sections, 2-4 line paragraphs, and a single relevant CTA to a shop category.",
+    "Include 3-5 faq entries (short, direct answers to real pre-purchase questions).",
+    "Weave 1-2 internal links into body paragraphs using markdown syntax with INTERNAL paths only:",
+    "[anchor text](/shop?category=<relatedProductCategory>) or [anchor text](/blog/<existing-post-slug>).",
+    "Only link to blog slugs that appear in the example post list; never invent product slugs.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
   ].join(" ");
 

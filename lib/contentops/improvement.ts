@@ -173,6 +173,7 @@ function existingLinkedSlugs(post: BlogPost): Set<string> {
   const slugs = new Set<string>();
   const text = [
     ...post.sections.flatMap((s) => [s.heading, ...s.content]),
+    ...(post.faq ?? []).map((f) => f.answer),
     post.cta.href,
   ].join("\n");
   const matches = text.matchAll(/\/(shop|blog)\/([A-Za-z0-9_-]+)/g);
@@ -316,15 +317,15 @@ export function buildDraftImprovementReport(draft: Draft): DraftImprovementRepor
     });
   }
 
-  // FAQ — we don't yet store FAQ entries in the schema, so flag as missing
-  // when the draft is also flagged as thin. (When the schema is extended
-  // to carry FAQs, this check becomes structural.)
-  const hasFaqHeading = post.sections.some((s) => /faq|frequently|common questions/i.test(s.heading));
-  if (!hasFaqHeading && (validation.wordCount < 700 || validation.sectionCount < 5)) {
+  // FAQ — STRUCTURAL check: the schema carries faq[] and the renderer
+  // emits a styled FAQ block + FAQPage JSON-LD. The old heading-regex
+  // heuristic is gone; the engine now measures exactly what publishes.
+  const faqCount = post.faq?.length ?? 0;
+  if (faqCount < IMPROVEMENT_TARGETS.faqMin) {
     weaknesses.push({
       key: "missing_faq",
-      label: "No FAQ section",
-      detail: "Adding 3-5 FAQ entries opens People Also Ask placement and increases dwell time.",
+      label: faqCount === 0 ? "No FAQ entries" : "Too few FAQ entries",
+      detail: `${faqCount} FAQ entr${faqCount === 1 ? "y" : "ies"} — add ${IMPROVEMENT_TARGETS.faqMin}-${IMPROVEMENT_TARGETS.faqMax} in the draft editor. They render as a FAQ section AND emit FAQPage JSON-LD (People Also Ask placement).`,
     });
   }
 
@@ -338,7 +339,7 @@ export function buildDraftImprovementReport(draft: Draft): DraftImprovementRepor
   }
 
   const suggestedSections = buildSectionSuggestions(post, validation.sectionCount);
-  const suggestedFaqs = hasFaqHeading ? [] : buildFaqSuggestions(post);
+  const suggestedFaqs = faqCount >= IMPROVEMENT_TARGETS.faqMin ? [] : buildFaqSuggestions(post);
   const suggestedInternalLinks = buildInternalLinkSuggestions(post);
   const suggestedProductCta = buildProductCta(post);
 
@@ -350,10 +351,12 @@ export function buildDraftImprovementReport(draft: Draft): DraftImprovementRepor
     nextActions.push(`Expand to ${IMPROVEMENT_TARGETS.wordCountMin}+ words by adding concrete examples and parent-facing detail.`);
   }
   if (weaknesses.some((w) => w.key === "missing_internal_links")) {
-    nextActions.push("Add at least one internal link to a related blog post or product slug inside the body.");
+    nextActions.push(
+      "Add at least one internal link inside the body using [anchor text](/shop/<slug>) or [.](/blog/<slug>) — see suggested targets below.",
+    );
   }
   if (weaknesses.some((w) => w.key === "missing_faq")) {
-    nextActions.push("Add an FAQ section with 3 questions — see suggested questions below.");
+    nextActions.push("Add 3-5 FAQ entries in the draft editor — see suggested questions below.");
   }
   if (weaknesses.some((w) => w.key === "weak_metadata_title")) {
     nextActions.push("Rewrite the title to land between 30–70 characters with the primary keyword near the front.");
@@ -410,16 +413,16 @@ export function buildDraftImprovementReport(draft: Draft): DraftImprovementRepor
       label: "2. Add FAQ",
       status: stepDone(stepFlags.add_faq),
       detail: stepFlags.add_faq
-        ? `Add ${IMPROVEMENT_TARGETS.faqMin}-${IMPROVEMENT_TARGETS.faqMax} short FAQ entries — see suggested questions below.`
-        : "FAQ section already present (or not required for this length).",
+        ? `Add ${IMPROVEMENT_TARGETS.faqMin}-${IMPROVEMENT_TARGETS.faqMax} FAQ entries in the draft editor — they render on-page and emit FAQPage JSON-LD.`
+        : "FAQ entries present — rendered on-page with FAQPage JSON-LD.",
     },
     {
       key: "add_internal_link",
       label: "3. Add internal link",
       status: stepDone(stepFlags.add_internal_link),
       detail: stepFlags.add_internal_link
-        ? "Add at least one /shop/<slug>, /blog/<slug>, or /shop?category=… reference inside the article body."
-        : "Body already contains at least one internal link.",
+        ? "Write [anchor text](/shop/<slug>), [.](/blog/<slug>), or [.](/shop?category=…) inside a body paragraph — it renders as a real anchor."
+        : "Body already contains at least one rendered internal link.",
     },
     {
       key: "review_title_meta",

@@ -75,6 +75,9 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
   const [sections, setSections] = useState<SectionForm[]>(
     sectionsToForm(initialContent.sections),
   );
+  const [faq, setFaq] = useState<{ question: string; answer: string }[]>(
+    initialContent.faq ?? [],
+  );
   const [ctaLabel, setCtaLabel] = useState(initialContent.cta.label);
   const [ctaHref, setCtaHref] = useState(initialContent.cta.href);
 
@@ -115,6 +118,14 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
       sections: formToSections(sections),
       cta: { label: ctaLabel.trim(), href: ctaHref.trim() },
     };
+    const cleanFaq = faq
+      .map((f) => ({ question: f.question.trim(), answer: f.answer.trim() }))
+      .filter((f) => f.question.length > 0 && f.answer.length > 0);
+    if (cleanFaq.length > 0) {
+      content.faq = cleanFaq;
+    } else {
+      delete content.faq;
+    }
 
     startTransition(async () => {
       const response = await fetch(saveHref, {
@@ -283,7 +294,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
               onChange={(e) => updateSection(index, { text: e.target.value })}
               rows={5}
               className={fieldClass}
-              placeholder="Paragraphs separated by a blank line."
+              placeholder="Paragraphs separated by a blank line. Internal links: [soft swaddles](/shop?category=Swaddle)"
             />
           </div>
         ))}
@@ -294,6 +305,75 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
           className="rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4] disabled:opacity-50"
         >
           + Add section
+        </button>
+        <p className="text-[11px] text-[#3B2F2F]/55">
+          Link syntax: <code className="font-mono">[anchor text](/shop/slug)</code>,{" "}
+          <code className="font-mono">[…](/blog/slug)</code>, or{" "}
+          <code className="font-mono">[…](/shop?category=…)</code> — internal links only;
+          anything else stays plain text.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className={labelClass}>FAQ (3–5 recommended)</p>
+          <span className="text-xs text-[#3B2F2F]/60">
+            Renders on-page + emits FAQPage JSON-LD
+          </span>
+        </div>
+        {faq.map((item, index) => (
+          <div
+            key={index}
+            className="space-y-2 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <label className={labelClass} htmlFor={`edit-faq-q-${index}`}>
+                Question {index + 1}
+              </label>
+              <button
+                type="button"
+                onClick={() => setFaq((prev) => prev.filter((_, i) => i !== index))}
+                disabled={isPending}
+                className="text-xs font-medium text-[#8A2F40] underline underline-offset-2"
+              >
+                Remove
+              </button>
+            </div>
+            <input
+              id={`edit-faq-q-${index}`}
+              value={item.question}
+              onChange={(e) =>
+                setFaq((prev) =>
+                  prev.map((f, i) => (i === index ? { ...f, question: e.target.value } : f)),
+                )
+              }
+              className={fieldClass}
+              placeholder="What age is a swaddle recommended for?"
+            />
+            <label className="sr-only" htmlFor={`edit-faq-a-${index}`}>
+              Answer {index + 1}
+            </label>
+            <textarea
+              id={`edit-faq-a-${index}`}
+              value={item.answer}
+              onChange={(e) =>
+                setFaq((prev) =>
+                  prev.map((f, i) => (i === index ? { ...f, answer: e.target.value } : f)),
+                )
+              }
+              rows={2}
+              className={fieldClass}
+              placeholder="Short, direct answer (2–3 sentences). Link syntax works here too."
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setFaq((prev) => [...prev, { question: "", answer: "" }])}
+          disabled={isPending}
+          className="rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4] disabled:opacity-50"
+        >
+          + Add FAQ entry
         </button>
       </div>
 

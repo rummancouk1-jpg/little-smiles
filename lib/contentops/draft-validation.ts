@@ -18,7 +18,14 @@ const MIN_WORD_COUNT = 350;
 const MIN_KEYWORDS = 3;
 const MIN_SECTIONS = 3;
 
-const INTERNAL_LINK_REGEX = /\/(shop|blog)\/[A-Za-z0-9_-]+/g;
+/**
+ * Counts links that actually RENDER as anchors: markdown-style
+ * `[text](/shop/slug)`, `[text](/blog/slug)`, `[text](/shop?category=…)`.
+ * Bare URLs in plain text render as text, so they no longer count — the
+ * badge and the renderer finally agree.
+ */
+const INTERNAL_LINK_REGEX =
+  /\]\((\/(?:shop|blog)\/[A-Za-z0-9_-]+|\/shop\?category=[^)\s]+)\)/g;
 
 export type DraftBadgeKey =
   | "missing_hero_image"
@@ -59,13 +66,13 @@ function countWords(draft: Draft): number {
 function countInternalLinks(draft: Draft): number {
   const text = [
     ...draft.content.sections.flatMap((s) => [s.heading, ...s.content]),
-    draft.content.cta.href,
+    ...(draft.content.faq ?? []).map((f) => f.answer),
   ].join("\n");
   let count = 0;
   for (const _match of text.matchAll(INTERNAL_LINK_REGEX)) {
     count++;
   }
-  // CTA href to /shop?category=... counts as one internal link too.
+  // The CTA href renders as a real button link, so it counts too.
   if (/^\/shop\?category=/.test(draft.content.cta.href)) count++;
   return count;
 }
@@ -107,7 +114,8 @@ export function validateDraft(draft: Draft): DraftValidationReport {
       key: "missing_internal_links",
       label: "No internal links",
       severity: "info",
-      detail: "Body/CTA contains no /shop/<slug>, /blog/<slug>, or /shop?category=… references. Adds anchor-text signal when present.",
+      detail:
+        "No rendered internal links. Write them as [anchor text](/shop/<slug>), [.](/blog/<slug>), or [.](/shop?category=…) inside a paragraph — they become real anchors on the page.",
     });
   }
 
