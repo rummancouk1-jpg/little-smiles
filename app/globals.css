@@ -649,6 +649,68 @@
   }
 }
 
+/* Scroll-revealed arches: the contact shadow fades in just after the card
+   settles, so products visibly "land" on their mats. Only exists once JS
+   arms the reveal — no-JS and reduced-motion users see it static. */
+[data-reveal].reveal-armed .arch-floor {
+  opacity: 0;
+}
+[data-reveal].reveal-armed.is-revealed .arch-floor {
+  opacity: 1;
+  transition: opacity 0.6s ease-out 0.35s;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal].reveal-armed .arch-floor {
+    opacity: 1;
+  }
+}
+
+/* The marigold smile-arc draws itself under the brand word — one-shot,
+   timed to land after the hero copy has settled. Needs pathLength="1"
+   on the SVG path. Static under reduced motion. */
+@keyframes smileDraw {
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .smile-arc-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: smileDraw 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.75s forwards;
+  }
+}
+
+/* ==================================================================
+   Add-to-cart delight — the emotional peak of the visit. One-shot on
+   success: the button press-pops, a marigold glow ring dissipates, and
+   the check draws itself in. All CSS, all gated on reduced-motion (the
+   base opacity cross-fade still communicates the state without it).
+   ================================================================== */
+@keyframes cartPop {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.96); }
+  70% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes cartGlow {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-marigold) 55%, transparent); }
+  100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--accent-marigold) 0%, transparent); }
+}
+@keyframes checkDraw {
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cart-added-pop {
+    animation:
+      cartPop 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      cartGlow 0.65s ease-out;
+  }
+  .cart-added-check path {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 26;
+    animation: checkDraw 0.3s ease-out 0.12s forwards;
+  }
+}
+
 /* Scroll reveal — the ONE motion used below the heroes (see components/reveal.tsx).
    Base [data-reveal] is fully visible: the hidden state only exists once JS adds
    .reveal-armed, so content is never gated on JS. Soft fade + short rise, up

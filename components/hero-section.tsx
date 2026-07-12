@@ -35,10 +35,12 @@ function SmileArc() {
     >
       <path
         d="M2 2 Q50 14 98 2"
+        pathLength={1}
         fill="none"
         stroke="var(--accent-marigold)"
         strokeWidth="3"
         strokeLinecap="round"
+        className="smile-arc-draw"
       />
     </svg>
   );
