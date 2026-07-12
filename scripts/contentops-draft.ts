@@ -30,7 +30,13 @@ import {
 } from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
 import { listDrafts } from "../lib/contentops/drafts-store";
+import {
+  buildLinkTargetsMenu,
+  validateAndCleanLinks,
+  type LinkTargets,
+} from "../lib/contentops/link-validation";
 import { PAKISTAN_BRIEF } from "../lib/contentops/pakistan-brief";
+import { products } from "../lib/products";
 import { SAFETY_BRIEF } from "../lib/contentops/safety";
 import { chooseTemplate } from "../lib/contentops/template";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
@@ -140,15 +146,17 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
   const exampleJson = JSON.stringify(example, null, 2);
   const template = chooseTemplate(topic);
 
+  const categories = [...new Set(products.map((p) => p.category))];
+  const blogSlugs = corpus.map((c) => c.slug);
+
   const system = [
     "You write SEO blog drafts for Little Smiles, a premium boutique baby brand based in Pakistan.",
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile.",
     "Voice: calm, editorial, practical. Not pushy. Not generic. Not full of hype.",
     "Answer one parent question deeply, with 2-4 line paragraphs and a single relevant CTA to a shop category. Follow the STRUCTURE guidance below for section and FAQ shape — do not force a fixed skeleton across posts.",
-    "Each faq answer is short and direct — a real pre-purchase question.",
-    "Weave 1-2 internal links into body paragraphs using markdown syntax with INTERNAL paths only:",
-    "[anchor text](/shop?category=<relatedProductCategory>) or [anchor text](/blog/<existing-post-slug>).",
-    "Only link to blog slugs that appear in the existing-post list; never invent product slugs.",
+    "LENGTH: aim for 600-800 words of genuine, developed body content (excluding FAQ). Each section must earn its place with concrete detail — examples, comparisons, local specifics — never padding to reach a number. A thin 300-word draft is a failure.",
+    "FAQ IS REQUIRED: include 3-5 faq entries every time, each a real pre-purchase question with a short, direct answer. A draft with zero FAQ is incomplete.",
+    "INTERNAL LINKS ARE REQUIRED: weave at least 1-2 links into body paragraphs using markdown, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product slug or a blog slug — a link to anything not on that list is stripped before publish.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
     "",
     buildCatalogBrief(),
@@ -162,6 +170,8 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
     `Topic: ${topic}`,
     "",
     template.guidance,
+    "",
+    buildLinkTargetsMenu(categories, blogSlugs),
     "",
     buildCorpusBrief(corpus),
     "",
@@ -277,12 +287,34 @@ async function main() {
   }
 
   console.log(`${LOG_PREFIX} Generating draft for: "${topic}"`);
-  const draft = await generateDraft(anthropic, topic, corpus);
+  const rawDraft = await generateDraft(anthropic, topic, corpus);
+
+  // Link-validation backstop — strip any internal link that doesn't resolve
+  // to a real category / product / existing post, so a fabricated URL can
+  // never ship (the prompt gives the valid menu; this enforces it).
+  const targets: LinkTargets = {
+    categories: new Set(products.map((p) => p.category)),
+    blogSlugs: new Set(corpus.map((c) => c.slug)),
+    productSlugs: new Set(products.map((p) => p.slug)),
+  };
+  const { draft, strippedLinks, validLinkCount } = validateAndCleanLinks(rawDraft, targets);
+  if (strippedLinks.length > 0) {
+    console.log(
+      `${LOG_PREFIX} Stripped ${strippedLinks.length} invalid link(s): ` +
+        strippedLinks.map((l) => l.href).join(", "),
+    );
+  }
+  if (validLinkCount === 0) {
+    console.log(
+      `${LOG_PREFIX} Warning: draft has NO valid internal links — the reviewer should add one.`,
+    );
+  }
+
   await checkSlugAvailable(client, draft.slug);
   const inserted = await insertDraft(client, draft);
 
   console.log(
-    `${LOG_PREFIX} OK. id=${inserted.id} slug=${inserted.slug} title="${draft.title}"`,
+    `${LOG_PREFIX} OK. id=${inserted.id} slug=${inserted.slug} title="${draft.title}" (${validLinkCount} valid link(s))`,
   );
 }
 
