@@ -6,10 +6,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const TOPIC_MIN = 5;
 const TOPIC_MAX = 200;
+
+type TopicSuggestion = {
+  keyword: string;
+  question: string;
+  priority: "high" | "medium" | "low";
+  intent: string;
+};
+
+type SuggestionsResponse =
+  | { ok: true; suggestions: TopicSuggestion[]; rankingNote: string; disclosure: string }
+  | { ok: false; error: string };
+
+function priorityDotClass(priority: TopicSuggestion["priority"]): string {
+  const tone =
+    priority === "high" ? "bg-tone-danger" : priority === "medium" ? "bg-tone-amber" : "bg-tone-blue";
+  return `size-1.5 shrink-0 rounded-full ${tone}`;
+}
 
 // Cycled while the request is in flight so the operator sees forward motion
 // during the ~30-60s generation (draft + Opus critique). Cosmetic only — the
@@ -36,9 +53,12 @@ type NewDraftFormProps = {
   generateHref: string;
   /** Base path for a draft's review page; the new id is appended as `${base}/${id}`. */
   detailBaseHref: string;
+  /** Optional GET endpoint returning uncovered topic suggestions. When set, the
+   *  form fetches it once on open and offers click-to-fill suggestion chips. */
+  suggestionsHref?: string;
 };
 
-export function NewDraftForm({ generateHref, detailBaseHref }: NewDraftFormProps) {
+export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: NewDraftFormProps) {
   const detailHref = (id: string) => `${detailBaseHref}/${id}`;
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,6 +68,41 @@ export function NewDraftForm({ generateHref, detailBaseHref }: NewDraftFormProps
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ title: string; id: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Topic suggestions — fetched once on open (they're derived + stable). Additive:
+  // any failure just hides the panel; the operator can always type a topic.
+  const [suggestions, setSuggestions] = useState<TopicSuggestion[]>([]);
+  const [suggestState, setSuggestState] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [suggestNote, setSuggestNote] = useState<{ ranking: string; disclosure: string }>({ ranking: "", disclosure: "" });
+  const suggestionsRequested = useRef(false);
+
+  const loadSuggestions = useCallback(async () => {
+    if (!suggestionsHref || suggestionsRequested.current) return;
+    suggestionsRequested.current = true;
+    setSuggestState("loading");
+    try {
+      const res = await fetch(suggestionsHref);
+      const data = (await res.json().catch(() => null)) as SuggestionsResponse | null;
+      if (res.ok && data && data.ok) {
+        setSuggestions(data.suggestions);
+        setSuggestNote({ ranking: data.rankingNote, disclosure: data.disclosure });
+        setSuggestState("loaded");
+      } else {
+        setSuggestState("error");
+      }
+    } catch {
+      setSuggestState("error");
+    }
+  }, [suggestionsHref]);
+
+  // Click-to-fill: put the suggested parent question in the topic box, but do NOT
+  // generate — the operator edits if desired and hits Generate themselves.
+  const fillTopic = (question: string) => {
+    setTopic(question.slice(0, TOPIC_MAX));
+    setError(null);
+    setSuccess(null);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
 
   // Advance the progress phase on a timer only while generating. Phase is
   // reset to 0 in handleGenerate (not here) to avoid a synchronous setState
@@ -68,6 +123,7 @@ export function NewDraftForm({ generateHref, detailBaseHref }: NewDraftFormProps
     setOpen(true);
     setError(null);
     setSuccess(null);
+    void loadSuggestions(); // lazy — only when the operator intends to create a draft
     // Focus the input after it mounts.
     requestAnimationFrame(() => inputRef.current?.focus());
   };
@@ -185,6 +241,60 @@ export function NewDraftForm({ generateHref, detailBaseHref }: NewDraftFormProps
           </span>
         </div>
       </div>
+
+      {/* Topic suggestions — uncovered gaps from local site data. Click to fill the
+          box (never auto-generate). Honest by construction: not search-volume-ranked. */}
+      {suggestionsHref ? (
+        <div className="mt-4 rounded-2xl border border-ink-base/10 bg-surface-raised/40 p-3.5">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-base/55">
+            Suggested gaps to cover
+          </p>
+          {suggestState === "loading" ? (
+            <p className="mt-2 text-xs text-ink-base/50">Finding uncovered topics…</p>
+          ) : null}
+          {suggestState === "error" ? (
+            <p className="mt-2 text-xs text-ink-base/50">
+              Suggestions unavailable right now — type a topic above.
+            </p>
+          ) : null}
+          {suggestState === "loaded" && suggestions.length === 0 ? (
+            <p className="mt-2 text-xs text-ink-base/50">
+              No uncovered gaps surfaced — the local opportunities are all covered. Type a topic above.
+            </p>
+          ) : null}
+          {suggestState === "loaded" && suggestions.length > 0 ? (
+            <>
+              <ul className="mt-2 grid gap-2">
+                {suggestions.map((s) => (
+                  <li key={s.keyword}>
+                    <button
+                      type="button"
+                      onClick={() => fillTopic(s.question)}
+                      disabled={isGenerating}
+                      className="w-full rounded-xl border border-ink-base/12 bg-surface-card/80 px-3.5 py-2.5 text-left transition-colors hover:border-ink-walnut/40 hover:bg-surface-hover disabled:opacity-50"
+                      title="Fill the topic box with this question — you can edit it before generating"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span aria-hidden className={priorityDotClass(s.priority)} />
+                        <span className="text-sm text-ink-strong">{s.question}</span>
+                      </span>
+                      <span className="mt-0.5 block pl-4 font-mono text-[11px] text-ink-base/55">
+                        {s.keyword} · {s.intent.replace(/_/g, " ")}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2.5 text-[11px] leading-relaxed text-ink-base/50">
+                {suggestNote.ranking}
+                {suggestNote.disclosure ? (
+                  <span className="mt-0.5 block">{suggestNote.disclosure}</span>
+                ) : null}
+              </p>
+            </>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
