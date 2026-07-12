@@ -29,6 +29,7 @@ import {
 } from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
 import { listDrafts } from "../lib/contentops/drafts-store";
+import { SAFETY_BRIEF } from "../lib/contentops/safety";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
 const MODEL = "claude-sonnet-4-6";
@@ -147,6 +148,8 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
     "",
     buildCatalogBrief(),
+    "",
+    SAFETY_BRIEF,
   ].join("\n");
 
   const user = [

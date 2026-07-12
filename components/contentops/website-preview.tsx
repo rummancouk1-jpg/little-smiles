@@ -19,6 +19,7 @@ import Link from "next/link";
 
 import { RichParagraph } from "@/components/blog-rich-text";
 import { type BlogPost } from "@/lib/contentops/blog-schema";
+import { isYmylCategory, MEDICAL_DISCLAIMER } from "@/lib/contentops/safety";
 
 type Props = {
   post: BlogPost;
@@ -79,6 +80,12 @@ export function WebsitePreview({ post, fallbackHeroImagePath }: Props) {
                 unoptimized
               />
             </div>
+          ) : null}
+
+          {isYmylCategory(post.category) ? (
+            <p className="mt-7 rounded-2xl border border-dashed border-[#3B2F2F]/22 bg-[#FBF7F3] px-5 py-3.5 text-sm leading-relaxed text-[#3B2F2F]/70">
+              {MEDICAL_DISCLAIMER}
+            </p>
           ) : null}
 
           <div className="mt-9 space-y-8">

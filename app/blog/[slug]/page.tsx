@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { RichParagraph } from "@/components/blog-rich-text";
 import { ProductImage } from "@/components/product-image";
 import { categoryMatClass } from "@/components/product-grid";
+import { isYmylCategory, MEDICAL_DISCLAIMER } from "@/lib/contentops/safety";
 import { resolveHeroImagePath } from "@/lib/blog";
 import { getAllBlogPosts, getAnyBlogPostBySlug } from "@/lib/blog-data";
 import { blogPostingJsonLd, breadcrumbJsonLdDocument, faqPageJsonLd } from "@/lib/json-ld";
@@ -170,6 +171,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
             <div aria-hidden className="arch-floor bottom-[5%] h-4 w-[54%]" />
           </div>
+        ) : null}
+
+        {/* YMYL safety caveat — structural, driven by category so it can
+            never be forgotten on a health-sensitive post. */}
+        {isYmylCategory(post.category) ? (
+          <p className="mx-auto mt-9 max-w-[38rem] rounded-2xl border border-dashed border-ink-base/22 bg-surface-raised/50 px-5 py-3.5 text-center text-sm leading-relaxed text-ink-base/68">
+            {MEDICAL_DISCLAIMER}
+          </p>
         ) : null}
 
         {/* Long-form body — comfortable measure, generous rhythm, Fraunces
