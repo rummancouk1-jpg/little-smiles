@@ -29,8 +29,23 @@ import {
   type CorpusEntry,
 } from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
+import {
+  CRITIQUE_MODEL,
+  CRITIQUE_TOOL_NAME,
+  buildCritiqueSystem,
+  buildCritiqueUser,
+  critiqueToolInputSchema,
+  toCritiqueResult,
+  type CritiqueResult,
+} from "../lib/contentops/critique";
 import { listDrafts } from "../lib/contentops/drafts-store";
+import {
+  buildLinkTargetsMenu,
+  validateAndCleanLinks,
+  type LinkTargets,
+} from "../lib/contentops/link-validation";
 import { PAKISTAN_BRIEF } from "../lib/contentops/pakistan-brief";
+import { products } from "../lib/products";
 import { SAFETY_BRIEF } from "../lib/contentops/safety";
 import { chooseTemplate } from "../lib/contentops/template";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
@@ -140,15 +155,17 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
   const exampleJson = JSON.stringify(example, null, 2);
   const template = chooseTemplate(topic);
 
+  const categories = [...new Set(products.map((p) => p.category))];
+  const blogSlugs = corpus.map((c) => c.slug);
+
   const system = [
     "You write SEO blog drafts for Little Smiles, a premium boutique baby brand based in Pakistan.",
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile.",
     "Voice: calm, editorial, practical. Not pushy. Not generic. Not full of hype.",
     "Answer one parent question deeply, with 2-4 line paragraphs and a single relevant CTA to a shop category. Follow the STRUCTURE guidance below for section and FAQ shape — do not force a fixed skeleton across posts.",
-    "Each faq answer is short and direct — a real pre-purchase question.",
-    "Weave 1-2 internal links into body paragraphs using markdown syntax with INTERNAL paths only:",
-    "[anchor text](/shop?category=<relatedProductCategory>) or [anchor text](/blog/<existing-post-slug>).",
-    "Only link to blog slugs that appear in the existing-post list; never invent product slugs.",
+    "LENGTH: aim for 600-800 words of genuine, developed body content (excluding FAQ). Each section must earn its place with concrete detail — examples, comparisons, local specifics — never padding to reach a number. A thin 300-word draft is a failure.",
+    "FAQ IS REQUIRED: include 3-5 faq entries every time, each a real pre-purchase question with a short, direct answer. A draft with zero FAQ is incomplete.",
+    "INTERNAL LINKS ARE REQUIRED: weave at least 1-2 links into body paragraphs using markdown, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product slug or a blog slug — a link to anything not on that list is stripped before publish.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
     "",
     buildCatalogBrief(),
@@ -162,6 +179,8 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
     `Topic: ${topic}`,
     "",
     template.guidance,
+    "",
+    buildLinkTargetsMenu(categories, blogSlugs),
     "",
     buildCorpusBrief(corpus),
     "",
@@ -227,23 +246,85 @@ async function generateDraft(
   return draft;
 }
 
+/**
+ * Opus critique pass (Sonnet drafts, Opus critiques — the audit's own
+ * recommendation). Reads the draft against the catalog + safety rules +
+ * corpus and returns flagged issues for the human reviewer. Best-effort:
+ * a critique failure never blocks the draft (it just ships without flags).
+ * Thinking is left off so the forced tool_choice is reliably accepted,
+ * mirroring the drafting call that already works in this repo.
+ */
+async function runCritique(
+  anthropic: Anthropic,
+  draft: BlogPost,
+  corpus: CorpusEntry[],
+): Promise<CritiqueResult | null> {
+  try {
+    const response = await anthropic.messages.create(
+      {
+        model: CRITIQUE_MODEL,
+        max_tokens: MAX_TOKENS,
+        system: buildCritiqueSystem(buildCatalogBrief(), SAFETY_BRIEF),
+        tools: [
+          {
+            name: CRITIQUE_TOOL_NAME,
+            description: "Report the flagged issues for the human reviewer.",
+            input_schema:
+              critiqueToolInputSchema as unknown as Anthropic.Messages.Tool["input_schema"],
+          },
+        ],
+        tool_choice: { type: "tool", name: CRITIQUE_TOOL_NAME },
+        messages: [{ role: "user", content: buildCritiqueUser(draft, buildCorpusBrief(corpus)) }],
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    const toolUse = response.content.find((b) => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") return null;
+    return toCritiqueResult(toolUse.input, CRITIQUE_MODEL);
+  } catch (err) {
+    console.log(
+      `${LOG_PREFIX} Critique pass skipped (${err instanceof Error ? err.message : "error"}).`,
+    );
+    return null;
+  }
+}
+
 async function insertDraft(
   client: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
   draft: BlogPost,
+  critique: CritiqueResult | null,
 ) {
-  const { data, error } = await client
+  const baseRow = {
+    slug: draft.slug,
+    status: "pending_review" as const,
+    content: draft,
+    hero_image_path: null,
+    rejection_note: null,
+    approved_at: null,
+    published_at: null,
+  };
+  // Try WITH critique; if the column hasn't been migrated yet (PGRST204),
+  // fall back to inserting without it — mirrors the order-intent pattern.
+  let { data, error } = await client
     .from("contentops_drafts")
-    .insert({
-      slug: draft.slug,
-      status: "pending_review",
-      content: draft,
-      hero_image_path: null,
-      rejection_note: null,
-      approved_at: null,
-      published_at: null,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert({ ...baseRow, critique } as any)
     .select("id, slug")
     .single();
+  // PostgREST reports a missing column with code PGRST204 (schema-cache miss).
+  const columnMissing =
+    error?.code === "PGRST204" || /critique.*column|schema cache/i.test(error?.message ?? "");
+  if (error && columnMissing) {
+    console.log(
+      `${LOG_PREFIX} 'critique' column not found — apply supabase/contentops-schema.sql to store critiques. Inserting without it.`,
+    );
+    ({ data, error } = await client
+      .from("contentops_drafts")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(baseRow as any)
+      .select("id, slug")
+      .single());
+  }
   if (error || !data) {
     console.error(`${LOG_PREFIX} Insert failed. Validated draft was:`);
     console.error(JSON.stringify(draft, null, 2));
@@ -277,12 +358,44 @@ async function main() {
   }
 
   console.log(`${LOG_PREFIX} Generating draft for: "${topic}"`);
-  const draft = await generateDraft(anthropic, topic, corpus);
+  const rawDraft = await generateDraft(anthropic, topic, corpus);
+
+  // Link-validation backstop — strip any internal link that doesn't resolve
+  // to a real category / product / existing post, so a fabricated URL can
+  // never ship (the prompt gives the valid menu; this enforces it).
+  const targets: LinkTargets = {
+    categories: new Set(products.map((p) => p.category)),
+    blogSlugs: new Set(corpus.map((c) => c.slug)),
+    productSlugs: new Set(products.map((p) => p.slug)),
+  };
+  const { draft, strippedLinks, validLinkCount } = validateAndCleanLinks(rawDraft, targets);
+  if (strippedLinks.length > 0) {
+    console.log(
+      `${LOG_PREFIX} Stripped ${strippedLinks.length} invalid link(s): ` +
+        strippedLinks.map((l) => l.href).join(", "),
+    );
+  }
+  if (validLinkCount === 0) {
+    console.log(
+      `${LOG_PREFIX} Warning: draft has NO valid internal links — the reviewer should add one.`,
+    );
+  }
+
   await checkSlugAvailable(client, draft.slug);
-  const inserted = await insertDraft(client, draft);
+
+  console.log(`${LOG_PREFIX} Running Opus critique pass...`);
+  const critique = await runCritique(anthropic, draft, corpus);
+  if (critique) {
+    console.log(`${LOG_PREFIX} Critique: ${critique.flags.length} flag(s).`);
+    for (const f of critique.flags) {
+      console.log(`  [${f.severity}/${f.category}] ${f.location}: ${f.note}`);
+    }
+  }
+
+  const inserted = await insertDraft(client, draft, critique);
 
   console.log(
-    `${LOG_PREFIX} OK. id=${inserted.id} slug=${inserted.slug} title="${draft.title}"`,
+    `${LOG_PREFIX} OK. id=${inserted.id} slug=${inserted.slug} title="${draft.title}" (${validLinkCount} valid link(s))`,
   );
 }
 

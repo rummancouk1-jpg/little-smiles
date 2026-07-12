@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { AdminSectionNav } from "@/components/admin/admin-section-nav";
+import { CritiqueCard } from "@/components/contentops/contentops-ui";
 import { DraftActions } from "@/components/contentops/draft-actions";
 import { DraftDetail } from "@/components/contentops/draft-detail";
 import { HeroImagePanel } from "@/components/contentops/hero-image-panel";
@@ -114,6 +115,9 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           badges={validation.badges}
           improveHref={`/admin/contentops/${draft.id}/improve`}
         />
+
+        {/* Opus pre-review — what to check before diving in (advisory only). */}
+        <CritiqueCard critique={draft.critique} />
 
         <PublishSafetyCard score={safetyScore} />
 

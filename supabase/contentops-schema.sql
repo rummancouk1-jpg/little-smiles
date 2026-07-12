@@ -21,6 +21,12 @@ create table if not exists public.contentops_drafts (
 alter table public.contentops_drafts
   add column if not exists hero_image_path text null;
 
+-- Additive: Opus critique-pass output (flagged issues for the human reviewer).
+-- Nullable + backward-compatible; existing rows read null and the code
+-- degrades gracefully (PGRST204) when this column hasn't been applied yet.
+alter table public.contentops_drafts
+  add column if not exists critique jsonb null;
+
 create index if not exists idx_contentops_drafts_status_created
   on public.contentops_drafts(status, created_at desc);
 

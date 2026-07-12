@@ -3,6 +3,7 @@
 // any project that adopts the contentops_drafts schema.
 
 import { type BlogPost } from "@/lib/contentops/blog-schema";
+import { type CritiqueResult } from "@/lib/contentops/critique";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export type DraftStatus = "pending_review" | "approved" | "rejected" | "published";
@@ -12,6 +13,8 @@ export type Draft = {
   slug: string;
   status: DraftStatus;
   content: BlogPost;
+  /** Opus critique-pass flags for the reviewer (null until generated/stored). */
+  critique: CritiqueResult | null;
   /**
    * Optional reviewer-selected hero image path (e.g. "/products/foo.jpg").
    * Always a path under /public — never an absolute URL. When null, the
