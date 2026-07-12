@@ -48,7 +48,7 @@ function CharCounter({ value, min, max }: { value: number; min: number; max: num
   return (
     <span
       className={
-        ok ? "text-xs font-medium text-[#2E6A41]" : "text-xs font-medium text-[#8A2F40]"
+        ok ? "text-xs font-medium text-tone-green-deep" : "text-xs font-medium text-tone-danger"
       }
     >
       {value} chars {ok ? "✓" : `(target ${min}–${max})`}
@@ -57,8 +57,8 @@ function CharCounter({ value, min, max }: { value: number; min: number; max: num
 }
 
 const fieldClass =
-  "w-full rounded-2xl border border-[#3B2F2F]/12 bg-white p-3 text-sm text-[#1F1918] focus:border-[#2F2624]/40 focus:outline-none";
-const labelClass = "text-xs font-semibold uppercase tracking-[0.12em] text-[#3B2F2F]/55";
+  "w-full rounded-2xl border border-ink-base/14 bg-surface-raised p-3 text-sm text-ink-strong outline-none transition-[border-color] placeholder:text-ink-base/45 focus:border-ink-base/35";
+const labelClass = "text-xs font-semibold uppercase tracking-[0.12em] text-ink-base/55";
 
 export function DraftEditor({ draftId, initialContent, saveHref, backHref }: DraftEditorProps) {
   const router = useRouter();
@@ -151,7 +151,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
 
   return (
     <div
-      className="space-y-6 rounded-3xl border border-[#3B2F2F]/10 bg-white/85 p-5 shadow-[0_20px_44px_-30px_rgba(59,47,47,0.35)] sm:p-7"
+      className="space-y-6 rounded-3xl border border-ink-base/10 bg-surface-card/90 p-5 shadow-card-rest sm:p-7"
       data-draft-id={draftId}
     >
       <div className="grid gap-5 sm:grid-cols-2">
@@ -180,7 +180,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
             onChange={(e) => setSlug(e.target.value.toLowerCase())}
             className={`${fieldClass} font-mono`}
           />
-          <p className="text-[11px] text-[#3B2F2F]/55">
+          <p className="text-[11px] text-ink-base/55">
             Lives at /blog/{slug || "…"} — lowercase-hyphenated.
           </p>
         </div>
@@ -237,7 +237,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
               </option>
             ))}
           </select>
-          <p className="text-[11px] text-[#3B2F2F]/55">
+          <p className="text-[11px] text-ink-base/55">
             Drives the hero-image fallback and the related-products block.
           </p>
         </div>
@@ -259,12 +259,12 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
       <div className="space-y-4">
         <div className="flex items-baseline justify-between gap-3">
           <p className={labelClass}>Sections</p>
-          <span className="text-xs text-[#3B2F2F]/60">{wordCount} words total</span>
+          <span className="text-xs text-ink-base/60">{wordCount} words total</span>
         </div>
         {sections.map((section, index) => (
           <div
             key={index}
-            className="space-y-2 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4"
+            className="space-y-2 rounded-2xl border border-ink-base/10 bg-surface-well p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <label className={labelClass} htmlFor={`edit-section-heading-${index}`}>
@@ -274,7 +274,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
                 type="button"
                 onClick={() => setSections((prev) => prev.filter((_, i) => i !== index))}
                 disabled={sections.length <= 1 || isPending}
-                className="text-xs font-medium text-[#8A2F40] underline underline-offset-2 disabled:opacity-40"
+                className="text-xs font-medium text-tone-danger underline underline-offset-2 disabled:opacity-40"
               >
                 Remove
               </button>
@@ -302,11 +302,11 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
           type="button"
           onClick={() => setSections((prev) => [...prev, { heading: "", text: "" }])}
           disabled={isPending}
-          className="rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4] disabled:opacity-50"
+          className="rounded-full border border-ink-base/14 bg-surface-raised px-4 py-1.5 text-xs font-medium text-ink-walnut hover:bg-surface-hover disabled:opacity-50"
         >
           + Add section
         </button>
-        <p className="text-[11px] text-[#3B2F2F]/55">
+        <p className="text-[11px] text-ink-base/55">
           Link syntax: <code className="font-mono">[anchor text](/shop/slug)</code>,{" "}
           <code className="font-mono">[…](/blog/slug)</code>, or{" "}
           <code className="font-mono">[…](/shop?category=…)</code> — internal links only;
@@ -317,14 +317,14 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
       <div className="space-y-4">
         <div className="flex items-baseline justify-between gap-3">
           <p className={labelClass}>FAQ (3–5 recommended)</p>
-          <span className="text-xs text-[#3B2F2F]/60">
+          <span className="text-xs text-ink-base/60">
             Renders on-page + emits FAQPage JSON-LD
           </span>
         </div>
         {faq.map((item, index) => (
           <div
             key={index}
-            className="space-y-2 rounded-2xl border border-[#3B2F2F]/10 bg-[#FDF8F4] p-4"
+            className="space-y-2 rounded-2xl border border-ink-base/10 bg-surface-well p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <label className={labelClass} htmlFor={`edit-faq-q-${index}`}>
@@ -334,7 +334,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
                 type="button"
                 onClick={() => setFaq((prev) => prev.filter((_, i) => i !== index))}
                 disabled={isPending}
-                className="text-xs font-medium text-[#8A2F40] underline underline-offset-2"
+                className="text-xs font-medium text-tone-danger underline underline-offset-2"
               >
                 Remove
               </button>
@@ -371,7 +371,7 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
           type="button"
           onClick={() => setFaq((prev) => [...prev, { question: "", answer: "" }])}
           disabled={isPending}
-          className="rounded-full border border-[#3B2F2F]/14 bg-white px-4 py-1.5 text-xs font-medium text-[#2E2323] hover:bg-[#F2EAE4] disabled:opacity-50"
+          className="rounded-full border border-ink-base/14 bg-surface-raised px-4 py-1.5 text-xs font-medium text-ink-walnut hover:bg-surface-hover disabled:opacity-50"
         >
           + Add FAQ entry
         </button>
@@ -404,10 +404,10 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
       </div>
 
       {error ? (
-        <div className="rounded-2xl border border-[#8A2F40]/25 bg-[#F8E8EA] p-4">
-          <p className="text-sm font-medium text-[#8A2F40]">{error}</p>
+        <div className="rounded-2xl border border-tone-danger/25 bg-emphasis-berry-tint p-4">
+          <p className="text-sm font-medium text-tone-danger">{error}</p>
           {details.length > 0 ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-[#8A2F40]/85">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-tone-danger/85">
               {details.map((detail) => (
                 <li key={detail}>{detail}</li>
               ))}
@@ -416,21 +416,21 @@ export function DraftEditor({ draftId, initialContent, saveHref, backHref }: Dra
         </div>
       ) : null}
       {saved ? (
-        <p className="text-sm font-medium text-[#2E6A41]">
+        <p className="text-sm font-medium text-tone-green-deep">
           Saved. Validation badges refresh on the detail page.
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-[#3B2F2F]/10 pt-5">
+      <div className="flex flex-wrap items-center gap-3 border-t border-ink-base/10 pt-5">
         <button
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="rounded-full bg-[#2F2624] px-6 py-2 text-sm font-medium text-[#F6F1EC] transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="rounded-full bg-ink-walnut px-6 py-2 text-sm font-medium text-ink-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save changes"}
         </button>
-        <a href={backHref} className="text-xs text-[#3B2F2F]/72 underline underline-offset-2">
+        <a href={backHref} className="text-xs text-ink-base/72 underline underline-offset-2">
           Back to draft review
         </a>
       </div>
