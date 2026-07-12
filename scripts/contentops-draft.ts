@@ -19,6 +19,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 import { blogPosts } from "../lib/blog";
+import { buildCatalogBrief } from "../lib/contentops/catalog-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
@@ -109,7 +110,9 @@ function buildPrompt(topic: string) {
     "[anchor text](/shop?category=<relatedProductCategory>) or [anchor text](/blog/<existing-post-slug>).",
     "Only link to blog slugs that appear in the example post list; never invent product slugs.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
-  ].join(" ");
+    "",
+    buildCatalogBrief(),
+  ].join("\n");
 
   const user = [
     `Topic: ${topic}`,
