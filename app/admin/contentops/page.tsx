@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AdminSectionNav } from "@/components/admin/admin-section-nav";
 import { DraftQueue } from "@/components/contentops/draft-queue";
+import { NewDraftForm } from "@/components/contentops/new-draft-form";
 import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import {
@@ -93,6 +94,11 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
             <p className="mt-1 text-xs">{listError}</p>
           </article>
         ) : null}
+
+        <NewDraftForm
+          generateHref="/api/admin/contentops/drafts/generate"
+          detailBaseHref="/admin/contentops"
+        />
 
         <DraftQueue
           drafts={drafts}
