@@ -19,8 +19,16 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 import { blogPosts } from "../lib/blog";
+import { getAllBlogPosts } from "../lib/blog-data";
 import { buildCatalogBrief } from "../lib/contentops/catalog-brief";
+import {
+  buildCorpusBrief,
+  findTopicOverlap,
+  DUPLICATE_INTENT_THRESHOLD,
+  type CorpusEntry,
+} from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
+import { listDrafts } from "../lib/contentops/drafts-store";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
 const MODEL = "claude-sonnet-4-6";
@@ -96,7 +104,34 @@ async function checkSlugAvailable(
   }
 }
 
-function buildPrompt(topic: string) {
+/**
+ * The live corpus the model must not duplicate and may link to: static +
+ * DB-published posts, plus in-flight pending/approved drafts (so we don't
+ * generate a near-copy of something already in the queue).
+ */
+async function loadCorpus(): Promise<CorpusEntry[]> {
+  const live = await getAllBlogPosts();
+  const [pending, approved] = await Promise.all([
+    listDrafts("pending_review"),
+    listDrafts("approved"),
+  ]);
+  const entries = new Map<string, CorpusEntry>();
+  for (const p of live) {
+    entries.set(p.slug, { slug: p.slug, title: p.title, keywords: p.keywords });
+  }
+  for (const d of [...pending, ...approved]) {
+    if (!entries.has(d.slug)) {
+      entries.set(d.slug, {
+        slug: d.slug,
+        title: d.content.title,
+        keywords: d.content.keywords,
+      });
+    }
+  }
+  return [...entries.values()];
+}
+
+function buildPrompt(topic: string, corpus: CorpusEntry[]) {
   const example = blogPosts[0];
   const exampleJson = JSON.stringify(example, null, 2);
 
@@ -117,6 +152,8 @@ function buildPrompt(topic: string) {
   const user = [
     `Topic: ${topic}`,
     "",
+    buildCorpusBrief(corpus),
+    "",
     "Match the tone, structure, length, and CTA pattern of this existing post:",
     "",
     exampleJson,
@@ -129,8 +166,12 @@ function buildPrompt(topic: string) {
   return { system, user };
 }
 
-async function generateDraft(anthropic: Anthropic, topic: string): Promise<BlogPost> {
-  const { system, user } = buildPrompt(topic);
+async function generateDraft(
+  anthropic: Anthropic,
+  topic: string,
+  corpus: CorpusEntry[],
+): Promise<BlogPost> {
+  const { system, user } = buildPrompt(topic, corpus);
   const inputSchema = z.toJSONSchema(blogPostSchema) as Record<string, unknown>;
 
   const response = await anthropic.messages.create(
@@ -201,8 +242,26 @@ async function main() {
   const client = await pingSupabase();
   const anthropic = new Anthropic({ apiKey: anthropicKey });
 
+  // Duplicate-intent guard — refuse before spending tokens when the topic
+  // substantially overlaps something we already cover (or have queued).
+  const corpus = await loadCorpus();
+  const overlaps = findTopicOverlap(topic, corpus);
+  const worst = overlaps[0];
+  if (worst && worst.score >= DUPLICATE_INTENT_THRESHOLD) {
+    fail(
+      `Topic overlaps an existing post (${Math.round(worst.score * 100)}% intent match): ` +
+        `"${worst.title}" (/blog/${worst.slug}). ` +
+        "Refresh that post instead of splitting its ranking signal, or pick a more specific angle.",
+    );
+  }
+  if (worst && worst.score >= 0.4) {
+    console.log(
+      `${LOG_PREFIX} Note: closest existing post is "${worst.title}" (${Math.round(worst.score * 100)}% overlap) — keep this angle distinct.`,
+    );
+  }
+
   console.log(`${LOG_PREFIX} Generating draft for: "${topic}"`);
-  const draft = await generateDraft(anthropic, topic);
+  const draft = await generateDraft(anthropic, topic, corpus);
   await checkSlugAvailable(client, draft.slug);
   const inserted = await insertDraft(client, draft);
 
