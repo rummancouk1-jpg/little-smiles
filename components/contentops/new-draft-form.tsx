@@ -33,8 +33,9 @@ function priorityDotClass(priority: TopicSuggestion["priority"]): string {
 // server does the real work and the final result is authoritative.
 const PROGRESS_PHASES = [
   "Checking the corpus for overlap…",
-  "Drafting the post (600–800 words, FAQ, links)…",
+  "Drafting the post (900–1100 words, FAQ, links)…",
   "Validating structure and internal links…",
+  "Expanding to full length if needed…",
   "Running the Opus critique pass…",
   "Saving to the review queue…",
 ];
@@ -318,7 +319,8 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
 
       {isGenerating ? (
         <p className="mt-3 text-[11px] text-ink-base/50">
-          This takes 30–60 seconds — drafting plus an Opus critique pass. Keep this tab open.
+          This takes ~30–90 seconds — drafting, a full-length expansion pass if the draft comes out
+          thin, then an Opus critique. Keep this tab open.
         </p>
       ) : null}
 

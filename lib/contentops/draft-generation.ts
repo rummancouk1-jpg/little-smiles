@@ -55,14 +55,29 @@ import {
   metadataRepairToolInputSchema,
   parseRepairedMetadata,
 } from "./metadata-repair";
+import {
+  EXPANSION_MODEL,
+  EXPANSION_TOOL_NAME,
+  MAX_EXPANSION_ATTEMPTS,
+  assessLengthGaps,
+  buildExpansionSystem,
+  buildExpansionUser,
+  parseExpandedPost,
+  type LengthGapAssessment,
+} from "./expansion";
 import { PAKISTAN_BRIEF } from "./pakistan-brief";
 import { SAFETY_BRIEF } from "./safety";
 import { chooseTemplate } from "./template";
 import { products } from "../products";
 
-const MODEL = "claude-sonnet-4-6";
-const MAX_TOKENS = 4000;
-const TIMEOUT_MS = 60_000;
+// Sonnet 5 (cost-neutral per token vs Sonnet 4.6). The initial draft targets a
+// raised 900-1100 word length so fewer drafts trip the (more expensive) Sonnet 5
+// expansion pass. Thinking is disabled on the initial draft to keep it
+// cost-neutral (Sonnet 5 runs adaptive thinking by default) and the forced
+// tool_choice reliable.
+const MODEL = "claude-sonnet-5";
+const MAX_TOKENS = 8000;
+const TIMEOUT_MS = 120_000;
 const TOOL_NAME = "submit_blog_post";
 
 export const TOPIC_MIN_LENGTH = 5;
@@ -215,7 +230,7 @@ function buildPrompt(topic: string, corpus: CorpusEntry[], rejectionCaution: str
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile.",
     "Voice: calm, editorial, practical. Not pushy. Not generic. Not full of hype.",
     "Answer one parent question deeply, with 2-4 line paragraphs and a single relevant CTA to a shop category. Follow the STRUCTURE guidance below for section and FAQ shape — do not force a fixed skeleton across posts.",
-    "LENGTH: aim for 600-800 words of genuine, developed body content (excluding FAQ). Each section must earn its place with concrete detail — examples, comparisons, local specifics — never padding to reach a number. A thin 300-word draft is a failure.",
+    "LENGTH: aim for 900-1100 words of genuine, developed body content (excluding FAQ), across 5-7 sections. Each section must earn its place with concrete detail — examples, comparisons, local specifics — never padding to reach a number. A thin sub-700-word draft is a failure.",
     "FAQ IS REQUIRED: include 3-5 faq entries every time, each a real pre-purchase question with a short, direct answer. A draft with zero FAQ is incomplete.",
     "INTERNAL LINKS ARE REQUIRED: weave at least 1-2 links into body paragraphs using markdown, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product slug or a blog slug — a link to anything not on that list is stripped before publish.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
@@ -264,6 +279,9 @@ async function generateBlogPost(
       {
         model: MODEL,
         max_tokens: MAX_TOKENS,
+        // Thinking off keeps the initial draft cost-neutral vs Sonnet 4.6 (which
+        // ran no thinking) and the forced tool_choice reliably accepted.
+        thinking: { type: "disabled" },
         system,
         tools: [
           {
@@ -422,6 +440,114 @@ export async function repairDraftMetadata(
   return runMetadataRepair(anthropic, post, options.onProgress);
 }
 
+/**
+ * Full-length expansion pass (Sonnet 5, high effort) — BOUNDED. If the draft is
+ * already at/above the quality bar it returns immediately (no call, no cost). If
+ * thin, it expands the body up to MAX_EXPANSION_ATTEMPTS times, re-validating
+ * links + re-assessing the bar deterministically between attempts (never an
+ * open-ended loop). Best-effort: on any error it returns the best draft so far —
+ * the draft is never lost. Logs input/output tokens + latency per attempt.
+ */
+async function runExpansionIfThin(
+  anthropic: Anthropic,
+  draft: BlogPost,
+  targets: LinkTargets,
+  onProgress?: (message: string) => void,
+): Promise<BlogPost> {
+  if (!assessLengthGaps(draft).belowBar) {
+    onProgress?.("Expansion skipped — draft already at/above the quality bar.");
+    return draft;
+  }
+
+  const categories = [...new Set(products.map((p) => p.category))];
+  const linkMenu = buildLinkTargetsMenu(categories, [...targets.blogSlugs]);
+  const inputSchema = z.toJSONSchema(blogPostSchema) as Record<string, unknown>;
+  let current = draft;
+
+  for (let attempt = 1; attempt <= MAX_EXPANSION_ATTEMPTS; attempt++) {
+    const gaps = assessLengthGaps(current);
+    if (!gaps.belowBar) break;
+    onProgress?.(`Expanding to full length (attempt ${attempt}/${MAX_EXPANSION_ATTEMPTS}): ${gaps.gaps.join("; ")}`);
+    const t0 = Date.now();
+    try {
+      const response = await anthropic.messages.create(
+        {
+          model: EXPANSION_MODEL,
+          max_tokens: MAX_TOKENS,
+          // high effort — this pass writes the content that determines ranking.
+          output_config: { effort: "high" },
+          system: buildExpansionSystem(buildCatalogBrief(), PAKISTAN_BRIEF, SAFETY_BRIEF),
+          tools: [
+            {
+              name: EXPANSION_TOOL_NAME,
+              description: "Submit one complete blog post object.",
+              input_schema: inputSchema as Anthropic.Messages.Tool["input_schema"],
+            },
+          ],
+          tool_choice: { type: "tool", name: EXPANSION_TOOL_NAME },
+          messages: [{ role: "user", content: buildExpansionUser(current, gaps.gaps, linkMenu) }],
+        } as Anthropic.Messages.MessageCreateParamsNonStreaming,
+        { timeout: TIMEOUT_MS },
+      );
+      const u = response.usage;
+      onProgress?.(
+        `Expansion attempt ${attempt}: ${Date.now() - t0}ms · input=${u.input_tokens} output=${u.output_tokens} tokens`,
+      );
+      const toolUse = response.content.find((b) => b.type === "tool_use");
+      const expanded = toolUse && toolUse.type === "tool_use" ? parseExpandedPost(toolUse.input) : null;
+      if (!expanded) continue; // unusable output — keep current, retry within the cap
+      // Strip any invalid links the expansion introduced (same backstop as the initial draft).
+      current = validateAndCleanLinks(expanded, targets).draft;
+    } catch (err) {
+      onProgress?.(`Expansion attempt ${attempt} failed (${err instanceof Error ? err.message : "error"}); keeping best draft so far.`);
+      break;
+    }
+  }
+
+  const final = assessLengthGaps(current);
+  if (final.belowBar) {
+    onProgress?.(`Expansion did not fully converge (${final.gaps.join("; ")}) — draft kept and flagged for manual work.`);
+  } else {
+    onProgress?.("Expansion complete — draft is at full length.");
+  }
+  return current;
+}
+
+/**
+ * Genuine-100 gate (honesty). Returns a specific, operator-facing warning when a
+ * draft is STILL below the quality bar after expansion — so it is never silently
+ * enqueued as if ready, and never dropped (it is saved and flagged in the queue).
+ * Returns null when the draft cleared the bar.
+ */
+function qualityGateWarning(post: BlogPost): string | null {
+  const gaps = assessLengthGaps(post);
+  if (!gaps.belowBar) return null;
+  return `Below quality bar after expansion — needs manual work: ${gaps.gaps.join("; ")}. Saved to the queue and flagged; expand it in the editor before publishing.`;
+}
+
+/**
+ * Reusable entry point to expand an EXISTING draft's body up to the quality bar
+ * (e.g. the one-off Swaddle backfill CLI). Builds the client + link targets and
+ * runs the same bounded expansion the pipeline uses. Does NOT persist — the
+ * caller decides whether to write it back. Returns before/after gap assessments.
+ */
+export async function expandDraftBody(
+  post: BlogPost,
+  options: GenerateDraftOptions = {},
+): Promise<{ post: BlogPost; before: LengthGapAssessment; after: LengthGapAssessment }> {
+  const anthropicKey = requireAnthropicKey(options.anthropicKey);
+  const anthropic = new Anthropic({ apiKey: anthropicKey });
+  const corpus = await loadCorpus();
+  const targets: LinkTargets = {
+    categories: new Set(products.map((p) => p.category)),
+    blogSlugs: new Set(corpus.map((c) => c.slug)),
+    productSlugs: new Set(products.map((p) => p.slug)),
+  };
+  const before = assessLengthGaps(post);
+  const expanded = await runExpansionIfThin(anthropic, post, targets, options.onProgress);
+  return { post: expanded, before, after: assessLengthGaps(expanded) };
+}
+
 async function checkSlugAvailable(client: AdminClient, slug: string) {
   const { data, error } = await client
     .from("contentops_drafts")
@@ -557,11 +683,24 @@ export async function generateDraftForTopic(
     warnings.push("Draft has NO valid internal links — add one before publishing.");
   }
 
+  // Full-length expansion (Sonnet 5, high effort) BEFORE metadata-repair — bring
+  // a thin draft up to the quality bar so it can reach a genuine 100. Bounded +
+  // skips entirely when the draft is already full-length (no wasted call).
+  const expandedDraft = await runExpansionIfThin(anthropic, draft, targets, onProgress);
+
   // Metadata-repair pass (Haiku) — bring title/description/keywords/slug within
-  // band before the draft reaches the queue. Runs on the link-cleaned draft;
-  // everything downstream (slug availability, critique, insert, return) uses the
-  // repaired draft. NOT a quality gate — a still-thin draft still enqueues.
-  const repairedDraft = await runMetadataRepair(anthropic, draft, onProgress);
+  // band on the expanded draft; everything downstream (slug availability,
+  // critique, insert, return) uses the repaired draft.
+  const repairedDraft = await runMetadataRepair(anthropic, expandedDraft, onProgress);
+
+  // Genuine-100 gate (honesty): if the draft is STILL below the quality bar after
+  // expansion, surface the SPECIFIC gap — it is saved + flagged in the queue,
+  // never silently enqueued as ready and never dropped.
+  const gateWarning = qualityGateWarning(repairedDraft);
+  if (gateWarning) {
+    warnings.push(gateWarning);
+    onProgress?.(gateWarning);
+  }
 
   await checkSlugAvailable(client, repairedDraft.slug);
 

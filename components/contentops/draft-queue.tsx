@@ -82,10 +82,11 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
               verdict: safetyScore.verdict,
               badges: validation.badges,
             });
-            // Interim-honesty (Branch 1): a draft can read publish-score 100 after
-            // metadata repair yet still be genuinely thin, because the full-length
-            // expansion pass is Branch 2. Flag that plainly so a green score never
-            // reads as "fully ready to publish".
+            // Honesty flag: generation now runs a full-length expansion pass, so
+            // drafts should reach the quality bar automatically. The rare draft that
+            // still falls short after bounded expansion is saved + flagged with its
+            // SPECIFIC gap (never silently enqueued as ready, never dropped) so the
+            // operator can finish it in the editor before publishing.
             const quality = assessQualityBar(draft);
             return (
               <article
@@ -118,9 +119,9 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
                   {quality.belowBar ? (
                     <span
                       className="inline-flex rounded-full bg-tone-amber-tint px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-tone-amber"
-                      title={`Below the full quality bar — pending expansion (Branch 2): ${quality.reasons.join(" · ")}. Do not publish as fully-ready yet.`}
+                      title="Auto-expansion couldn't fully close these gaps — expand this draft in the editor before publishing."
                     >
-                      Below quality bar · pending expansion
+                      Needs manual expansion · {quality.reasons.join(" · ")}
                     </span>
                   ) : null}
                   <PublishSafetyPill score={safetyScore} />
