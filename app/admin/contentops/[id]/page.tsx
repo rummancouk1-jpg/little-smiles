@@ -87,6 +87,14 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
                   >
                     Improve draft →
                   </Link>
+                  {draft.status !== "published" ? (
+                    <Link
+                      href={`/admin/contentops/${draft.id}/edit`}
+                      className="rounded-full border border-[#1F3F66]/25 bg-[#E7EEF7] px-3.5 py-1.5 text-xs font-medium text-[#1F3F66] hover:bg-[#D9E5F2]"
+                    >
+                      Edit draft
+                    </Link>
+                  ) : null}
                   {draft.status === "approved" ? (
                     <Link
                       href={`/admin/contentops/${draft.id}/prepare-publish`}
