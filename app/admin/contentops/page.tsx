@@ -112,6 +112,7 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
         <NewDraftForm
           generateHref="/api/admin/contentops/drafts/generate"
           detailBaseHref="/admin/contentops"
+          suggestionsHref="/api/admin/contentops/topic-suggestions"
         />
 
         <DraftQueue

@@ -29,6 +29,7 @@
 // is invented. Every priority + reason is traceable to a local signal.
 
 import { blogPosts } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog-data";
 import type { BlogRelatedProductCategory } from "@/lib/contentops/blog-schema";
 import { listDrafts, type Draft } from "@/lib/contentops/drafts-store";
 
@@ -108,8 +109,33 @@ export type KeywordOpportunityReport = {
 
 // ─── Keyword extraction ─────────────────────────────────────────────────
 
-function normalizeKeyword(raw: string): string {
+export function normalizeKeyword(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/**
+ * The COMPLETE set of keywords already covered by any live or in-flight post —
+ * every keyword from every published post (static seed AND admin-published DB
+ * posts via getAllBlogPosts) plus pending/approved drafts. This is the fix over
+ * buildCoverageIndex, which only sees the static blogPosts and misses
+ * admin-published DB posts. Used by topic suggestions so a suggestion can never
+ * collide with an existing or in-flight post. Never throws (degrades to what it
+ * could read).
+ */
+export async function buildCompleteCoveredKeywordSet(): Promise<Set<string>> {
+  const [allPosts, pending, approved] = await Promise.all([
+    getAllBlogPosts().catch(() => []),
+    listDrafts("pending_review").catch(() => [] as Draft[]),
+    listDrafts("approved").catch(() => [] as Draft[]),
+  ]);
+  const covered = new Set<string>();
+  for (const post of allPosts) {
+    for (const kw of post.keywords) covered.add(normalizeKeyword(kw));
+  }
+  for (const draft of [...pending, ...approved]) {
+    for (const kw of draft.content.keywords) covered.add(normalizeKeyword(kw));
+  }
+  return covered;
 }
 
 function categoryKeyword(category: BlogRelatedProductCategory, suffix: string): string {
