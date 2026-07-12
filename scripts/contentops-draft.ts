@@ -29,6 +29,15 @@ import {
   type CorpusEntry,
 } from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
+import {
+  CRITIQUE_MODEL,
+  CRITIQUE_TOOL_NAME,
+  buildCritiqueSystem,
+  buildCritiqueUser,
+  critiqueToolInputSchema,
+  toCritiqueResult,
+  type CritiqueResult,
+} from "../lib/contentops/critique";
 import { listDrafts } from "../lib/contentops/drafts-store";
 import {
   buildLinkTargetsMenu,
@@ -237,23 +246,85 @@ async function generateDraft(
   return draft;
 }
 
+/**
+ * Opus critique pass (Sonnet drafts, Opus critiques — the audit's own
+ * recommendation). Reads the draft against the catalog + safety rules +
+ * corpus and returns flagged issues for the human reviewer. Best-effort:
+ * a critique failure never blocks the draft (it just ships without flags).
+ * Thinking is left off so the forced tool_choice is reliably accepted,
+ * mirroring the drafting call that already works in this repo.
+ */
+async function runCritique(
+  anthropic: Anthropic,
+  draft: BlogPost,
+  corpus: CorpusEntry[],
+): Promise<CritiqueResult | null> {
+  try {
+    const response = await anthropic.messages.create(
+      {
+        model: CRITIQUE_MODEL,
+        max_tokens: MAX_TOKENS,
+        system: buildCritiqueSystem(buildCatalogBrief(), SAFETY_BRIEF),
+        tools: [
+          {
+            name: CRITIQUE_TOOL_NAME,
+            description: "Report the flagged issues for the human reviewer.",
+            input_schema:
+              critiqueToolInputSchema as unknown as Anthropic.Messages.Tool["input_schema"],
+          },
+        ],
+        tool_choice: { type: "tool", name: CRITIQUE_TOOL_NAME },
+        messages: [{ role: "user", content: buildCritiqueUser(draft, buildCorpusBrief(corpus)) }],
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    const toolUse = response.content.find((b) => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") return null;
+    return toCritiqueResult(toolUse.input, CRITIQUE_MODEL);
+  } catch (err) {
+    console.log(
+      `${LOG_PREFIX} Critique pass skipped (${err instanceof Error ? err.message : "error"}).`,
+    );
+    return null;
+  }
+}
+
 async function insertDraft(
   client: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
   draft: BlogPost,
+  critique: CritiqueResult | null,
 ) {
-  const { data, error } = await client
+  const baseRow = {
+    slug: draft.slug,
+    status: "pending_review" as const,
+    content: draft,
+    hero_image_path: null,
+    rejection_note: null,
+    approved_at: null,
+    published_at: null,
+  };
+  // Try WITH critique; if the column hasn't been migrated yet (PGRST204),
+  // fall back to inserting without it — mirrors the order-intent pattern.
+  let { data, error } = await client
     .from("contentops_drafts")
-    .insert({
-      slug: draft.slug,
-      status: "pending_review",
-      content: draft,
-      hero_image_path: null,
-      rejection_note: null,
-      approved_at: null,
-      published_at: null,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert({ ...baseRow, critique } as any)
     .select("id, slug")
     .single();
+  // PostgREST reports a missing column with code PGRST204 (schema-cache miss).
+  const columnMissing =
+    error?.code === "PGRST204" || /critique.*column|schema cache/i.test(error?.message ?? "");
+  if (error && columnMissing) {
+    console.log(
+      `${LOG_PREFIX} 'critique' column not found — apply supabase/contentops-schema.sql to store critiques. Inserting without it.`,
+    );
+    ({ data, error } = await client
+      .from("contentops_drafts")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(baseRow as any)
+      .select("id, slug")
+      .single());
+  }
   if (error || !data) {
     console.error(`${LOG_PREFIX} Insert failed. Validated draft was:`);
     console.error(JSON.stringify(draft, null, 2));
@@ -311,7 +382,17 @@ async function main() {
   }
 
   await checkSlugAvailable(client, draft.slug);
-  const inserted = await insertDraft(client, draft);
+
+  console.log(`${LOG_PREFIX} Running Opus critique pass...`);
+  const critique = await runCritique(anthropic, draft, corpus);
+  if (critique) {
+    console.log(`${LOG_PREFIX} Critique: ${critique.flags.length} flag(s).`);
+    for (const f of critique.flags) {
+      console.log(`  [${f.severity}/${f.category}] ${f.location}: ${f.note}`);
+    }
+  }
+
+  const inserted = await insertDraft(client, draft, critique);
 
   console.log(
     `${LOG_PREFIX} OK. id=${inserted.id} slug=${inserted.slug} title="${draft.title}" (${validLinkCount} valid link(s))`,

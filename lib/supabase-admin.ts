@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { BlogPost } from "@/lib/contentops/blog-schema";
+import type { CritiqueResult } from "@/lib/contentops/critique";
 import type { Ga4PagePathRow } from "@/lib/providers/ga4";
 import type { GscQueryRow } from "@/lib/providers/search-console";
 
@@ -116,6 +117,7 @@ type ContentopsDraftsTable = {
   status: "pending_review" | "approved" | "rejected" | "published";
   content: BlogPost;
   hero_image_path: string | null;
+  critique: CritiqueResult | null;
   rejection_note: string | null;
   approved_at: string | null;
   published_at: string | null;
