@@ -173,6 +173,7 @@ async function insertDraft(
       slug: draft.slug,
       status: "pending_review",
       content: draft,
+      hero_image_path: null,
       rejection_note: null,
       approved_at: null,
       published_at: null,

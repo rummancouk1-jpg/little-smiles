@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { blogPosts, getBlogPostBySlug, resolveHeroImagePath } from "@/lib/blog";
+import { resolveHeroImagePath } from "@/lib/blog";
+import { getAllBlogPosts, getAnyBlogPostBySlug } from "@/lib/blog-data";
 import { blogPostingJsonLd, breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { formatPkr, products } from "@/lib/products";
 import { siteUrl } from "@/lib/site";
@@ -12,15 +13,22 @@ type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+/* Admin-published posts appear after the build — render unknown slugs on
+   demand (then cache), with an hourly ISR safety net behind the publish
+   action's on-demand revalidation. */
+export const dynamicParams = true;
+export const revalidate = 3600;
+
 export async function generateStaticParams() {
-  return blogPosts.map((post) => ({ slug: post.slug }));
+  const posts = await getAllBlogPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getAnyBlogPostBySlug(slug);
 
   if (!post) {
     return {
@@ -71,10 +79,11 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await getAnyBlogPostBySlug(slug);
 
   if (!post) notFound();
-  const relatedPosts = blogPosts
+  const allPosts = await getAllBlogPosts();
+  const relatedPosts = allPosts
     .filter((entry) => entry.slug !== post.slug)
     .slice(0, 2);
   const relatedProducts = products

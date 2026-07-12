@@ -4,6 +4,7 @@ import { logAdminAudit } from "@/lib/admin-audit";
 import { isAuthorizedAdminRequest } from "@/lib/admin-auth";
 import { blogPostSchema } from "@/lib/contentops/blog-schema";
 import { updateDraftContent } from "@/lib/contentops/drafts-store";
+import { computeReadTime } from "@/lib/contentops/read-time";
 import { captureServerError } from "@/lib/error-observability";
 
 type RouteProps = {
@@ -11,21 +12,6 @@ type RouteProps = {
 };
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-/** ~200 wpm, floor 1 minute — recomputed on every edit so the label never drifts from the body. */
-function computeReadTime(sections: { content: string[] }[]): string {
-  const words = sections.reduce(
-    (sum, section) =>
-      sum +
-      section.content.reduce(
-        (s, paragraph) => s + paragraph.trim().split(/\s+/).filter(Boolean).length,
-        0,
-      ),
-    0,
-  );
-  const minutes = Math.max(1, Math.round(words / 200));
-  return `${minutes} min read`;
-}
 
 export async function PATCH(request: Request, { params }: RouteProps) {
   if (!isAuthorizedAdminRequest(request)) {

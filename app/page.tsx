@@ -4,7 +4,7 @@ import { HomeCategoryLinks } from "@/components/home-category-links";
 import { HeroSection } from "@/components/hero-section";
 import { LatestBlogSection } from "@/components/latest-blog-section";
 import { TestimonialsSection } from "@/components/testimonials-section";
-import { blogPosts } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog-data";
 import { homePageMetadata } from "@/lib/commercial-seo";
 import { homeShoppingFaqs } from "@/lib/home-trust-content";
 import { faqPageJsonLd } from "@/lib/json-ld";
@@ -12,10 +12,12 @@ import { products } from "@/lib/products";
 
 export const metadata = homePageMetadata;
 
-export default function Home() {
-  const latestPosts = [...blogPosts]
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-    .slice(0, 3);
+/* ISR safety net — the publish action revalidates the home page so the
+   latest-posts rail picks up new articles without a deploy. */
+export const revalidate = 3600;
+
+export default async function Home() {
+  const latestPosts = (await getAllBlogPosts()).slice(0, 3);
 
   const homeFaqStructuredData = faqPageJsonLd([...homeShoppingFaqs]);
 

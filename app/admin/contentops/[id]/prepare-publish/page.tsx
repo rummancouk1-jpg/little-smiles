@@ -168,6 +168,7 @@ export default async function PreparePublishPage({ params }: PageProps) {
             }}
             fallbackHeroImagePath={heroWorkflow.autoResolvedPath}
             readinessVerdict={safetyScore.verdict}
+            publishHref={`/api/admin/contentops/drafts/${draft.id}/publish`}
           />
         ) : null}
       </section>

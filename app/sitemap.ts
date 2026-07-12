@@ -1,10 +1,14 @@
 import type { MetadataRoute } from "next";
 
-import { blogPosts, getBlogAnchorProduct } from "@/lib/blog";
+import { getBlogAnchorProduct } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog-data";
 import { products } from "@/lib/products";
 import { absoluteUrl, siteUrl } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Static seed posts + admin-published Supabase posts — a publish lands
+  // in the sitemap without a deploy (publish route revalidates this file).
+  const blogPosts = await getAllBlogPosts();
   const baseUrl = siteUrl;
   const staticRoutes = [
     "",

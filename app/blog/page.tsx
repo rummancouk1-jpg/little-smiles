@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Reveal } from "@/components/reveal";
-import { blogPosts } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog-data";
 import { breadcrumbJsonLdDocument } from "@/lib/json-ld";
 import { staticPageMetadata } from "@/lib/seo-metadata";
 
@@ -17,10 +17,12 @@ const blogIndexBreadcrumbLd = breadcrumbJsonLdDocument([
   { name: "Journal", path: "/blog" },
 ]);
 
-export default function BlogPage() {
-  const sortedPosts = [...blogPosts].sort((a, b) =>
-    b.publishedAt.localeCompare(a.publishedAt)
-  );
+/* ISR safety net — the publish action revalidates this page on demand;
+   the hourly window only covers out-of-band DB changes. */
+export const revalidate = 3600;
+
+export default async function BlogPage() {
+  const sortedPosts = await getAllBlogPosts();
 
   return (
     <main className="min-h-screen bg-surface-page pb-16 pt-10 sm:pt-12 lg:pt-16">
