@@ -9,10 +9,11 @@ import {
 } from "@/lib/contentops/draft-generation";
 import { captureServerError } from "@/lib/error-observability";
 
-// Generation calls Anthropic twice (draft + Opus critique) and hits Supabase —
-// well beyond the default. Run on Node with a generous ceiling.
+// Generation can call Anthropic up to four times (draft + up to 2 full-length
+// expansions + metadata-repair) plus the Opus critique, and hits Supabase — well
+// beyond the default. Run on Node with a generous ceiling for the expansion pass.
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /** Map a typed drafting failure to the right HTTP status for the UI. */
 const STATUS_BY_CODE: Record<DraftGenerationErrorCode, number> = {
