@@ -49,9 +49,9 @@ export function ProductGallery({ product }: { product: Product }) {
                   aria-pressed={isActive}
                   className={cn(
                     "relative h-16 w-16 overflow-hidden rounded-2xl bg-surface-well p-2 ring-inset transition-[opacity,box-shadow] duration-200 sm:h-20 sm:w-20",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-brass/50",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-marigold/50",
                     isActive
-                      ? "ring-2 ring-accent-brass"
+                      ? "ring-2 ring-accent-marigold"
                       : "opacity-80 ring-1 ring-ink-base/10 hover:opacity-100",
                   )}
                 >

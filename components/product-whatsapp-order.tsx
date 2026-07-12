@@ -198,7 +198,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 <AddToCartButton
                   product={product}
                   quantity={safeQty}
-                  className="h-12 min-h-12 w-full border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90 sm:h-11 sm:w-auto sm:min-w-[13rem]"
+                  className="h-12 min-h-12 w-full border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90 sm:h-11 sm:w-auto sm:min-w-[13rem]"
                 />
                 <Button
                   asChild
@@ -370,7 +370,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 product={product}
                 quantity={safeQty}
                 label="Add to cart"
-                className="h-11 min-h-11 flex-1 border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90 text-xs"
+                className="h-11 min-h-11 flex-1 border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90 text-xs"
               />
               <Button
                 asChild
@@ -418,7 +418,7 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <AddToCartButton
                 product={product}
                 quantity={safeQty}
-                className="h-11 min-h-11 border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90 min-w-[12rem]"
+                className="h-11 min-h-11 border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90 min-w-[12rem]"
               />
               <Button
                 asChild

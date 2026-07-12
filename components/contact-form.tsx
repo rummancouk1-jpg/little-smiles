@@ -146,7 +146,7 @@ export function ContactForm() {
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 rounded-full bg-accent-blush px-7 text-sm font-medium text-accent-blush-ink shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong"
+        className="h-11 rounded-full bg-accent-marigold px-7 text-sm font-medium text-accent-marigold-ink shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-marigold-deep"
       >
         {isSubmitting ? "Sending..." : "Send Message"}
       </Button>

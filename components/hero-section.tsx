@@ -36,7 +36,7 @@ function SmileArc() {
       <path
         d="M2 2 Q50 14 98 2"
         fill="none"
-        stroke="var(--accent-brass)"
+        stroke="var(--accent-marigold)"
         strokeWidth="3"
         strokeLinecap="round"
       />
@@ -69,7 +69,7 @@ export function HeroSection() {
               <Button
                 asChild
                 size="lg"
-                className="h-13 w-full rounded-full border-transparent bg-accent-brass px-9 text-base font-semibold text-accent-brass-ink shadow-cta transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-blush-strong [a]:hover:bg-accent-blush-strong hover:shadow-cta-hover sm:w-auto"
+                className="h-13 w-full rounded-full border-transparent bg-accent-marigold px-9 text-base font-semibold text-accent-marigold-ink shadow-cta transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-marigold-deep [a]:hover:bg-accent-marigold-deep hover:shadow-cta-hover sm:w-auto"
               >
                 <Link href="/shop">Shop the collection</Link>
               </Button>

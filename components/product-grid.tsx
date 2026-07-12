@@ -45,7 +45,7 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
             className={cn(
               "flex h-full overflow-hidden rounded-3xl bg-surface-card/94 py-0",
               keepsake
-                ? "border-[1.5px] border-accent-brass"
+                ? "border-[1.5px] border-accent-marigold"
                 : "border border-ink-base/9",
               "shadow-card-rest transition-[transform,box-shadow] duration-300",
               "hover:-translate-y-1 hover:shadow-card-lift"
@@ -59,7 +59,7 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
                 <div className="relative mx-3.5 mt-3.5 h-52 rounded-3xl bg-surface-well p-4 sm:mx-4 sm:mt-4 sm:h-56 sm:p-5">
                   <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.5),transparent_65%)]" />
                   {keepsake ? (
-                    <span className="absolute left-3 top-3 z-10 rounded-full bg-accent-brass px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-brass-ink">
+                    <span className="absolute left-3 top-3 z-10 rounded-full bg-accent-marigold px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-marigold-ink">
                       Bestseller
                     </span>
                   ) : null}
@@ -127,7 +127,7 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
                   className={cn(
                     "w-full",
                     keepsake &&
-                      "border-transparent bg-accent-brass text-accent-brass-ink hover:bg-accent-brass/90"
+                      "border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90"
                   )}
                 />
                 <Link

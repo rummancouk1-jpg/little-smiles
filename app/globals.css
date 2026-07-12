@@ -88,11 +88,9 @@
   --color-ink-placeholder: var(--ink-placeholder);
 
   /* Ownable accent + emphasis (DEFINE ONLY — not applied until a later step). */
-  --color-accent-brass: var(--accent-brass);
-  --color-accent-brass-ink: var(--accent-brass-ink);
-  --color-accent-blush: var(--accent-blush);
-  --color-accent-blush-strong: var(--accent-blush-strong);
-  --color-accent-blush-ink: var(--accent-blush-ink);
+  --color-accent-marigold: var(--accent-marigold);
+  --color-accent-marigold-deep: var(--accent-marigold-deep);
+  --color-accent-marigold-ink: var(--accent-marigold-ink);
   --color-emphasis-berry: var(--emphasis-berry);
   --color-emphasis-berry-deep: var(--emphasis-berry-deep);
   --color-emphasis-berry-soft: var(--emphasis-berry-soft);
@@ -213,14 +211,11 @@
 
   /* --- THE accent: marigold (drawn from the logo's sun) --------------
      Owns every primary action. 6.8:1 with --ink-strong text (AA).
-     NOTE: --accent-brass* and --accent-blush* both resolve to marigold —
-     blush is DEMOTED to a nursery mat (--mat-blush); its old CTA call
-     sites render marigold until the Stage B rename. */
-  --accent-brass: #e8a33d;
-  --accent-brass-ink: #33261d;
-  --accent-blush: #e8a33d;
-  --accent-blush-strong: #c77f1a; /* marigold-deep hover. */
-  --accent-blush-ink: #33261d;
+     Brass and blush accents are fully retired (blush lives on only as
+     the --mat-blush nursery mat). */
+  --accent-marigold: #e8a33d;
+  --accent-marigold-deep: #c77f1a; /* hover/active step. 4.5:1 with ink text. */
+  --accent-marigold-ink: #33261d;  /* text ON marigold fills. */
   --emphasis-berry: #8a2f40;      /* dormant on customer surfaces — Stage B review. */
   --emphasis-berry-deep: #5e1c29;
   --emphasis-berry-soft: #9a4c5a;
@@ -391,11 +386,9 @@
   --atmosphere-shade: #382c1b;
 
   /* Marigold glows on the night ground */
-  --accent-brass: #f0b458;
-  --accent-brass-ink: #221a13;
-  --accent-blush: #f0b458;
-  --accent-blush-strong: #e8a33d;
-  --accent-blush-ink: #221a13;
+  --accent-marigold: #f0b458;
+  --accent-marigold-deep: #e8a33d;
+  --accent-marigold-ink: #221a13;
 
   /* Nursery mats deepen into WARM night tints (never cool grey) */
   --mat-butter: #4a3b1e;
