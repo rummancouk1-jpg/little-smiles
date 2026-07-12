@@ -17,7 +17,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { RichParagraph } from "@/components/blog-rich-text";
 import { type BlogPost } from "@/lib/contentops/blog-schema";
+import { isYmylCategory, MEDICAL_DISCLAIMER } from "@/lib/contentops/safety";
 
 type Props = {
   post: BlogPost;
@@ -80,6 +82,12 @@ export function WebsitePreview({ post, fallbackHeroImagePath }: Props) {
             </div>
           ) : null}
 
+          {isYmylCategory(post.category) ? (
+            <p className="mt-7 rounded-2xl border border-dashed border-[#3B2F2F]/22 bg-[#FBF7F3] px-5 py-3.5 text-sm leading-relaxed text-[#3B2F2F]/70">
+              {MEDICAL_DISCLAIMER}
+            </p>
+          ) : null}
+
           <div className="mt-9 space-y-8">
             {post.sections.map((section, sIdx) => (
               <section key={`${section.heading}-${sIdx}`}>
@@ -88,12 +96,33 @@ export function WebsitePreview({ post, fallbackHeroImagePath }: Props) {
                 </h2>
                 <div className="mt-3 space-y-3 text-base leading-relaxed text-[#3B2F2F]/74">
                   {section.content.map((paragraph, pIdx) => (
-                    <p key={`p-${sIdx}-${pIdx}`}>{paragraph}</p>
+                    <RichParagraph key={`p-${sIdx}-${pIdx}`} text={paragraph} />
                   ))}
                 </div>
               </section>
             ))}
           </div>
+
+          {post.faq && post.faq.length > 0 ? (
+            <section className="mt-10">
+              <h2 className="text-2xl font-semibold tracking-tight text-[#241B1B]">
+                Frequently asked questions
+              </h2>
+              <dl className="mt-4 space-y-4">
+                {post.faq.map((item, fIdx) => (
+                  <div
+                    key={`faq-${fIdx}`}
+                    className="rounded-2xl border border-dashed border-[#3B2F2F]/25 bg-white/70 p-4"
+                  >
+                    <dt className="font-semibold text-[#1F1918]">{item.question}</dt>
+                    <dd className="mt-1.5 text-sm leading-relaxed text-[#3B2F2F]/74">
+                      <RichParagraph text={item.answer} />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
 
           <div className="mt-10 rounded-2xl border border-[#3B2F2F]/10 bg-[#F8F2EC] p-5">
             <p className="text-sm text-[#3B2F2F]/72">

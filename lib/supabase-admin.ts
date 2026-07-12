@@ -115,6 +115,7 @@ type ContentopsDraftsTable = {
   slug: string;
   status: "pending_review" | "approved" | "rejected" | "published";
   content: BlogPost;
+  hero_image_path: string | null;
   rejection_note: string | null;
   approved_at: string | null;
   published_at: string | null;

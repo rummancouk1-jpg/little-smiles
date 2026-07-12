@@ -19,7 +19,20 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 import { blogPosts } from "../lib/blog";
+import { getAllBlogPosts } from "../lib/blog-data";
+import { buildCatalogBrief } from "../lib/contentops/catalog-brief";
+import {
+  buildCorpusBrief,
+  findTopicOverlap,
+  DUPLICATE_INTENT_THRESHOLD,
+  DUPLICATE_INTENT_WARN,
+  type CorpusEntry,
+} from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
+import { listDrafts } from "../lib/contentops/drafts-store";
+import { PAKISTAN_BRIEF } from "../lib/contentops/pakistan-brief";
+import { SAFETY_BRIEF } from "../lib/contentops/safety";
+import { chooseTemplate } from "../lib/contentops/template";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
 const MODEL = "claude-sonnet-4-6";
@@ -95,35 +108,81 @@ async function checkSlugAvailable(
   }
 }
 
-function buildPrompt(topic: string) {
+/**
+ * The live corpus the model must not duplicate and may link to: static +
+ * DB-published posts, plus in-flight pending/approved drafts (so we don't
+ * generate a near-copy of something already in the queue).
+ */
+async function loadCorpus(): Promise<CorpusEntry[]> {
+  const live = await getAllBlogPosts();
+  const [pending, approved] = await Promise.all([
+    listDrafts("pending_review"),
+    listDrafts("approved"),
+  ]);
+  const entries = new Map<string, CorpusEntry>();
+  for (const p of live) {
+    entries.set(p.slug, { slug: p.slug, title: p.title, keywords: p.keywords });
+  }
+  for (const d of [...pending, ...approved]) {
+    if (!entries.has(d.slug)) {
+      entries.set(d.slug, {
+        slug: d.slug,
+        title: d.content.title,
+        keywords: d.content.keywords,
+      });
+    }
+  }
+  return [...entries.values()];
+}
+
+function buildPrompt(topic: string, corpus: CorpusEntry[]) {
   const example = blogPosts[0];
   const exampleJson = JSON.stringify(example, null, 2);
+  const template = chooseTemplate(topic);
 
   const system = [
     "You write SEO blog drafts for Little Smiles, a premium boutique baby brand based in Pakistan.",
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile.",
     "Voice: calm, editorial, practical. Not pushy. Not generic. Not full of hype.",
-    "Each post answers one parent question deeply, with 3+ sections, 2-4 line paragraphs, and a single relevant CTA to a shop category.",
+    "Answer one parent question deeply, with 2-4 line paragraphs and a single relevant CTA to a shop category. Follow the STRUCTURE guidance below for section and FAQ shape — do not force a fixed skeleton across posts.",
+    "Each faq answer is short and direct — a real pre-purchase question.",
+    "Weave 1-2 internal links into body paragraphs using markdown syntax with INTERNAL paths only:",
+    "[anchor text](/shop?category=<relatedProductCategory>) or [anchor text](/blog/<existing-post-slug>).",
+    "Only link to blog slugs that appear in the existing-post list; never invent product slugs.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
-  ].join(" ");
+    "",
+    buildCatalogBrief(),
+    "",
+    PAKISTAN_BRIEF,
+    "",
+    SAFETY_BRIEF,
+  ].join("\n");
 
   const user = [
     `Topic: ${topic}`,
     "",
-    "Match the tone, structure, length, and CTA pattern of this existing post:",
+    template.guidance,
+    "",
+    buildCorpusBrief(corpus),
+    "",
+    "Match the VOICE and CTA pattern (not the section skeleton) of this existing post:",
     "",
     exampleJson,
     "",
     "Now write a new post on the topic above. Use a fresh slug (lowercase, hyphen-separated, unique).",
     "Pick the most relevant `category` and `relatedProductCategory` from the schema's allowed values.",
-    "Do not copy the example's wording.",
+    "Do not copy the example's wording or reuse its section headings.",
   ].join("\n");
 
   return { system, user };
 }
 
-async function generateDraft(anthropic: Anthropic, topic: string): Promise<BlogPost> {
-  const { system, user } = buildPrompt(topic);
+async function generateDraft(
+  anthropic: Anthropic,
+  topic: string,
+  corpus: CorpusEntry[],
+): Promise<BlogPost> {
+  const { system, user } = buildPrompt(topic, corpus);
   const inputSchema = z.toJSONSchema(blogPostSchema) as Record<string, unknown>;
 
   const response = await anthropic.messages.create(
@@ -160,7 +219,12 @@ async function generateDraft(anthropic: Anthropic, topic: string): Promise<BlogP
     console.error(JSON.stringify(toolUse.input, null, 2));
     fail("Generated draft failed schema validation. No DB write performed.");
   }
-  return parsed.data;
+  // heroImage is a REVIEWER-only field (set via the hero-image picker →
+  // the hero_image_path column), never authored by the model. Strip it so
+  // the model can't fabricate an image URL (it invents dead external URLs);
+  // the reviewer chooses a real /public asset in the admin.
+  const { heroImage: _modelHeroImage, ...draft } = parsed.data;
+  return draft;
 }
 
 async function insertDraft(
@@ -173,6 +237,7 @@ async function insertDraft(
       slug: draft.slug,
       status: "pending_review",
       content: draft,
+      hero_image_path: null,
       rejection_note: null,
       approved_at: null,
       published_at: null,
@@ -193,8 +258,26 @@ async function main() {
   const client = await pingSupabase();
   const anthropic = new Anthropic({ apiKey: anthropicKey });
 
+  // Duplicate-intent guard — refuse before spending tokens when the topic
+  // substantially overlaps something we already cover (or have queued).
+  const corpus = await loadCorpus();
+  const overlaps = findTopicOverlap(topic, corpus);
+  const worst = overlaps[0];
+  if (worst && worst.score >= DUPLICATE_INTENT_THRESHOLD) {
+    fail(
+      `Topic overlaps an existing post (${Math.round(worst.score * 100)}% intent match): ` +
+        `"${worst.title}" (/blog/${worst.slug}). ` +
+        "Refresh that post instead of splitting its ranking signal, or pick a more specific angle.",
+    );
+  }
+  if (worst && worst.score >= DUPLICATE_INTENT_WARN) {
+    console.log(
+      `${LOG_PREFIX} Note: closest existing post is "${worst.title}" (${Math.round(worst.score * 100)}% overlap) — keep this angle distinct.`,
+    );
+  }
+
   console.log(`${LOG_PREFIX} Generating draft for: "${topic}"`);
-  const draft = await generateDraft(anthropic, topic);
+  const draft = await generateDraft(anthropic, topic, corpus);
   await checkSlugAvailable(client, draft.slug);
   const inserted = await insertDraft(client, draft);
 

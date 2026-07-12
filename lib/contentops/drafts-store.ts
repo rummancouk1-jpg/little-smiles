@@ -193,6 +193,89 @@ export async function updateDraftHeroImage(id: string, heroImagePath: string | n
   return data as Draft;
 }
 
+/**
+ * Replace a draft's content (and mirrored slug column) in place. The
+ * reviewer's highest-leverage tool: fix a title/section/CTA without the
+ * reject-and-regenerate dead end.
+ *
+ * Status rules:
+ * - pending_review / approved: content updates, status unchanged (the same
+ *   human is the approval gate — a fix does not demote an approved draft).
+ * - rejected: editing REVIVES the draft back to pending_review and clears
+ *   the rejection note (the note described content that no longer exists).
+ * - published: refused — published posts are edited via a future re-publish
+ *   flow, not silently mutated.
+ *
+ * Callers must validate `content` against blogPostSchema before invoking.
+ */
+export async function updateDraftContent(id: string, content: BlogPost): Promise<Draft> {
+  const supabase = requireClient();
+  const existing = await getDraftById(id);
+  if (!existing) {
+    throw new Error("Draft not found.");
+  }
+  if (existing.status === "published") {
+    throw new Error("Published drafts cannot be edited.");
+  }
+  const now = new Date().toISOString();
+  const revive = existing.status === "rejected";
+  const payload = {
+    content,
+    slug: content.slug,
+    updated_at: now,
+    ...(revive ? { status: "pending_review", rejection_note: null } : {}),
+  };
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update(payload as any)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to update draft: ${error?.message ?? "draft not found"}`);
+  }
+  return data as Draft;
+}
+
+/**
+ * Flip an approved draft to published (H1 fix — the status is finally
+ * written back). `content` is the fully-resolved BlogPost the public blog
+ * will serve (hero override merged, publishedAt stamped to publish day,
+ * readTime recomputed) — stored back onto the row so the draft record IS
+ * the published record.
+ */
+export async function markDraftPublished(id: string, content: BlogPost): Promise<Draft> {
+  const supabase = requireClient();
+  const existing = await getDraftById(id);
+  if (!existing) {
+    throw new Error("Draft not found.");
+  }
+  if (existing.status !== "approved") {
+    throw new Error(`Only approved drafts can be published (draft is ${existing.status}).`);
+  }
+  const now = new Date().toISOString();
+  const payload = {
+    status: "published",
+    content,
+    slug: content.slug,
+    published_at: now,
+    updated_at: now,
+  };
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update(payload as any)
+    .eq("id", id)
+    .eq("status", "approved") // guard against a concurrent publish
+    .select("*")
+    .single();
+  if (error || !data) {
+    throw new Error(`Failed to mark draft published: ${error?.message ?? "draft not found"}`);
+  }
+  return data as Draft;
+}
+
 export async function rejectDraft(id: string, note?: string): Promise<Draft> {
   const supabase = requireClient();
   const now = new Date().toISOString();

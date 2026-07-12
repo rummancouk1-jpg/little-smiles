@@ -1,20 +1,21 @@
 "use client";
 
-// Publishing control panel. Replaces the developer-first PublishReport
-// with an operator-friendly layout:
+// Publishing control panel. Operator-friendly layout:
 //
 //   1. Summary header — title, slug, status, readiness, hero preview,
 //      word count, metadata, schema, internal-link count
 //   2. Final publish checklist — deterministic, derivation-explained
 //   3. Publication output — clean form-style summary of the final fields
-//   4. Advanced (collapsed) — resolved BlogPost JSON + manual diff text
-//   5. Manual publish instructions + disabled one-click placeholder
+//   4. PUBLISH — one-click, live from the admin (server re-validates; any
+//      error-severity conflict refuses). The human gate is the approve
+//      step that precedes this page.
+//   5. Advanced (collapsed) — resolved BlogPost JSON + legacy diff text
 //
-// JSON / diff text remain available with copy-to-clipboard, but are no
-// longer the primary visual experience.
+// JSON / diff text remain available with copy-to-clipboard as a fallback,
+// but are no longer part of the publish path.
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { type DraftBadge } from "@/lib/contentops/draft-validation";
 import type { PublishSafetyVerdict } from "@/lib/contentops/publish-score";
@@ -35,6 +36,8 @@ type Props = {
   fallbackHeroImagePath: string | null;
   /** Unified readiness verdict — drives the summary pill so the panel agrees with the banner. */
   readinessVerdict: PublishSafetyVerdict;
+  /** POST endpoint that publishes this draft live (admin-authed). */
+  publishHref: string;
 };
 
 function formatDateTime(value: string): string {
@@ -198,7 +201,7 @@ function ConflictItem({ conflict }: { conflict: Conflict }) {
 }
 
 export function PublishControlPanel(props: Props) {
-  const { preparation, validation, fallbackHeroImagePath, readinessVerdict } = props;
+  const { preparation, validation, fallbackHeroImagePath, readinessVerdict, publishHref } = props;
   const post = preparation.insertionPreview;
   const heroEffective = post.heroImage || fallbackHeroImagePath;
   const checklist = buildChecklist(props);
@@ -357,33 +360,12 @@ export function PublishControlPanel(props: Props) {
         </section>
       ) : null}
 
-      {/* 4. Manual publish instructions */}
-      <section className="rounded-3xl border border-[#2E6A41]/20 bg-[#EAF5EE] p-5 sm:p-6">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#1E5A37]">
-          Manual publish mode
-        </p>
-        <p className="mt-2 text-sm text-[#1F1918]">
-          Publishing stays human-in-the-loop. Once you&apos;re happy with this draft, hand the
-          summary below to a developer — they paste the post into{" "}
-          <code className="font-mono">lib/blog.ts</code> and deploy. The blog goes live on the next
-          deploy.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title="Off on purpose — a developer reviews and deploys every post by hand so nothing goes live by accident."
-            className="rounded-full border border-[#3B2F2F]/14 bg-white px-3.5 py-1.5 text-xs font-medium text-[#3B2F2F]/45"
-          >
-            One-click publish (coming later)
-          </button>
-          <span className="text-[11px] text-[#1E5A37]/85">
-            Off on purpose: a developer reviews and deploys every post by hand so nothing goes live
-            by accident.
-          </span>
-        </div>
-      </section>
+      {/* 4. Publish — live from the admin. */}
+      <PublishNowSection
+        ready={preparation.ready}
+        slug={preparation.insertionPreview.slug}
+        publishHref={publishHref}
+      />
 
       {/* 5. Advanced — collapsed JSON + diff */}
       <details className="rounded-3xl border border-[#3B2F2F]/10 bg-white/90 p-5 sm:p-6">
@@ -410,6 +392,98 @@ export function PublishControlPanel(props: Props) {
         </pre>
       </details>
     </article>
+  );
+}
+
+function PublishNowSection({
+  ready,
+  slug,
+  publishHref,
+}: {
+  ready: boolean;
+  slug: string;
+  publishHref: string;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [liveUrl, setLiveUrl] = useState<string | null>(null);
+
+  const handlePublish = () => {
+    setError(null);
+    startTransition(async () => {
+      const response = await fetch(publishHref, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { ok: true; url: string }
+        | { ok: false; error: string; conflicts?: { code: string; message: string }[] }
+        | null;
+      if (!response.ok || !data || data.ok !== true) {
+        const conflictLines =
+          data && "conflicts" in data && Array.isArray(data.conflicts)
+            ? ` — ${data.conflicts.map((c) => c.message).join(" · ")}`
+            : "";
+        setError(
+          ((data && "error" in data && data.error) || "Failed to publish.") + conflictLines,
+        );
+        return;
+      }
+      setLiveUrl(data.url);
+    });
+  };
+
+  if (liveUrl) {
+    return (
+      <section className="rounded-3xl border border-[#2E6A41]/25 bg-[#EAF5EE] p-5 sm:p-6">
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#1E5A37]">
+          Published
+        </p>
+        <p className="mt-2 text-sm text-[#1F1918]">
+          The post is live and already in the blog index and sitemap — no deploy needed.
+        </p>
+        <a
+          href={liveUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex rounded-full bg-[#2E6A41] px-5 py-2 text-sm font-medium text-[#F6F1EC] hover:opacity-90"
+        >
+          Open live post ↗
+        </a>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-3xl border border-[#2E6A41]/20 bg-[#EAF5EE] p-5 sm:p-6">
+      <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#1E5A37]">
+        Publish
+      </p>
+      <p className="mt-2 text-sm text-[#1F1918]">
+        Publishing is live from here — the post appears at{" "}
+        <code className="font-mono">/blog/{slug}</code>, in the blog index, and in the sitemap
+        immediately. The server re-runs every check above and refuses if anything blocking
+        remains. Approval stays the human gate; this button just removes the deploy.
+      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={handlePublish}
+          disabled={!ready || isPending}
+          title={ready ? "Publish this post live" : "Resolve the blocking conflicts above first"}
+          className="rounded-full bg-[#2E6A41] px-6 py-2 text-sm font-medium text-[#F6F1EC] transition-opacity hover:opacity-90 disabled:opacity-45"
+        >
+          {isPending ? "Publishing…" : "Publish live"}
+        </button>
+        {!ready ? (
+          <span className="text-[11px] text-[#8A2F40]">
+            Blocked: resolve the error-severity conflicts above, then reload this page.
+          </span>
+        ) : null}
+      </div>
+      {error ? <p className="mt-3 text-xs text-[#8A2F40]">{error}</p> : null}
+    </section>
   );
 }
 

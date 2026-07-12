@@ -7,7 +7,7 @@
 // for the new project's adapter and refactor both into
 // lib/contentops-adapters/.
 
-import { blogPosts } from "@/lib/blog";
+import { getAllBlogPosts } from "@/lib/blog-data";
 import { type BlogPost } from "@/lib/contentops/blog-schema";
 import { type Draft } from "@/lib/contentops/drafts-store";
 import type {
@@ -90,7 +90,10 @@ function formatBlogPostLiteral(post: BlogPost): string {
 
 export const littleSmilesPublishAdapter: PublishAdapter = {
   async listExistingPostMetadata(): Promise<ExistingPostMetadata[]> {
-    return blogPosts.map((post) => ({ slug: post.slug, title: post.title }));
+    // BOTH sources: static seed posts + admin-published Supabase posts —
+    // slug/title conflict detection must see everything that's live.
+    const posts = await getAllBlogPosts();
+    return posts.map((post) => ({ slug: post.slug, title: post.title }));
   },
 
   buildInsertionObject(draft: Draft): BlogPost {
