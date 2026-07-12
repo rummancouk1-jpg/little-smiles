@@ -71,8 +71,17 @@ export function findTopicOverlap(topic: string, corpus: CorpusEntry[]): TopicOve
     .sort((a, b) => b.score - a.score);
 }
 
-/** ~two-thirds of the topic already covered = refuse and refresh instead. */
-export const DUPLICATE_INTENT_THRESHOLD = 0.65;
+/**
+ * Hard-block threshold — deliberately high (near-certain duplicate). A
+ * pre-check should refuse only obvious dups; lexical containment can't tell
+ * "shares the subject" from "shares the season" (bodysuits-in-summer vs
+ * swaddle-in-summer both hit ~67%), so borderline topics proceed and the
+ * prompt-level corpus brief tells the model not to duplicate. The exact
+ * audit failure scored 100%, so it still blocks.
+ */
+export const DUPLICATE_INTENT_THRESHOLD = 0.8;
+/** Below the block but worth a heads-up in the CLI. */
+export const DUPLICATE_INTENT_WARN = 0.5;
 
 /**
  * A compact list of existing posts for the prompt: gives the model real

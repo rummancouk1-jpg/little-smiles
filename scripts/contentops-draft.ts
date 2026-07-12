@@ -25,11 +25,14 @@ import {
   buildCorpusBrief,
   findTopicOverlap,
   DUPLICATE_INTENT_THRESHOLD,
+  DUPLICATE_INTENT_WARN,
   type CorpusEntry,
 } from "../lib/contentops/corpus-brief";
 import { blogPostSchema, type BlogPost } from "../lib/contentops/blog-schema";
 import { listDrafts } from "../lib/contentops/drafts-store";
+import { PAKISTAN_BRIEF } from "../lib/contentops/pakistan-brief";
 import { SAFETY_BRIEF } from "../lib/contentops/safety";
+import { chooseTemplate } from "../lib/contentops/template";
 import { getSupabaseAdminClient } from "../lib/supabase-admin";
 
 const MODEL = "claude-sonnet-4-6";
@@ -135,19 +138,22 @@ async function loadCorpus(): Promise<CorpusEntry[]> {
 function buildPrompt(topic: string, corpus: CorpusEntry[]) {
   const example = blogPosts[0];
   const exampleJson = JSON.stringify(example, null, 2);
+  const template = chooseTemplate(topic);
 
   const system = [
     "You write SEO blog drafts for Little Smiles, a premium boutique baby brand based in Pakistan.",
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile.",
     "Voice: calm, editorial, practical. Not pushy. Not generic. Not full of hype.",
-    "Each post answers one parent question deeply, with 5-7 sections, 2-4 line paragraphs, and a single relevant CTA to a shop category.",
-    "Include 3-5 faq entries (short, direct answers to real pre-purchase questions).",
+    "Answer one parent question deeply, with 2-4 line paragraphs and a single relevant CTA to a shop category. Follow the STRUCTURE guidance below for section and FAQ shape — do not force a fixed skeleton across posts.",
+    "Each faq answer is short and direct — a real pre-purchase question.",
     "Weave 1-2 internal links into body paragraphs using markdown syntax with INTERNAL paths only:",
     "[anchor text](/shop?category=<relatedProductCategory>) or [anchor text](/blog/<existing-post-slug>).",
-    "Only link to blog slugs that appear in the example post list; never invent product slugs.",
+    "Only link to blog slugs that appear in the existing-post list; never invent product slugs.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
     "",
     buildCatalogBrief(),
+    "",
+    PAKISTAN_BRIEF,
     "",
     SAFETY_BRIEF,
   ].join("\n");
@@ -155,15 +161,17 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
   const user = [
     `Topic: ${topic}`,
     "",
+    template.guidance,
+    "",
     buildCorpusBrief(corpus),
     "",
-    "Match the tone, structure, length, and CTA pattern of this existing post:",
+    "Match the VOICE and CTA pattern (not the section skeleton) of this existing post:",
     "",
     exampleJson,
     "",
     "Now write a new post on the topic above. Use a fresh slug (lowercase, hyphen-separated, unique).",
     "Pick the most relevant `category` and `relatedProductCategory` from the schema's allowed values.",
-    "Do not copy the example's wording.",
+    "Do not copy the example's wording or reuse its section headings.",
   ].join("\n");
 
   return { system, user };
@@ -211,7 +219,12 @@ async function generateDraft(
     console.error(JSON.stringify(toolUse.input, null, 2));
     fail("Generated draft failed schema validation. No DB write performed.");
   }
-  return parsed.data;
+  // heroImage is a REVIEWER-only field (set via the hero-image picker →
+  // the hero_image_path column), never authored by the model. Strip it so
+  // the model can't fabricate an image URL (it invents dead external URLs);
+  // the reviewer chooses a real /public asset in the admin.
+  const { heroImage: _modelHeroImage, ...draft } = parsed.data;
+  return draft;
 }
 
 async function insertDraft(
@@ -257,7 +270,7 @@ async function main() {
         "Refresh that post instead of splitting its ranking signal, or pick a more specific angle.",
     );
   }
-  if (worst && worst.score >= 0.4) {
+  if (worst && worst.score >= DUPLICATE_INTENT_WARN) {
     console.log(
       `${LOG_PREFIX} Note: closest existing post is "${worst.title}" (${Math.round(worst.score * 100)}% overlap) — keep this angle distinct.`,
     );
