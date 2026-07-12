@@ -27,6 +27,13 @@ alter table public.contentops_drafts
 alter table public.contentops_drafts
   add column if not exists critique jsonb null;
 
+-- Additive: structured rejection reason (which checks failed at reject time).
+-- Recorded alongside the free-text rejection_note; feeds the drafting
+-- "avoid these failure modes" cautions. Nullable + backward-compatible; the
+-- reject path degrades gracefully (PGRST204) when this column is not yet applied.
+alter table public.contentops_drafts
+  add column if not exists rejection_reason jsonb null;
+
 create index if not exists idx_contentops_drafts_status_created
   on public.contentops_drafts(status, created_at desc);
 

@@ -22,6 +22,7 @@ import {
   type HandoffLabel,
 } from "@/lib/contentops/handoff-labels";
 import { computePublishSafetyScore } from "@/lib/contentops/publish-score";
+import { assessQualityBar } from "@/lib/contentops/quality-bar";
 
 type DraftQueueProps = {
   /** Visible drafts after applying the activeStatus filter. */
@@ -81,6 +82,11 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
               verdict: safetyScore.verdict,
               badges: validation.badges,
             });
+            // Interim-honesty (Branch 1): a draft can read publish-score 100 after
+            // metadata repair yet still be genuinely thin, because the full-length
+            // expansion pass is Branch 2. Flag that plainly so a green score never
+            // reads as "fully ready to publish".
+            const quality = assessQualityBar(draft);
             return (
               <article
                 key={draft.id}
@@ -109,6 +115,14 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
+                  {quality.belowBar ? (
+                    <span
+                      className="inline-flex rounded-full bg-tone-amber-tint px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-tone-amber"
+                      title={`Below the full quality bar — pending expansion (Branch 2): ${quality.reasons.join(" · ")}. Do not publish as fully-ready yet.`}
+                    >
+                      Below quality bar · pending expansion
+                    </span>
+                  ) : null}
                   <PublishSafetyPill score={safetyScore} />
                   {handoff.map((label) => (
                     <span

@@ -52,9 +52,10 @@ export function StatusPill({ status }: { status: DraftStatus }) {
 }
 
 /**
- * The pipeline at a glance — the happy path (Pending → Approved → Published)
- * as connected stage cards, with Rejected as a muted aside. The daily
- * landing needs this to answer "what's waiting on me?" in one look.
+ * The queue at a glance — the two stages that still need the operator (Pending →
+ * Approved), each a filter card, plus a Published link to the settled posts on
+ * their own page. Rejected is intentionally absent: rejected drafts are
+ * machine-final and never appear in the operator's queue.
  */
 export function PipelineOverview({
   counts,
@@ -65,19 +66,20 @@ export function PipelineOverview({
   baseHref: string;
   activeStatus: DraftStatus | "all";
 }) {
-  const flow: DraftStatus[] = ["pending_review", "approved", "published"];
+  const flow: DraftStatus[] = ["pending_review", "approved"];
+  const queueTotal = counts.pending_review + counts.approved;
 
   return (
     <div className="rounded-3xl border border-ink-base/10 bg-surface-card/90 p-5 shadow-card-rest sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="eyebrow">Pipeline</p>
+        <p className="eyebrow">Queue</p>
         <Link
           href={baseHref}
           className={`text-[11px] font-medium underline-offset-2 hover:underline ${
             activeStatus === "all" ? "text-ink-strong" : "text-ink-base/60"
           }`}
         >
-          All {counts.all}
+          All in queue {queueTotal}
         </Link>
       </div>
       <div className="mt-4 flex items-stretch gap-2 overflow-x-auto pb-1 sm:gap-3">
@@ -94,13 +96,21 @@ export function PipelineOverview({
         <span aria-hidden className="flex items-center text-ink-base/20">
           |
         </span>
-        <StageCard
-          status="rejected"
-          count={counts.rejected}
-          baseHref={baseHref}
-          active={activeStatus === "rejected"}
-          muted
-        />
+        {/* Published leaves the queue — a link to the settled posts, not a filter. */}
+        <Link
+          href={`${baseHref}/published`}
+          className="flex min-w-[7.5rem] flex-col rounded-2xl border border-ink-base/10 bg-surface-raised/55 px-4 py-3 opacity-80 transition-[transform,border-color,background-color] duration-200 hover:-translate-y-0.5 hover:border-ink-base/20"
+        >
+          <span className="flex items-center gap-1.5">
+            <span aria-hidden className={`size-1.5 rounded-full ${STATUS_TONE.published.dot}`} />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-base/60">
+              {STATUS_TONE.published.label} →
+            </span>
+          </span>
+          <span className="mt-1.5 font-heading text-3xl font-semibold tabular-nums text-ink-strong">
+            {counts.published}
+          </span>
+        </Link>
       </div>
     </div>
   );

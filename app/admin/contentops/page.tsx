@@ -8,8 +8,8 @@ import { getAdminSessionFromPage } from "@/lib/admin-auth";
 import { adminConfigHelpText, isAdminAuthConfigured } from "@/lib/admin-runtime";
 import {
   countDraftsByStatus,
-  isDraftStatus,
   listDrafts,
+  listOperatorQueueDrafts,
   type DraftStatus,
   type DraftStatusCounts,
 } from "@/lib/contentops/drafts-store";
@@ -22,13 +22,23 @@ function asSingle(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
+// Only in-queue statuses are selectable here — the operator's queue is work
+// that still needs a human. rejected (machine-final) and published (done, on
+// its own /published page) never surface in this view.
+const OPERATOR_STATUSES: DraftStatus[] = ["pending_review", "approved"];
+function isOperatorStatus(v: string): v is DraftStatus {
+  return (OPERATOR_STATUSES as string[]).includes(v);
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const rawStatus = asSingle(params.status);
+  // A pending/approved filter narrows the queue; anything else (undefined, or a
+  // rejected/published link) falls back to the full operator queue.
   const status: DraftStatus | undefined =
-    rawStatus && isDraftStatus(rawStatus) ? rawStatus : undefined;
+    rawStatus && isOperatorStatus(rawStatus) ? rawStatus : undefined;
 
   if (!isAdminAuthConfigured()) {
     return (
@@ -51,9 +61,13 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
   let counts: DraftStatusCounts = { all: 0, pending_review: 0, approved: 0, rejected: 0, published: 0 };
   let listError: string | null = null;
   try {
-    // Counts come from the full draft table; the visible slice respects the
-    // status filter. Running both in parallel keeps the request fast.
-    [drafts, counts] = await Promise.all([listDrafts(status), countDraftsByStatus()]);
+    // Counts come from the full draft table; the visible slice is the operator
+    // queue (pending + approved), or a single pending/approved filter when set.
+    // Running both in parallel keeps the request fast.
+    [drafts, counts] = await Promise.all([
+      status ? listDrafts(status) : listOperatorQueueDrafts(),
+      countDraftsByStatus(),
+    ]);
   } catch (err) {
     listError = err instanceof Error ? err.message : "Failed to load drafts.";
   }
@@ -67,21 +81,21 @@ export default async function ContentOpsQueuePage({ searchParams }: PageProps) {
               <p className="eyebrow">Private Admin</p>
               <p className="mt-1 text-xs text-ink-base/65">Signed in as {adminSession.actorLabel}</p>
               <h1 className="mt-2 font-heading text-3xl font-semibold text-ink-strong sm:text-4xl">
-                ContentOps drafts
+                ContentOps queue
               </h1>
               <p className="mt-1 text-xs text-ink-base/65">
-                Review, edit, and approve blog drafts before they go live. Badges use the
-                same rules as the SEO Intelligence page — green here means green there.
+                Drafts awaiting your action — pending review + approved-awaiting-publish. Rejected
+                drafts leave the queue; published posts live on the Published page.
               </p>
             </div>
             <AdminSectionNav
               active="contentops"
               extraActions={
                 <Link
-                  href="/admin/seo"
+                  href="/admin/contentops/published"
                   className="rounded-full border border-ink-base/14 bg-surface-raised px-3.5 py-1.5 text-xs font-medium text-ink-walnut hover:bg-surface-hover"
                 >
-                  ← Back to SEO Intelligence
+                  Published →
                 </Link>
               }
             />

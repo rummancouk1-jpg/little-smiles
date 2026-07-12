@@ -39,12 +39,22 @@ import {
   toCritiqueResult,
   type CritiqueResult,
 } from "./critique";
-import { listDrafts } from "./drafts-store";
+import { listDrafts, listRecentRejectionReasons, type RejectionReason } from "./drafts-store";
 import {
   buildLinkTargetsMenu,
   validateAndCleanLinks,
   type LinkTargets,
 } from "./link-validation";
+import {
+  METADATA_REPAIR_MODEL,
+  METADATA_REPAIR_TOOL_NAME,
+  applyRepairedMetadata,
+  assessMetadata,
+  buildMetadataRepairSystem,
+  buildMetadataRepairUser,
+  metadataRepairToolInputSchema,
+  parseRepairedMetadata,
+} from "./metadata-repair";
 import { PAKISTAN_BRIEF } from "./pakistan-brief";
 import { SAFETY_BRIEF } from "./safety";
 import { chooseTemplate } from "./template";
@@ -168,7 +178,31 @@ async function loadCorpus(): Promise<CorpusEntry[]> {
   return [...entries.values()];
 }
 
-function buildPrompt(topic: string, corpus: CorpusEntry[]) {
+/**
+ * Feed-forward learning signal: turn recent rejections into a short "avoid
+ * these known failure modes" caution for the drafting prompt. Lightweight — it
+ * lists the distinct failing-check labels seen recently, not a retraining loop.
+ * Rejected drafts never enter the positive corpus; only these reasons feed
+ * forward. Returns "" when there's nothing to caution about.
+ */
+function buildRejectionCautionBrief(
+  rejections: { note: string | null; reason: RejectionReason | null }[],
+): string {
+  const modes = new Set<string>();
+  for (const r of rejections) {
+    for (const c of r.reason?.failedChecks ?? []) modes.add(c.label);
+    const note = r.note?.trim();
+    if (note) modes.add(note.slice(0, 120));
+  }
+  if (modes.size === 0) return "";
+  const lines = [...modes].slice(0, 8).map((m) => `- ${m}`);
+  return [
+    "AVOID THESE KNOWN FAILURE MODES (recent drafts were rejected for these — do not repeat them):",
+    ...lines,
+  ].join("\n");
+}
+
+function buildPrompt(topic: string, corpus: CorpusEntry[], rejectionCaution: string) {
   const example = blogPosts[0];
   const exampleJson = JSON.stringify(example, null, 2);
   const template = chooseTemplate(topic);
@@ -201,6 +235,7 @@ function buildPrompt(topic: string, corpus: CorpusEntry[]) {
     buildLinkTargetsMenu(categories, blogSlugs),
     "",
     buildCorpusBrief(corpus),
+    ...(rejectionCaution ? ["", rejectionCaution] : []),
     "",
     "Match the VOICE and CTA pattern (not the section skeleton) of this existing post:",
     "",
@@ -218,8 +253,9 @@ async function generateBlogPost(
   anthropic: Anthropic,
   topic: string,
   corpus: CorpusEntry[],
+  rejectionCaution: string,
 ): Promise<BlogPost> {
-  const { system, user } = buildPrompt(topic, corpus);
+  const { system, user } = buildPrompt(topic, corpus, rejectionCaution);
   const inputSchema = z.toJSONSchema(blogPostSchema) as Record<string, unknown>;
 
   let response: Anthropic.Messages.Message;
@@ -317,6 +353,75 @@ async function runCritique(
   }
 }
 
+/**
+ * Metadata-repair pass (Haiku) — bring the auto-fillable metadata (title ≤70,
+ * description 80-160, keywords ≥3, slug shape) within band BEFORE the draft
+ * reaches the queue, so the reviewer never sees a draft failing a mechanical
+ * band check. Narrow by design: it never touches the article body or judges
+ * quality (full-length/FAQ expansion is a separate, larger pass). Skips the
+ * call entirely when nothing is out of band; on any failure it applies the
+ * deterministic backstop (slug normalize + MAX-side clamp) so it never blocks.
+ * Branch 1 does NOT gate on the result — a still-thin draft still enqueues; the
+ * quality-bar honesty flag marks it.
+ */
+async function runMetadataRepair(
+  anthropic: Anthropic,
+  draft: BlogPost,
+  onProgress?: (message: string) => void,
+): Promise<BlogPost> {
+  const assessment = assessMetadata(draft);
+  if (assessment.allOk) return draft; // nothing to repair — skip the token spend
+  onProgress?.(`Metadata repair: ${assessment.issues.join("; ")}`);
+  try {
+    const response = await anthropic.messages.create(
+      {
+        model: METADATA_REPAIR_MODEL,
+        max_tokens: 1024,
+        system: buildMetadataRepairSystem(),
+        tools: [
+          {
+            name: METADATA_REPAIR_TOOL_NAME,
+            description: "Return the repaired metadata fields (title, description, keywords).",
+            input_schema:
+              metadataRepairToolInputSchema as unknown as Anthropic.Messages.Tool["input_schema"],
+          },
+        ],
+        tool_choice: { type: "tool", name: METADATA_REPAIR_TOOL_NAME },
+        messages: [{ role: "user", content: buildMetadataRepairUser(draft, assessment) }],
+      },
+      { timeout: TIMEOUT_MS },
+    );
+    const toolUse = response.content.find((b) => b.type === "tool_use");
+    const repaired = toolUse && toolUse.type === "tool_use" ? parseRepairedMetadata(toolUse.input) : {};
+    const next = applyRepairedMetadata(draft, assessment, repaired);
+    // Defensive: repair must never break schema validity. Fall back to `next`
+    // (which is still a BlogPost) if the parse somehow disagrees.
+    const parsed = blogPostSchema.safeParse(next);
+    return parsed.success ? parsed.data : next;
+  } catch (err) {
+    onProgress?.(
+      `Metadata repair skipped (${err instanceof Error ? err.message : "error"}); applied deterministic backstop.`,
+    );
+    return applyRepairedMetadata(draft, assessment, {});
+  }
+}
+
+/**
+ * Reusable entry point to run the metadata-repair pass on an EXISTING draft's
+ * content (e.g. to repair drafts that pre-date the pass, or the one-off Swaddle
+ * backfill). Builds the Anthropic client from the key, runs the same Haiku
+ * repair the generation pipeline uses, and returns the repaired BlogPost. Does
+ * NOT persist — the caller decides whether to write it back.
+ */
+export async function repairDraftMetadata(
+  post: BlogPost,
+  options: GenerateDraftOptions = {},
+): Promise<BlogPost> {
+  const anthropicKey = requireAnthropicKey(options.anthropicKey);
+  const anthropic = new Anthropic({ apiKey: anthropicKey });
+  return runMetadataRepair(anthropic, post, options.onProgress);
+}
+
 async function checkSlugAvailable(client: AdminClient, slug: string) {
   const { data, error } = await client
     .from("contentops_drafts")
@@ -404,6 +509,12 @@ export async function generateDraftForTopic(
 
   const warnings: string[] = [];
 
+  // Feed-forward learning signal: recent rejection reasons become an "avoid
+  // these failure modes" caution in the drafting prompt. Read SEPARATELY from
+  // the corpus on purpose — rejected drafts never seed the positive corpus,
+  // only their failure reasons feed forward. Best-effort (never blocks).
+  const rejectionCaution = buildRejectionCautionBrief(await listRecentRejectionReasons());
+
   // Duplicate-intent guard — refuse before spending tokens when the topic
   // substantially overlaps something we already cover (or have queued).
   const corpus = await loadCorpus();
@@ -425,7 +536,7 @@ export async function generateDraftForTopic(
   }
 
   onProgress?.(`Generating draft for: "${topic}"`);
-  const rawDraft = await generateBlogPost(anthropic, topic, corpus);
+  const rawDraft = await generateBlogPost(anthropic, topic, corpus, rejectionCaution);
 
   // Link-validation backstop — strip any internal link that doesn't resolve
   // to a real category / product / existing post, so a fabricated URL can
@@ -446,20 +557,26 @@ export async function generateDraftForTopic(
     warnings.push("Draft has NO valid internal links — add one before publishing.");
   }
 
-  await checkSlugAvailable(client, draft.slug);
+  // Metadata-repair pass (Haiku) — bring title/description/keywords/slug within
+  // band before the draft reaches the queue. Runs on the link-cleaned draft;
+  // everything downstream (slug availability, critique, insert, return) uses the
+  // repaired draft. NOT a quality gate — a still-thin draft still enqueues.
+  const repairedDraft = await runMetadataRepair(anthropic, draft, onProgress);
+
+  await checkSlugAvailable(client, repairedDraft.slug);
 
   onProgress?.("Running Opus critique pass...");
-  const critique = await runCritique(anthropic, draft, corpus, onProgress);
+  const critique = await runCritique(anthropic, repairedDraft, corpus, onProgress);
   if (critique) {
     onProgress?.(`Critique: ${critique.flags.length} flag(s).`);
   }
 
-  const inserted = await insertDraft(client, draft, critique, onProgress);
+  const inserted = await insertDraft(client, repairedDraft, critique, onProgress);
 
   return {
     id: inserted.id,
     slug: inserted.slug,
-    draft,
+    draft: repairedDraft,
     critique,
     validLinkCount,
     strippedLinks,

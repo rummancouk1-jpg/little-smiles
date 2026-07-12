@@ -8,6 +8,26 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export type DraftStatus = "pending_review" | "approved" | "rejected" | "published";
 
+/** One check that was failing at reject time — the structured "why" recorded
+ *  alongside the free-text rejection_note. Feeds the drafting prompt's
+ *  "avoid these failure modes" cautions (feed-forward learning signal). */
+export type RejectionReasonCheck = {
+  /** publish-score check key or validation badge key (e.g. "title_length", "thin_content"). */
+  key: string;
+  /** Short human-readable label. */
+  label: string;
+  /** The concrete detail at reject time (e.g. "75 chars (target 30-70)."). */
+  detail: string;
+};
+
+export type RejectionReason = {
+  /** The specific checks that were failing when the draft was rejected. */
+  failedChecks: RejectionReasonCheck[];
+  /** The publish-score at reject time, for coarse context. */
+  score: number;
+  capturedAt: string;
+};
+
 export type Draft = {
   id: string;
   slug: string;
@@ -22,6 +42,9 @@ export type Draft = {
    */
   hero_image_path: string | null;
   rejection_note: string | null;
+  /** Structured reason (which checks failed) recorded at reject time. Null for
+   *  drafts rejected before this column existed, or never rejected. */
+  rejection_reason: RejectionReason | null;
   approved_at: string | null;
   published_at: string | null;
   created_at: string;
@@ -279,22 +302,91 @@ export async function markDraftPublished(id: string, content: BlogPost): Promise
   return data as Draft;
 }
 
-export async function rejectDraft(id: string, note?: string): Promise<Draft> {
+export async function rejectDraft(
+  id: string,
+  note?: string,
+  reason?: RejectionReason | null,
+): Promise<Draft> {
   const supabase = requireClient();
   const now = new Date().toISOString();
   const trimmed = note?.trim();
-  const { data, error } = await supabase
+  const basePayload = {
+    status: "rejected" as const,
+    rejection_note: trimmed && trimmed.length > 0 ? trimmed.slice(0, 2000) : null,
+    updated_at: now,
+  };
+  // Try WITH the structured reason; if the column hasn't been migrated yet
+  // (PGRST204), fall back to updating without it — mirrors the critique-column
+  // pattern in insertDraft so an un-migrated DB still rejects cleanly.
+  let { data, error } = await supabase
     .from("contentops_drafts")
-    .update({
-      status: "rejected",
-      rejection_note: trimmed && trimmed.length > 0 ? trimmed.slice(0, 2000) : null,
-      updated_at: now,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ ...basePayload, rejection_reason: reason ?? null } as any)
     .eq("id", id)
     .select("*")
     .single();
+  const columnMissing =
+    error?.code === "PGRST204" || /rejection_reason.*column|schema cache/i.test(error?.message ?? "");
+  if (error && columnMissing) {
+    ({ data, error } = await supabase
+      .from("contentops_drafts")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(basePayload as any)
+      .eq("id", id)
+      .select("*")
+      .single());
+  }
   if (error || !data) {
     throw new Error(`Failed to reject draft: ${error?.message ?? "draft not found"}`);
   }
   return data as Draft;
+}
+
+/**
+ * The OPERATOR QUEUE slice: drafts that still need operator action —
+ * pending_review (needs approve/reject) + approved (needs the publish click).
+ * rejected (machine-final) and published (done, on their own page) are
+ * deliberately excluded so the queue only shows things awaiting a human.
+ */
+export async function listOperatorQueueDrafts(): Promise<Draft[]> {
+  const supabase = requireClient();
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .select("*")
+    .in("status", ["pending_review", "approved"])
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) {
+    throw new Error(`Failed to list operator-queue drafts: ${error.message}`);
+  }
+  return (data ?? []) as Draft[];
+}
+
+/**
+ * Recent rejection reasons for the drafting feed-forward signal — the last few
+ * rejected drafts' structured reasons + notes, so generation can caution the
+ * model to avoid known failure modes. Read separately from loadCorpus ON
+ * PURPOSE: rejected drafts must never enter the positive corpus (we don't link
+ * to or seed from them), only their failure reasons feed forward. Never throws.
+ */
+export async function listRecentRejectionReasons(
+  limit = 8,
+): Promise<{ slug: string; title: string; note: string | null; reason: RejectionReason | null }[]> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("contentops_drafts")
+    .select("slug, content, rejection_note, rejection_reason, updated_at")
+    .eq("status", "rejected")
+    .order("updated_at", { ascending: false })
+    .limit(Math.max(1, Math.min(limit, 25)));
+  if (error || !data) return [];
+  return (data as { slug: string; content: BlogPost; rejection_note: string | null; rejection_reason: RejectionReason | null }[]).map(
+    (row) => ({
+      slug: row.slug,
+      title: row.content?.title ?? row.slug,
+      note: row.rejection_note ?? null,
+      reason: row.rejection_reason ?? null,
+    }),
+  );
 }
