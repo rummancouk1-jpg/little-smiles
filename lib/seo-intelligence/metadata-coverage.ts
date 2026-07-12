@@ -3,6 +3,10 @@
 // export — and reports honest length / completeness signals.
 
 import { blogPosts, type BlogPost } from "@/lib/blog";
+import {
+  getResolvedProductDescription,
+  getResolvedProductTitle,
+} from "@/lib/commercial-seo";
 import { products, type Product } from "@/lib/products";
 
 import type { Diagnostic, SubjectReport } from "@/lib/seo-intelligence/types";
@@ -71,9 +75,12 @@ function buildBlogMetadataReport(post: BlogPost): SubjectReport {
 }
 
 function buildProductMetadataReport(product: Product): SubjectReport {
+  // Grade the SEO strings that ACTUALLY ship (curated override ?? derived
+  // fallback), not the raw storefront display name — see getResolvedProductSeo.
+  // product.name is only the card/PDP label and is intentionally short.
   const diagnostics = checkTitleAndDescription(
-    product.name,
-    product.shortDescription || product.description,
+    getResolvedProductTitle(product),
+    getResolvedProductDescription(product),
   );
 
   if (!product.longDescription || product.longDescription.length < 120) {

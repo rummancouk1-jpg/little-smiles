@@ -213,9 +213,30 @@ function fallbackProductMetadata(product: Product): ProductSeoFields {
   return { title, description };
 }
 
+/**
+ * The resolved on-page SEO fields for a product — the curated override when
+ * one exists, otherwise the derived fallback. This is the SINGLE source of
+ * truth for what actually ships in the `<title>`/description, so both the
+ * metadata route (`getProductDetailMetadata`) and the SEO audit
+ * (`metadata-coverage`) grade the exact same strings — never the raw
+ * `product.name`, which is only the storefront display name.
+ */
+export function getResolvedProductSeo(product: Product): ProductSeoFields {
+  return productSeoBySlug[product.slug as TopCommercialSlug] ?? fallbackProductMetadata(product);
+}
+
+/** The shipped `<title>` for a product (override ?? fallback). */
+export function getResolvedProductTitle(product: Product): string {
+  return getResolvedProductSeo(product).title;
+}
+
+/** The shipped meta description for a product (override ?? fallback). */
+export function getResolvedProductDescription(product: Product): string {
+  return getResolvedProductSeo(product).description;
+}
+
 export function getProductDetailMetadata(product: Product): Metadata {
-  const override = productSeoBySlug[product.slug as TopCommercialSlug];
-  const core = override ?? fallbackProductMetadata(product);
+  const core = getResolvedProductSeo(product);
   const pageUrl = `${siteUrl}/shop/${product.slug}`;
 
   // og:image / twitter:image are supplied by the route's opengraph-image.tsx +
