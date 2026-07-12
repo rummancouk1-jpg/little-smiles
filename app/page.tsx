@@ -2,7 +2,6 @@ import { FeaturedProductsSection } from "@/components/featured-products-section"
 import { HomeTrustSection } from "@/components/home-trust-section";
 import { HomeCategoryLinks } from "@/components/home-category-links";
 import { HeroSection } from "@/components/hero-section";
-import { HeroSpotlight } from "@/components/hero-spotlight";
 import { LatestBlogSection } from "@/components/latest-blog-section";
 import { TestimonialsSection } from "@/components/testimonials-section";
 import { blogPosts } from "@/lib/blog";
@@ -22,15 +21,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-surface-page">
-      {/* Hero is theme-split: airy light hero vs the dark Spotlight hero.
-          Both render server-side; the .dark class (set pre-paint) picks one,
-          so there's no flash and no hydration mismatch. */}
-      <div className="dark:hidden">
-        <HeroSection />
-      </div>
-      <div className="hidden dark:block">
-        <HeroSpotlight />
-      </div>
+      {/* ONE hero for both themes (Golden Hour): the token spine inverts it —
+          paper by day, nightlight nursery in dark. No theme split needed. */}
+      <HeroSection />
       <HomeCategoryLinks products={products} />
       <FeaturedProductsSection />
       <LatestBlogSection posts={latestPosts} />
