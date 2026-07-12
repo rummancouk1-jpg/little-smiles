@@ -198,12 +198,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 <AddToCartButton
                   product={product}
                   quantity={safeQty}
-                  className="h-12 min-h-12 w-full border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90 sm:h-11 sm:w-auto sm:min-w-[13rem]"
+                  className="h-12 min-h-12 w-full sm:h-11 sm:w-auto sm:min-w-[13rem]"
                 />
                 <Button
                   asChild
                   variant="outline"
-                  className="h-12 w-full rounded-full border-ink-walnut/16 bg-surface-raised/72 px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
+                  className="h-12 w-full rounded-full border-dashed border-ink-base/35 bg-transparent shadow-none px-7 text-sm font-semibold text-ink-walnut sm:h-11 sm:w-auto"
                 >
                   <Link
                     href={orderHref}
@@ -370,12 +370,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
                 product={product}
                 quantity={safeQty}
                 label="Add to cart"
-                className="h-11 min-h-11 flex-1 border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90 text-xs"
+                className="h-11 min-h-11 flex-1 text-xs"
               />
               <Button
                 asChild
                 variant="outline"
-                className="h-11 min-h-11 shrink-0 rounded-full border-ink-walnut/16 bg-surface-raised/72 px-3 text-xs font-semibold text-ink-walnut"
+                className="h-11 min-h-11 shrink-0 rounded-full border-dashed border-ink-base/35 bg-transparent shadow-none px-3 text-xs font-semibold text-ink-walnut"
               >
                 <Link
                   href={orderHref}
@@ -418,12 +418,12 @@ export function ProductWhatsappOrder({ product }: ProductWhatsappOrderProps) {
               <AddToCartButton
                 product={product}
                 quantity={safeQty}
-                className="h-11 min-h-11 border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90 min-w-[12rem]"
+                className="h-11 min-h-11 min-w-[12rem]"
               />
               <Button
                 asChild
                 variant="outline"
-                className="h-11 rounded-full border-ink-walnut/16 bg-surface-raised/72 px-6 text-sm font-semibold text-ink-walnut"
+                className="h-11 rounded-full border-dashed border-ink-base/35 bg-transparent shadow-none px-6 text-sm font-semibold text-ink-walnut"
               >
                 <Link
                   href={orderHref}

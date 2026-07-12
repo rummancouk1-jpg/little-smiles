@@ -122,14 +122,7 @@ export function ProductGrid({ products, keepsakeSlug }: ProductGridProps) {
                 </p>
               </div>
               <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:min-w-[11.5rem]">
-                <AddToCartButton
-                  product={product}
-                  className={cn(
-                    "w-full",
-                    keepsake &&
-                      "border-transparent bg-accent-marigold text-accent-marigold-ink hover:bg-accent-marigold/90"
-                  )}
-                />
+                <AddToCartButton product={product} className="w-full" />
                 <Link
                   href={getWhatsappOrderLink(product)}
                   target="_blank"

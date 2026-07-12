@@ -50,7 +50,7 @@ export default function ContactPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button
               asChild
-              className="h-11 rounded-full bg-accent-marigold px-7 text-sm font-medium text-accent-marigold-ink shadow-[0_14px_32px_-20px_rgba(110,83,86,0.52)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-marigold-deep"
+              className="h-11 rounded-full bg-accent-marigold px-7 text-sm font-medium text-accent-marigold-ink shadow-cta transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-marigold-deep"
             >
               <Link href={whatsappBaseUrl} target="_blank" rel="noreferrer">
                 WhatsApp Support

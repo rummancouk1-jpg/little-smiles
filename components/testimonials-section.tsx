@@ -81,9 +81,12 @@ export function TestimonialsSection() {
           })}
         </div>
         <Reveal className="mt-10 flex justify-center sm:mt-12">
+          {/* Gentle/human ask, not commerce — stitched outline keeps it quiet
+              so marigold stays reserved for buying actions. */}
           <Button
             asChild
-            className="h-11 rounded-full bg-ink-walnut px-7 text-sm font-medium text-ink-foreground shadow-[0_14px_34px_-22px_rgba(47,38,36,0.58)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-ink-espresso hover:shadow-[0_18px_40px_-24px_rgba(47,38,36,0.66)]"
+            variant="outline"
+            className="h-11 rounded-full border-dashed border-ink-base/35 bg-transparent px-7 text-sm font-medium text-ink-walnut shadow-none transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-surface-hover"
           >
             <Link
               href={`${whatsappBaseUrl}?text=${encodeURIComponent(
