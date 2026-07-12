@@ -47,16 +47,12 @@ export function HomeTrustSection({ faqs }: HomeTrustSectionProps) {
   const faqItems = [...faqs];
 
   return (
+    // Warm band chapter — closes the page on a warm tint.
     <section
       id="trust"
       aria-labelledby="trust-heading"
-      className="relative overflow-hidden bg-transparent pb-18 pt-14 sm:pb-22 sm:pt-16 lg:pb-26 lg:pt-20"
+      className="relative bg-atmosphere-veil pb-18 pt-14 sm:pb-22 sm:pt-16 lg:pb-26 lg:pt-20"
     >
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute left-1/4 top-10 h-72 w-72 rounded-full bg-atmosphere-haze/55 blur-3xl" />
-        <div className="absolute bottom-8 right-0 h-80 w-80 rounded-full bg-atmosphere-shade/50 blur-3xl" />
-      </div>
-
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <Reveal className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-ink-base/50">

@@ -38,7 +38,7 @@ export function HomeCategoryLinks({ products }: HomeCategoryLinksProps) {
               <Link
                 key={category}
                 href={`/shop?category=${encodeURIComponent(category)}`}
-                className="touch-feedback inline-flex shrink-0 snap-start items-center rounded-full border border-ink-base/12 bg-surface-raised/70 px-3.5 py-1.5 text-sm font-medium text-ink-base/78 hover:bg-ink-walnut hover:text-ink-foreground"
+                className="touch-feedback inline-flex shrink-0 snap-start items-center rounded-full border border-dashed border-ink-base/30 bg-surface-raised/70 px-3.5 py-1.5 text-sm font-medium text-ink-base/78 hover:bg-surface-hover hover:text-ink-strong"
               >
                 {category} ({countByCategory[category] ?? 0})
               </Link>

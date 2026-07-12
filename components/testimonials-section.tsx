@@ -8,12 +8,8 @@ import { cn } from "@/lib/utils";
 
 export function TestimonialsSection() {
   return (
-    <section className="relative overflow-hidden bg-transparent pb-20 pt-8 sm:pb-24 sm:pt-10 lg:pb-28 lg:pt-12">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -left-12 top-20 h-56 w-56 rounded-full bg-atmosphere-haze/64 blur-3xl" />
-        <div className="absolute right-0 top-10 h-64 w-64 rounded-full bg-atmosphere-haze/60 blur-3xl" />
-      </div>
-
+    // Paper chapter between the two warm bands.
+    <section className="relative bg-transparent pb-20 pt-14 sm:pb-24 sm:pt-16 lg:pb-28 lg:pt-18">
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <Reveal className="max-w-2xl">
           <p className="eyebrow">Letters</p>
