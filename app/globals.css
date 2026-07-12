@@ -136,11 +136,11 @@
   --color-tone-danger: var(--tone-danger);
 
   /* Golden Hour nursery mats — image windows & tinting ONLY (never text or
-     buttons). The arch signature sits on these. */
-  --color-mat-sky: var(--mat-sky);
+     buttons). The arch signature sits on these. All warm. */
   --color-mat-butter: var(--mat-butter);
   --color-mat-blush: var(--mat-blush);
-  --color-mat-sage: var(--mat-sage);
+  --color-mat-sand: var(--mat-sand);
+  --color-mat-peach: var(--mat-peach);
 }
 
 :root {
@@ -252,11 +252,13 @@
 
   /* --- Nursery mats (Golden Hour signature) --------------------------
      Backing tints for the arch image windows and category tinting ONLY —
-     never text, never buttons. */
-  --mat-sky: #deebf3;
+     never text, never buttons. ALL WARM: same sunlit family as the paper
+     ground and marigold, so the arch reads native (the original cool
+     sky/sage tints read foreign against the warm site and were retired). */
   --mat-butter: #f7e8c3;
   --mat-blush: #f6dfdd;
-  --mat-sage: #e2ebdd;
+  --mat-sand: #f0e5d3;
+  --mat-peach: #f9e4d2;
   /* Elliptical contact shadow that grounds a product in its arch window. */
   --arch-contact: rgba(51, 38, 29, 0.2);
 
@@ -395,11 +397,11 @@
   --accent-blush-strong: #e8a33d;
   --accent-blush-ink: #221a13;
 
-  /* Nursery mats deepen into night tints */
-  --mat-sky: #2c3944;
+  /* Nursery mats deepen into WARM night tints (never cool grey) */
   --mat-butter: #4a3b1e;
   --mat-blush: #46302e;
-  --mat-sage: #2f3b2e;
+  --mat-sand: #3e3325;
+  --mat-peach: #453026;
   --arch-contact: rgba(0, 0, 0, 0.5);
 
   /* Emphasis (berry; dormant on customer surfaces) */

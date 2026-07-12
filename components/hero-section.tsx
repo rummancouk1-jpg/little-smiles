@@ -14,9 +14,9 @@ import { getImageCandidates } from "@/lib/products";
  * framer, no pointer springs; the only motion is the one-shot arch-rise,
  * disabled under prefers-reduced-motion via globals.css.
  */
-const HERO_SRC = "/products/fly-high-swaddle.png";
+const HERO_SRC = "/products/dino-deer-bodysuits.png";
 const HERO_ALT =
-  "Fly High swaddle — white wrap with red, blue and yellow airplanes";
+  "Dino Deer bodysuits — red striped and blue dinosaur prints";
 
 const trustNotes = [
   "Cash on delivery",
@@ -109,9 +109,9 @@ export function HeroSection() {
               contact shadow — nursery window / album frame / smile. */}
           <div className="arch-rise-late relative mx-auto w-full max-w-[26rem] lg:mx-0 lg:max-w-[30rem]">
             <Link
-              href="/shop/fly-high-swaddle"
-              aria-label="View the Fly High swaddle"
-              className="arch-frame block bg-mat-sky pb-9 pt-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/30 sm:pb-11 sm:pt-16"
+              href="/shop/dino-deer-bodysuits"
+              aria-label="View the Dino Deer bodysuits"
+              className="arch-frame block bg-mat-butter pb-9 pt-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-walnut/30 sm:pb-11 sm:pt-16"
             >
               <div className="relative mx-auto aspect-square w-[72%]">
                 <ProductImage
