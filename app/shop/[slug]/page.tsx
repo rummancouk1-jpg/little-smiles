@@ -69,12 +69,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
           className="grid items-start gap-8 lg:grid-cols-2 lg:gap-16"
           aria-labelledby="product-title"
         >
-          <div className="relative rounded-3xl border border-ink-base/10 bg-surface-panel/95 p-5 shadow-[0_30px_62px_-36px_rgba(59,47,47,0.38)] sm:p-7 lg:sticky lg:top-24 lg:self-start">
-            <div className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 rounded-full bg-atmosphere-haze/82 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-6 -right-8 h-28 w-28 rounded-full bg-atmosphere-shade/70 blur-2xl" />
-            <div className="relative">
-              <ProductGallery product={product} />
-            </div>
+          {/* No panel box — the arch window sits directly on the paper
+              ground (Golden Hour "fewer boxes"). */}
+          <div className="relative lg:sticky lg:top-24 lg:self-start">
+            <ProductGallery product={product} />
           </div>
 
           <ProductWhatsappOrder product={product} />

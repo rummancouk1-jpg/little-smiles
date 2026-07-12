@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { ProductImage } from "@/components/product-image";
+import { categoryMatClass } from "@/components/product-grid";
 import { cn } from "@/lib/utils";
 import { getImageCandidates, type Product } from "@/lib/products";
 
@@ -25,15 +26,25 @@ export function ProductGallery({ product }: { product: Product }) {
 
   return (
     <div>
-      <div className="relative h-[320px] rounded-3xl bg-surface-well p-6 sm:h-[460px] sm:p-7">
-        <ProductImage
-          sources={getImageCandidates(active)}
-          alt={`${product.name} — ${product.category} by Little Smiles Pakistan`}
-          fill
-          className="object-contain object-center"
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          priority
-        />
+      {/* The arch window — same signature as the grid cards, on the
+          product's category mat, grounded by the contact shadow. */}
+      <div
+        className={cn(
+          "arch-frame pb-8 pt-12 sm:pb-10 sm:pt-16",
+          categoryMatClass[product.category] ?? "bg-mat-butter",
+        )}
+      >
+        <div className="relative mx-auto aspect-square w-[70%] sm:w-[66%]">
+          <ProductImage
+            sources={getImageCandidates(active)}
+            alt={`${product.name} — ${product.category} by Little Smiles Pakistan`}
+            fill
+            className="object-contain object-center"
+            sizes="(max-width: 1024px) 70vw, 34vw"
+            priority
+          />
+        </div>
+        <div aria-hidden className="arch-floor bottom-[5%] h-4 w-[54%]" />
       </div>
 
       {hasMultiple ? (
