@@ -69,7 +69,7 @@ export function DraftQueue({ drafts, counts, activeStatus, baseHref, detailHref 
         <article className="rounded-3xl border border-ink-base/10 bg-surface-card/90 p-7 text-sm text-ink-base/72 shadow-card-rest sm:p-9">
           No drafts{" "}
           {activeStatus === "all"
-            ? "yet — run the drafting CLI to add one."
+            ? "yet — use “New draft” above to generate one."
             : `in ${STATUS_TONE[activeStatus as DraftStatus].label.toLowerCase()}.`}
         </article>
       ) : (
