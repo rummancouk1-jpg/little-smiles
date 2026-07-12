@@ -1,106 +1,76 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/button";
 import { whatsappBaseUrl } from "@/lib/products";
-import { homepageTestimonials } from "@/lib/testimonials";
-import { cn } from "@/lib/utils";
+import { customerReviews } from "@/lib/reviews";
 
+/**
+ * Honest early-store section. We are a new boutique with no reviews yet —
+ * so this section says exactly that, warmly, instead of showing invented
+ * customers. Once real reviews exist in lib/reviews.ts the lead quote
+ * below switches to the newest real one, verbatim.
+ */
 export function TestimonialsSection() {
+  const latest = customerReviews[0];
+
+  const shareHref = `${whatsappBaseUrl}?text=${encodeURIComponent(
+    "Hi Little Smiles, I ordered from you and would love to share my honest review.",
+  )}`;
+
   return (
     // Paper chapter between the two warm bands.
     <section className="relative bg-transparent pb-20 pt-14 sm:pb-24 sm:pt-16 lg:pb-28 lg:pt-18">
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <Reveal className="max-w-2xl">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Letters</p>
           <h2 className="mt-4 text-balance text-headline font-semibold text-ink-espresso">
-            From families across Pakistan
+            {latest
+              ? "From families across Pakistan"
+              : "Your family could be our first story"}
           </h2>
-          <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
-            Photos and a few words sent in from across the country.
-          </p>
+          {latest ? (
+            <blockquote className="mx-auto mt-8 max-w-xl">
+              <p className="font-heading text-2xl italic leading-[1.3] text-ink-strong sm:text-[1.7rem]">
+                &ldquo;{latest.quote}&rdquo;
+              </p>
+              <cite className="mt-4 block text-xs font-medium uppercase not-italic tracking-[0.12em] text-ink-base/58">
+                {latest.author}
+                {latest.location ? ` — ${latest.location}` : null}
+              </cite>
+            </blockquote>
+          ) : (
+            <p className="mt-5 text-pretty text-base leading-relaxed text-ink-base/68 sm:text-lg">
+              We&apos;re a new boutique, and this space is reserved for real
+              words from real orders — never invented ones. Order something,
+              live with it, and tell us honestly how it went.
+            </p>
+          )}
         </Reveal>
 
-        <div className="mobile-rail mt-10 flex snap-x gap-4 overflow-x-auto pb-1 sm:mt-12 sm:grid sm:snap-none sm:grid-cols-2 sm:items-stretch sm:gap-5 sm:overflow-visible lg:grid-cols-5">
-          {homepageTestimonials.map((item, index) => {
-            const isHero = index === 0;
-            return (
-              <Reveal
-                as="article"
-                key={item.id}
-                index={index}
-                className={cn(
-                  "flex min-w-[84%] snap-start flex-col overflow-hidden rounded-3xl border border-ink-base/9 bg-surface-panel/95 shadow-card-rest sm:min-w-0",
-                  isHero && "lg:col-span-2 lg:grid lg:grid-cols-2 lg:flex-row"
-                )}
-              >
-                <div
-                  className={cn(
-                    "relative aspect-square overflow-hidden bg-atmosphere-mist",
-                    isHero && "lg:aspect-auto lg:h-full"
-                  )}
-                >
-                  <Image
-                    src={item.image}
-                    alt={`Customer testimonial by ${item.author}`}
-                    fill
-                    sizes={
-                      isHero
-                        ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 22vw"
-                        : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                    }
-                    className="object-cover object-center"
-                  />
-                </div>
-                <div
-                  className={cn(
-                    isHero
-                      ? "flex flex-col justify-center gap-5 px-5 pb-6 pt-5 sm:px-6 sm:pb-7 sm:pt-6 lg:px-8 lg:py-10"
-                      : "space-y-3 px-4 pb-5 pt-4"
-                  )}
-                >
-                  <p
-                    className={cn(
-                      isHero
-                        ? "font-heading italic text-xl leading-[1.3] text-ink-espresso sm:text-[1.35rem] lg:text-[1.5rem]"
-                        : "text-sm leading-relaxed text-ink-base/74"
-                    )}
-                  >
-                    &ldquo;{item.quote}&rdquo;
-                  </p>
-                  <p className="text-xs font-medium uppercase tracking-[0.12em] text-ink-base/58">
-                    {item.author} - {item.location}
-                  </p>
-                </div>
-              </Reveal>
-            );
-          })}
-        </div>
-        <Reveal className="mt-10 flex justify-center sm:mt-12">
-          {/* Gentle/human ask, not commerce — stitched outline keeps it quiet
-              so marigold stays reserved for buying actions. */}
+        <Reveal className="mt-9 flex flex-col items-center gap-3 sm:mt-10 sm:flex-row sm:justify-center sm:gap-4">
+          <Button
+            asChild
+            className="h-12 w-full rounded-full bg-accent-marigold px-8 text-sm font-semibold text-accent-marigold-ink shadow-cta transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-accent-marigold-deep [a]:hover:bg-accent-marigold-deep sm:w-auto"
+          >
+            <Link href="/shop">Shop the collection</Link>
+          </Button>
           <Button
             asChild
             variant="outline"
-            className="h-11 rounded-full border-dashed border-ink-base/35 bg-transparent px-7 text-sm font-medium text-ink-walnut shadow-none transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-surface-hover"
+            className="h-11 w-full rounded-full border-dashed border-ink-base/35 bg-transparent px-7 text-sm font-medium text-ink-walnut shadow-none transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-surface-hover sm:w-auto"
           >
-            <Link
-              href={`${whatsappBaseUrl}?text=${encodeURIComponent(
-                "Hi Little Smiles, I would love to share my testimonial."
-              )}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Share Your Story on WhatsApp
+            <Link href={shareHref} target="_blank" rel="noreferrer">
+              Ordered already? Tell us honestly
             </Link>
           </Button>
         </Reveal>
+
         <p className="mt-6 text-center text-sm text-ink-base/58">
           <Link
             href="/reviews"
-            className="font-medium text-ink-walnut underline decoration-ink-base/25 underline-offset-4 transition-colors hover:decoration-ink-walnut/50"
+            className="font-medium text-ink-walnut underline decoration-dashed decoration-ink-base/28 underline-offset-4 transition-colors hover:decoration-ink-walnut/50"
           >
-            Read more reviews
+            How reviews work here
           </Link>
         </p>
       </div>
