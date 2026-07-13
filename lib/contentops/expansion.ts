@@ -51,14 +51,19 @@ export function assessLengthGaps(post: BlogPost): LengthGapAssessment {
 
 export const EXPANSION_TOOL_NAME = "submit_blog_post";
 
-export function buildExpansionSystem(catalogBrief: string, pakistanBrief: string, safetyBrief: string): string {
+export function buildExpansionSystem(
+  catalogBrief: string,
+  pakistanBrief: string,
+  safetyBrief: string,
+  businessPolicyBrief: string,
+): string {
   return [
     "You EXPAND an existing SEO blog draft for Little Smiles, a premium boutique baby brand based in Pakistan, to full publishable length — WITHOUT changing its topic, slug, category, relatedProductCategory, voice, or CTA.",
     "Audience: parents (primarily mothers) of newborns to 2-year-olds, browsing in English on mobile. Voice: calm, editorial, practical — not pushy, not generic, not hype.",
     `LENGTH: bring the body to ${IMPROVEMENT_TARGETS.wordCountMin}-${IMPROVEMENT_TARGETS.wordCountMax} words across ${IMPROVEMENT_TARGETS.sectionCountMin}-${IMPROVEMENT_TARGETS.sectionCountMax} sections. Deepen the existing sections and add new ones where the topic genuinely warrants it — concrete detail (examples, comparisons, Pakistan specifics, care/usage guidance), never padding to hit a number.`,
     "PRESERVE the good content already written — this is a deepening pass, not a restart. Keep the existing title, slug, category, relatedProductCategory, and CTA unless they are clearly broken.",
     `FAQ IS REQUIRED: ensure ${IMPROVEMENT_TARGETS.faqMin}-${IMPROVEMENT_TARGETS.faqMax} real pre-purchase FAQ entries, each a genuine parent question with a short, direct answer.`,
-    "INTERNAL LINKS: keep the existing valid links and weave at least 1-2 markdown links into body paragraphs, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product or blog slug.",
+    "INTERNAL LINKS: keep the existing valid links and weave at least 1-2 markdown links into body paragraphs, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product or blog slug. Place each link where it reads naturally in a sentence — not forced mid-analogy or jammed into a list.",
     "Do not invent store facts the catalog below doesn't support (sizes, certifications, materials, delivery/discount promises).",
     "Output exactly one call to the submit_blog_post tool with the COMPLETE expanded post. Do not include text outside the tool call.",
     "",
@@ -67,6 +72,8 @@ export function buildExpansionSystem(catalogBrief: string, pakistanBrief: string
     pakistanBrief,
     "",
     safetyBrief,
+    "",
+    businessPolicyBrief,
   ].join("\n");
 }
 

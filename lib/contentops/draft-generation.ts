@@ -66,7 +66,7 @@ import {
   type LengthGapAssessment,
 } from "./expansion";
 import { PAKISTAN_BRIEF } from "./pakistan-brief";
-import { SAFETY_BRIEF } from "./safety";
+import { BUSINESS_POLICY_BRIEF, SAFETY_BRIEF } from "./safety";
 import { chooseTemplate } from "./template";
 import { products } from "../products";
 
@@ -232,7 +232,7 @@ function buildPrompt(topic: string, corpus: CorpusEntry[], rejectionCaution: str
     "Answer one parent question deeply, with 2-4 line paragraphs and a single relevant CTA to a shop category. Follow the STRUCTURE guidance below for section and FAQ shape — do not force a fixed skeleton across posts.",
     "LENGTH: aim for 900-1100 words of genuine, developed body content (excluding FAQ), across 5-7 sections. Each section must earn its place with concrete detail — examples, comparisons, local specifics — never padding to reach a number. A thin sub-700-word draft is a failure.",
     "FAQ IS REQUIRED: include 3-5 faq entries every time, each a real pre-purchase question with a short, direct answer. A draft with zero FAQ is incomplete.",
-    "INTERNAL LINKS ARE REQUIRED: weave at least 1-2 links into body paragraphs using markdown, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product slug or a blog slug — a link to anything not on that list is stripped before publish.",
+    "INTERNAL LINKS ARE REQUIRED: weave at least 1-2 links into body paragraphs using markdown, choosing ONLY from the VALID LINK TARGETS listed in the user message. Never invent a product slug or a blog slug — a link to anything not on that list is stripped before publish. Place each link where it reads naturally — as a genuine part of a sentence a reader would want to follow — not forced mid-analogy or jammed into a list.",
     "Output exactly one call to the submit_blog_post tool. Do not include text outside the tool call.",
     "",
     buildCatalogBrief(),
@@ -240,6 +240,8 @@ function buildPrompt(topic: string, corpus: CorpusEntry[], rejectionCaution: str
     PAKISTAN_BRIEF,
     "",
     SAFETY_BRIEF,
+    "",
+    BUSINESS_POLICY_BRIEF,
   ].join("\n");
 
   const user = [
@@ -476,7 +478,7 @@ async function runExpansionIfThin(
           max_tokens: MAX_TOKENS,
           // high effort — this pass writes the content that determines ranking.
           output_config: { effort: "high" },
-          system: buildExpansionSystem(buildCatalogBrief(), PAKISTAN_BRIEF, SAFETY_BRIEF),
+          system: buildExpansionSystem(buildCatalogBrief(), PAKISTAN_BRIEF, SAFETY_BRIEF, BUSINESS_POLICY_BRIEF),
           tools: [
             {
               name: EXPANSION_TOOL_NAME,
