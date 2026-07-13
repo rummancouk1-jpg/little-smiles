@@ -143,6 +143,26 @@ export default async function ContentOpsDraftDetailPage({ params }: PageProps) {
           rejectHref={`/api/admin/contentops/drafts/${draft.id}/reject`}
           backHref="/admin/contentops"
         />
+
+        {/* Bottom "Prepare publish" — same condition + target as the header button, so
+            the reviewer flows review → approve → prepare-publish without scrolling back
+            up. Shown only for approved drafts; appears right after Approve (which calls
+            router.refresh(), re-rendering this page with status === "approved"). */}
+        {draft.status === "approved" ? (
+          <div className="rounded-3xl border border-tone-green/25 bg-tone-green-tint p-5 shadow-card-rest sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-tone-green-deep">
+                Approved — you&apos;re ready to prepare this draft for publishing.
+              </p>
+              <Link
+                href={`/admin/contentops/${draft.id}/prepare-publish`}
+                className="rounded-full bg-tone-green px-4 py-2 text-sm font-medium text-ink-foreground hover:opacity-90"
+              >
+                Prepare publish →
+              </Link>
+            </div>
+          </div>
+        ) : null}
       </section>
     </main>
   );
