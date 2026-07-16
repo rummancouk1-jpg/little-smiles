@@ -8,14 +8,20 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { TopicProvenance } from "@/lib/contentops/topic-provenance";
+
 const TOPIC_MIN = 5;
 const TOPIC_MAX = 200;
+const VISIBILITY_GAP = "visibility_gap";
 
 type TopicSuggestion = {
   keyword: string;
   question: string;
   priority: "high" | "medium" | "low";
   intent: string;
+  /** Phase 3: present for AI-search visibility gaps — labels the chip + threads provenance to the draft. */
+  source?: string | null;
+  provenance?: TopicProvenance | null;
 };
 
 type SuggestionsResponse =
@@ -68,6 +74,9 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
   const [phase, setPhase] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ title: string; id: string } | null>(null);
+  // Provenance of the currently-filled topic — set when a gap chip is clicked, cleared when the operator types
+  // their own topic. Forwarded to generation so a gap-sourced draft stays labelled through to the review queue.
+  const [pendingProvenance, setPendingProvenance] = useState<TopicProvenance | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Topic suggestions — fetched once on open (they're derived + stable). Additive:
@@ -97,9 +106,11 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
   }, [suggestionsHref]);
 
   // Click-to-fill: put the suggested parent question in the topic box, but do NOT
-  // generate — the operator edits if desired and hits Generate themselves.
-  const fillTopic = (question: string) => {
-    setTopic(question.slice(0, TOPIC_MAX));
+  // generate — the operator edits if desired and hits Generate themselves. Captures
+  // the suggestion's provenance (if any) so a gap-sourced draft stays labelled.
+  const fillTopic = (s: TopicSuggestion) => {
+    setTopic(s.question.slice(0, TOPIC_MAX));
+    setPendingProvenance(s.provenance ?? null);
     setError(null);
     setSuccess(null);
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -139,7 +150,8 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
       const response = await fetch(generateHref, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: trimmed }),
+        // Phase 3: forward provenance when this topic came from a visibility-gap chip, so the draft is labelled.
+        body: JSON.stringify({ topic: trimmed, provenance: pendingProvenance ?? undefined }),
       });
       const data = (await response.json().catch(() => null)) as GenerateResponse | null;
       if (!response.ok || !data || data.ok !== true) {
@@ -153,6 +165,7 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
       // queue behind us, and send the operator straight to review.
       setSuccess({ title: data.draft.title, id: data.draft.id });
       setTopic("");
+      setPendingProvenance(null);
       router.refresh();
       router.push(detailHref(data.draft.id));
     } catch {
@@ -228,7 +241,10 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
           ref={inputRef}
           type="text"
           value={topic}
-          onChange={(e) => setTopic(e.target.value)}
+          onChange={(e) => {
+            setTopic(e.target.value);
+            setPendingProvenance(null); // a hand-typed topic is not gap-sourced
+          }}
           onKeyDown={handleKeyDown}
           disabled={isGenerating}
           maxLength={TOPIC_MAX}
@@ -270,7 +286,7 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
                   <li key={s.keyword}>
                     <button
                       type="button"
-                      onClick={() => fillTopic(s.question)}
+                      onClick={() => fillTopic(s)}
                       disabled={isGenerating}
                       className="w-full rounded-xl border border-ink-base/12 bg-surface-card/80 px-3.5 py-2.5 text-left transition-colors hover:border-ink-walnut/40 hover:bg-surface-hover disabled:opacity-50"
                       title="Fill the topic box with this question — you can edit it before generating"
@@ -279,9 +295,21 @@ export function NewDraftForm({ generateHref, detailBaseHref, suggestionsHref }: 
                         <span aria-hidden className={priorityDotClass(s.priority)} />
                         <span className="text-sm text-ink-strong">{s.question}</span>
                       </span>
-                      <span className="mt-0.5 block pl-4 font-mono text-[11px] text-ink-base/55">
-                        {s.keyword} · {s.intent.replace(/_/g, " ")}
-                      </span>
+                      {s.source === VISIBILITY_GAP && s.provenance ? (
+                        <span className="mt-1 block pl-4 text-[11px] text-tone-danger">
+                          <span className="rounded-full bg-emphasis-berry-tint px-1.5 py-0.5 font-medium">AI-search gap</span>
+                          <span className="ml-1.5 text-ink-base/70">
+                            invisible {s.provenance.visibilityStreak} scan{s.provenance.visibilityStreak === 1 ? "" : "s"} running
+                            {s.provenance.competitorsCited.length > 0
+                              ? ` · cited instead: ${s.provenance.competitorsCited.slice(0, 3).join(", ")}`
+                              : ""}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="mt-0.5 block pl-4 font-mono text-[11px] text-ink-base/55">
+                          {s.keyword} · {s.intent.replace(/_/g, " ")}
+                        </span>
+                      )}
                     </button>
                   </li>
                 ))}

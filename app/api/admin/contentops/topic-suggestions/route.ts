@@ -31,6 +31,9 @@ export async function GET(request: Request) {
       question: questions.get(normalizeKeyword(r.keyword)) ?? r.suggestedTitle,
       priority: r.priority,
       intent: r.intent,
+      // Phase 3: carry provenance so the chip can label a gap-sourced suggestion + forward it to generation.
+      source: r.source ?? null,
+      provenance: r.provenance ?? null,
     }));
 
     return NextResponse.json({

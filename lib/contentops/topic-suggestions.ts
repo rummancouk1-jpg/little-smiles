@@ -16,7 +16,10 @@ import {
   normalizeKeyword,
   type KeywordOpportunityIntent,
   type KeywordOpportunityPriority,
+  type KeywordOpportunitySource,
 } from "@/lib/seo-intelligence/keyword-opportunities";
+import { gapProvenance, readVisibilityGaps } from "@/lib/contentops/visibility-gaps";
+import { VISIBILITY_GAP_SOURCE, type TopicProvenance } from "@/lib/contentops/topic-provenance";
 
 /** A ranked, uncovered opportunity ready to become a suggestion (question added
  *  separately by the phrasing step). */
@@ -26,7 +29,27 @@ export type RankedOpportunity = {
   priority: KeywordOpportunityPriority;
   /** The engine's proposed article title — used as a safe question fallback. */
   suggestedTitle: string;
+  /** Where this opportunity came from. Absent → an organic local-site opportunity. */
+  source?: KeywordOpportunitySource;
+  /** Phase 3: present only for visibility-gap opportunities — threads to the chip + the draft so the reviewer
+   *  sees WHY (streak + who's cited). Additive; organic opportunities omit it. */
+  provenance?: TopicProvenance;
 };
+
+/** Map OperatorHQ's persistent visibility gaps → ranked opportunities. High-priority (a gap that has persisted
+ *  ≥N scans is a real, standing absence). Deduped against the organic set by the caller. */
+export function visibilityGapOpportunities(
+  deps: Parameters<typeof readVisibilityGaps>[0] = {},
+): RankedOpportunity[] {
+  return readVisibilityGaps(deps).map((gap) => ({
+    keyword: gap.query,
+    intent: "informational" as KeywordOpportunityIntent, // gap queries are layperson questions
+    priority: "high" as KeywordOpportunityPriority,
+    suggestedTitle: gap.query,
+    source: VISIBILITY_GAP_SOURCE,
+    provenance: gapProvenance(gap),
+  }));
+}
 
 const PRIORITY_RANK: Record<KeywordOpportunityPriority, number> = {
   high: 0,
@@ -76,12 +99,22 @@ export async function getRankedUncoveredOpportunities(limit = 8): Promise<Ranked
     return a.suggestedTitle.localeCompare(b.suggestedTitle);
   });
 
-  return uncovered.slice(0, Math.max(1, Math.min(limit, 12))).map((op) => ({
+  const organic: RankedOpportunity[] = uncovered.map((op) => ({
     keyword: op.keyword,
     intent: op.intent,
     priority: op.priority,
     suggestedTitle: op.suggestedTitle,
   }));
+
+  // Phase 3: prepend persistent visibility-gap opportunities (a standing AI-search absence outranks a local
+  // content-gap idea), deduped by keyword against the organic set so a gap never double-lists. Visibility gaps
+  // are NOT covered-set filtered — being invisible in AI search is orthogonal to whether we've blogged it (a
+  // "we wrote it but AI doesn't cite us" gap is a real, valuable signal), and each carries its own provenance.
+  const gapOpps = visibilityGapOpportunities();
+  const gapKeys = new Set(gapOpps.map((g) => normalizeKeyword(g.keyword)));
+  const merged = [...gapOpps, ...organic.filter((o) => !gapKeys.has(normalizeKeyword(o.keyword)))];
+
+  return merged.slice(0, Math.max(1, Math.min(limit, 12)));
 }
 
 /** Short in-context note on how these are ranked — must not imply search volume. */

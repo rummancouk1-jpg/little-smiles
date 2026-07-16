@@ -48,6 +48,8 @@ function sourceLabel(source: KeywordOpportunitySource): string {
       return "Search Console (future)";
     case "future_api":
       return "External API (future)";
+    case "visibility_gap":
+      return "AI-search gap";
   }
 }
 

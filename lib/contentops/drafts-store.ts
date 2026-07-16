@@ -4,6 +4,7 @@
 
 import { type BlogPost } from "@/lib/contentops/blog-schema";
 import { type CritiqueResult } from "@/lib/contentops/critique";
+import { isEditorialContentUnchanged } from "@/lib/contentops/editorial-fingerprint";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export type DraftStatus = "pending_review" | "approved" | "rejected" | "published";
@@ -33,6 +34,10 @@ export type Draft = {
   slug: string;
   status: DraftStatus;
   content: BlogPost;
+  /** The AI-generated original, captured at insert and never edited afterward. The enforce-edit guard compares
+   *  `content` against this to block publishing a draft the reviewer never touched. Null for drafts created
+   *  before this column existed (guard then allows — additive, never blocks legacy). */
+  original_content: BlogPost | null;
   /** Opus critique-pass flags for the reviewer (null until generated/stored). */
   critique: CritiqueResult | null;
   /**
@@ -279,6 +284,16 @@ export async function markDraftPublished(id: string, content: BlogPost): Promise
   }
   if (existing.status !== "approved") {
     throw new Error(`Only approved drafts can be published (draft is ${existing.status}).`);
+  }
+  // Enforce-edit guard (Phase 3): the approved-status check proves a human APPROVED, not that they EDITED. Since
+  // publishing goes straight live (no second deploy gate), block a draft that is byte-for-byte unchanged from its
+  // AI-generated original — the reviewer must actually touch it first. Strictly additive: it only ever REFUSES;
+  // it never publishes, and it leaves every other gate (approved-status, concurrent-publish) intact. Legacy
+  // drafts (no original_content) are allowed through (isEditorialContentUnchanged returns false when null).
+  if (isEditorialContentUnchanged(existing.content, existing.original_content)) {
+    throw new Error(
+      "This draft hasn't been edited — review and change the AI-generated content before publishing.",
+    );
   }
   const now = new Date().toISOString();
   const payload = {

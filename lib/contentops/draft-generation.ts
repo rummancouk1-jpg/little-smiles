@@ -23,6 +23,7 @@ import { getAllBlogPosts } from "../blog-data";
 import { getSupabaseAdminClient } from "../supabase-admin";
 import { buildCatalogBrief } from "./catalog-brief";
 import { blogPostSchema, type BlogPost } from "./blog-schema";
+import { type TopicProvenance } from "./topic-provenance";
 import {
   buildCorpusBrief,
   findTopicOverlap,
@@ -115,6 +116,9 @@ export type GenerateDraftOptions = {
   anthropicKey?: string;
   /** Best-effort progress callback (CLI prints these; the route ignores them). */
   onProgress?: (message: string) => void;
+  /** Phase 3: topic provenance (visibility-gap) stamped onto the draft content so the reviewer sees WHY.
+   *  Metadata only — never influences generation or any gate. */
+  provenance?: TopicProvenance;
 };
 
 export type GenerateDraftResult = {
@@ -586,20 +590,23 @@ async function insertDraft(
     approved_at: null,
     published_at: null,
   };
-  // Try WITH critique; if the column hasn't been migrated yet (PGRST204),
-  // fall back to inserting without it — mirrors the order-intent pattern.
+  // Phase 3: also store the AI-GENERATED ORIGINAL, so the enforce-edit guard can later detect a draft the
+  // reviewer never touched. Set once at insert; updateDraftContent leaves it untouched (always the AI original).
+  // Try WITH critique + original_content; if a column hasn't been migrated yet (PGRST204), fall back to inserting
+  // without the additive columns — mirrors the order-intent pattern.
   let { data, error } = await client
     .from("contentops_drafts")
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .insert({ ...baseRow, critique } as any)
+    .insert({ ...baseRow, critique, original_content: draft } as any)
     .select("id, slug")
     .single();
   // PostgREST reports a missing column with code PGRST204 (schema-cache miss).
   const columnMissing =
-    error?.code === "PGRST204" || /critique.*column|schema cache/i.test(error?.message ?? "");
+    error?.code === "PGRST204" ||
+    /critique.*column|original_content.*column|schema cache/i.test(error?.message ?? "");
   if (error && columnMissing) {
     onProgress?.(
-      "'critique' column not found — apply supabase/contentops-schema.sql to store critiques. Inserting without it.",
+      "'critique'/'original_content' column not found — apply supabase/contentops-schema.sql. Inserting without them.",
     );
     ({ data, error } = await client
       .from("contentops_drafts")
@@ -712,12 +719,16 @@ export async function generateDraftForTopic(
     onProgress?.(`Critique: ${critique.flags.length} flag(s).`);
   }
 
-  const inserted = await insertDraft(client, repairedDraft, critique, onProgress);
+  // Phase 3: stamp topic provenance (visibility-gap) onto the content so it survives to the review queue.
+  // Additive metadata — declared on blogPostSchema so it isn't stripped; it never touches generation or a gate.
+  const finalDraft: BlogPost = options.provenance ? { ...repairedDraft, provenance: options.provenance } : repairedDraft;
+
+  const inserted = await insertDraft(client, finalDraft, critique, onProgress);
 
   return {
     id: inserted.id,
     slug: inserted.slug,
-    draft: repairedDraft,
+    draft: finalDraft,
     critique,
     validLinkCount,
     strippedLinks,

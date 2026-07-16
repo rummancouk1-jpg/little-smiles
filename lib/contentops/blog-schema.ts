@@ -5,6 +5,8 @@
 
 import { z } from "zod";
 
+import { topicProvenanceSchema } from "@/lib/contentops/topic-provenance";
+
 export const blogCategorySchema = z.enum([
   "Newborn Care",
   "Buying Guide",
@@ -64,6 +66,14 @@ export const blogPostSchema = z.object({
    * section and emitted as FAQPage JSON-LD — the People Also Ask lever.
    */
   faq: z.array(blogFaqItemSchema).optional(),
+  /**
+   * Optional topic provenance (Phase 3 AI-search-visibility loop). Present when
+   * a draft was proposed from a persistent visibility gap, so the reviewer sees
+   * WHY at the gate. Additive + optional: existing posts omit it. Declaring it
+   * on the schema is what makes it SURVIVE parse — a plain z.object strips
+   * unknown keys, which would silently drop provenance. Never affects rendering.
+   */
+  provenance: topicProvenanceSchema.optional(),
 });
 
 export const blogPostsSchema = z.array(blogPostSchema);

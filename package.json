@@ -15,6 +15,7 @@
     "images:audit": "node scripts/audit-product-images.mjs",
     "images:optimize": "node scripts/optimize-product-images.mjs",
     "contentops:draft": "npx tsx scripts/contentops-draft.ts",
+    "test:contentops-visibility": "tsx --test lib/contentops/visibility-gaps.test.ts",
     "contentops:repair-metadata": "npx tsx scripts/contentops-repair-metadata.ts",
     "contentops:expand-draft": "npx tsx scripts/contentops-expand-draft.ts",
     "smoke:order-intent": "npx tsx scripts/smoke-hardening.ts order-intent-write",

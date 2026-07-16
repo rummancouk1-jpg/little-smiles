@@ -34,6 +34,14 @@ alter table public.contentops_drafts
 alter table public.contentops_drafts
   add column if not exists rejection_reason jsonb null;
 
+-- Additive: the AI-generated ORIGINAL content, captured at insert and never
+-- edited afterward. The enforce-edit guard (Phase 3) compares `content` against
+-- this to block publishing a draft the reviewer never touched. Nullable +
+-- backward-compatible; insert degrades gracefully (PGRST204) when not yet
+-- applied, and the guard allows drafts whose original is unknown (null).
+alter table public.contentops_drafts
+  add column if not exists original_content jsonb null;
+
 create index if not exists idx_contentops_drafts_status_created
   on public.contentops_drafts(status, created_at desc);
 

@@ -45,7 +45,9 @@ export type KeywordOpportunitySource =
   | "internal_link_gap"
   | "manual"
   | "future_gsc"
-  | "future_api";
+  | "future_api"
+  // Phase 3: a persistently-invisible AI-search query (streak ≥ N) fed from OperatorHQ's visibility scan.
+  | "visibility_gap";
 
 export type KeywordOpportunityIntent =
   | "informational"
@@ -373,6 +375,7 @@ export async function buildKeywordOpportunityReport(): Promise<KeywordOpportunit
       manual: 0,
       future_gsc: 0,
       future_api: 0,
+      visibility_gap: 0,
     },
   };
   for (const op of opportunities) {
@@ -488,6 +491,8 @@ function sourceDisplay(source: KeywordOpportunitySource): string {
       return "Search Console (future — not wired in v1)";
     case "future_api":
       return "External keyword API (future — not wired in v1)";
+    case "visibility_gap":
+      return "AI-search visibility gap (invisible while competitors are cited)";
   }
 }
 

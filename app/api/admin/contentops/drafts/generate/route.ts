@@ -7,6 +7,7 @@ import {
   generateDraftForTopic,
   type DraftGenerationErrorCode,
 } from "@/lib/contentops/draft-generation";
+import { parseTopicProvenance } from "@/lib/contentops/topic-provenance";
 import { captureServerError } from "@/lib/error-observability";
 
 // Generation can call Anthropic up to four times (draft + up to 2 full-length
@@ -33,9 +34,13 @@ export async function POST(request: Request) {
   }
 
   let topic: string;
+  let provenance: ReturnType<typeof parseTopicProvenance> = null;
   try {
-    const body = (await request.json()) as { topic?: unknown };
+    const body = (await request.json()) as { topic?: unknown; provenance?: unknown };
     topic = typeof body.topic === "string" ? body.topic : "";
+    // Phase 3: optional provenance (visibility-gap). Validated + fail-safe — a bad payload just drops the label,
+    // never blocks generation. It is metadata only; it cannot influence the generated content or any gate.
+    provenance = body.provenance == null ? null : parseTopicProvenance(body.provenance);
   } catch {
     return NextResponse.json(
       { ok: false, error: "Request body must be JSON with a `topic` string." },
@@ -45,7 +50,7 @@ export async function POST(request: Request) {
 
   try {
     // API keys stay server-side (env) — never passed from or exposed to the browser.
-    const result = await generateDraftForTopic(topic);
+    const result = await generateDraftForTopic(topic, provenance ? { provenance } : {});
 
     await logAdminAudit(request, {
       action: "contentops_draft_generate",
